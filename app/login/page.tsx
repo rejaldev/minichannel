@@ -24,8 +24,12 @@ export default function LoginPage() {
       // Save to localStorage
       setAuth(token, user);
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect based on role
+      if (user.role === 'kasir') {
+        router.push('/pos');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login gagal. Silakan coba lagi.');
     } finally {
