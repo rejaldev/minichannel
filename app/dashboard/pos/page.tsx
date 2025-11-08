@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { productsAPI, transactionsAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
 
@@ -35,6 +35,43 @@ export default function POSPage() {
   const [showCustomerInfo, setShowCustomerInfo] = useState(false);
   const [showDiscount, setShowDiscount] = useState(false);
   const { user } = getAuth();
+  
+  // Refs for keyboard navigation
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const checkoutButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Auto-focus search on mount
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // F2: Focus search
+      if (e.key === 'F2') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      // F5: Quick checkout (if cart not empty)
+      if (e.key === 'F5' && cart.length > 0 && !processing) {
+        e.preventDefault();
+        handleCheckout();
+      }
+      // Escape: Clear search or close modal
+      if (e.key === 'Escape') {
+        if (showSuccess) {
+          setShowSuccess(false);
+        } else {
+          setSearch('');
+          searchInputRef.current?.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [cart, processing, showSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchProducts();
@@ -204,10 +241,22 @@ export default function POSPage() {
 
   return (
     <div>
-      <div className="mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
           Point of Sale
         </h1>
+        {/* Keyboard Shortcuts Hint */}
+        <div className="hidden md:flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+          <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <kbd className="font-mono font-semibold">F2</kbd> Cari Produk
+          </span>
+          <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <kbd className="font-mono font-semibold">F5</kbd> Checkout
+          </span>
+          <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <kbd className="font-mono font-semibold">Esc</kbd> Clear
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -216,11 +265,14 @@ export default function POSPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
             <div className="relative mb-6">
               <input
+                ref={searchInputRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari produk..."
-                className="w-full px-5 py-4 pl-12 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-lg"
+                placeholder="Cari produk... (F2)"
+                className="w-full px-5 py-4 pl-12 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-4 focus:ring-green-500 focus:border-green-500 transition text-lg"
+                autoComplete="off"
+                tabIndex={1}
               />
               <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -641,11 +693,13 @@ export default function POSPage() {
 
             {/* Checkout Button */}
             <button
+              ref={checkoutButtonRef}
               onClick={handleCheckout}
               disabled={cart.length === 0 || processing}
-              className="w-full py-3 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+              className="w-full py-4 bg-slate-600 text-white rounded-lg font-bold text-lg hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition focus:ring-4 focus:ring-slate-300"
+              tabIndex={100}
             >
-              {processing ? 'Memproses...' : 'Bayar'}
+              {processing ? 'Memproses...' : 'Bayar (F5)'}
             </button>
           </div>
         </div>

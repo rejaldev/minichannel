@@ -12,14 +12,18 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const { user: currentUser } = getAuth();
+      
       try {
-        // Fetch sales summary
-        const summaryRes = await transactionsAPI.getSummary();
-        setSummary(summaryRes.data);
+        // Only fetch summary for owner/manager (not kasir)
+        if (currentUser && currentUser.role !== 'KASIR') {
+          const summaryRes = await transactionsAPI.getSummary();
+          setSummary(summaryRes.data);
 
-        // Fetch low stock alerts
-        const alertsRes = await productsAPI.getLowStockAlerts();
-        setLowStockAlerts(alertsRes.data);
+          // Fetch low stock alerts
+          const alertsRes = await productsAPI.getLowStockAlerts();
+          setLowStockAlerts(alertsRes.data);
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -28,7 +32,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (

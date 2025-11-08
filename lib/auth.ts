@@ -16,6 +16,9 @@ export interface User {
 export const setAuth = (token: string, user: User) => {
   localStorage.setItem('token', token);
   localStorage.setItem('user', JSON.stringify(user));
+  
+  // Also set cookie for middleware
+  document.cookie = `user=${JSON.stringify(user)}; path=/; max-age=86400`; // 24 hours
 };
 
 export const getAuth = (): { token: string | null; user: User | null } => {
@@ -33,6 +36,9 @@ export const getAuth = (): { token: string | null; user: User | null } => {
 export const clearAuth = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
+  
+  // Clear cookie
+  document.cookie = 'user=; path=/; max-age=0';
 };
 
 export const isAuthenticated = (): boolean => {
