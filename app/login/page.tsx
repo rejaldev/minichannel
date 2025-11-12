@@ -3,7 +3,9 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
+import { authAPI as desktopAuthAPI } from '@/lib/desktop-api';
 import { setAuth } from '@/lib/auth';
+import { isElectron } from '@/lib/platform';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,11 +23,35 @@ export default function LoginPage() {
       const response = await authAPI.login(email, password);
       const { token, user } = response.data;
       
+      // Check if running in Electron (using platform.ts utility)
+      const inElectronApp = isElectron();
+      
+      // KASIR can only login in Electron desktop app
+      if (user.role === 'KASIR' && !inElectronApp) {
+        setError('Akun KASIR hanya bisa login melalui aplikasi desktop. Silakan download aplikasi desktop AnekaBuana Store.');
+        setLoading(false);
+        return;
+      }
+      
       // Save to localStorage
       setAuth(token, user);
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Save token to Electron for sync (if in desktop app)
+      if (inElectronApp) {
+        await desktopAuthAPI.setAuthToken(token);
+      }
+      
+      // Redirect based on role and platform
+      if (user.role === 'KASIR') {
+        // KASIR always goes to POS (only accessible in Electron)
+        router.push('/pos');
+      } else if (inElectronApp) {
+        // OWNER/MANAGER in Electron go to POS
+        router.push('/pos');
+      } else {
+        // OWNER/MANAGER in browser go to dashboard
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login gagal. Silakan coba lagi.');
     } finally {

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { getAuth, clearAuth } from '@/lib/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useTheme } from '@/contexts/ThemeContext';
+import { isElectron } from '@/lib/platform';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,18 +20,46 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
   const [productMenuOpen, setProductMenuOpen] = useState(false);
+  const [inElectron, setInElectron] = useState(false);
+
+  useEffect(() => {
+    // Set sidebar open by default on desktop only
+    const handleResize = () => {
+      if (window.innerWidth >= 768) { // md breakpoint
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    
+    // Set initial state
+    handleResize();
+    
+    // Listen to resize
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const { user: authUser } = getAuth();
     setUser(authUser);
     
+    // Check if running in Electron
+    setInElectron(isElectron());
+    
+    // KASIR should ONLY use desktop app, block web access
+    if (authUser?.role === 'KASIR' && !isElectron()) {
+      router.replace('/access-denied');
+      return;
+    }
+    
     // Auto open product menu if on product-related page
     if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories')) {
       setProductMenuOpen(true);
     }
-  }, [pathname]);
+  }, [pathname, router]);
 
   const handleLogout = () => {
     clearAuth();
@@ -46,17 +75,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       ),
-      roles: ['OWNER', 'MANAGER', 'KASIR'],
-    },
-    {
-      name: 'Kasir / POS',
-      path: '/dashboard/pos',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-      roles: ['OWNER', 'MANAGER', 'KASIR'],
+      roles: ['OWNER', 'MANAGER'],
     },
     {
       name: 'Produk',
@@ -89,7 +108,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       ),
-      roles: ['OWNER', 'MANAGER', 'KASIR'],
+      roles: ['OWNER', 'MANAGER'],
     },
     {
       name: 'Laporan',
@@ -111,15 +130,39 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       ),
       roles: ['OWNER'],
     },
+    {
+      name: 'Settings',
+      path: '/dashboard/settings',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+      roles: ['OWNER', 'MANAGER'],
+    },
   ];
-
-  const filteredMenuItems = menuItems.filter((item) =>
-    user?.role ? item.roles.includes(user.role) : false
-  );
+  
+  const filteredMenuItems = menuItems.filter((item) => {
+    // Filter by role
+    if (!user?.role || !item.roles.includes(user.role)) {
+      return false;
+    }
+    
+    return true;
+  });
 
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        {/* Mobile Overlay - untuk close sidebar saat klik di luar */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
         {/* Sidebar */}
         <aside
           className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl ${
@@ -220,7 +263,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   return (
                     <div key={item.name}>
                       <button
-                        onClick={() => sidebarOpen && setProductMenuOpen(!productMenuOpen)}
+                        onClick={() => {
+                          if (sidebarOpen) {
+                            setProductMenuOpen(!productMenuOpen);
+                          } else {
+                            // Jika sidebar minimize, buka sidebar dulu baru toggle menu
+                            setSidebarOpen(true);
+                            setProductMenuOpen(true);
+                          }
+                        }}
                         className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-lg font-medium transition-all duration-150 ${
                           isAnySubActive
                             ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white'

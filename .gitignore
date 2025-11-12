@@ -40,4 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
+# electron
+/dist
+/dist-electron
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+release/

@@ -135,3 +135,13 @@ export const cabangAPI = {
   updateCabang: (id: string, data: { name?: string; address?: string; phone?: string; isActive?: boolean }) =>
     api.put(`/cabang/${id}`, data),
 };
+
+// Settings API
+export const settingsAPI = {
+  getSettings: () => api.get('/settings'),
+  
+  getSetting: (key: string) => api.get(`/settings/${key}`),
+  
+  updateSettings: (data: { [key: string]: string | number }) =>
+    api.put('/settings', data),
+};

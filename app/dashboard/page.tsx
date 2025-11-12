@@ -43,19 +43,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <div>
+    <div className="px-4 md:px-0">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl shadow-lg p-4 md:p-6 text-white transform hover:scale-105 transition-transform">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <div className="flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-white/20 backdrop-blur-sm rounded-xl">
               <svg
-                className="w-8 h-8"
+                className="w-6 h-6 md:w-8 md:h-8"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
@@ -69,19 +69,19 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="text-right">
-              <p className="text-4xl font-bold">
+              <p className="text-2xl md:text-4xl font-bold">
                 {summary?.totalTransactions || 0}
               </p>
             </div>
           </div>
-          <p className="text-slate-100 text-sm font-medium">Total Transaksi</p>
+          <p className="text-slate-100 text-xs md:text-sm font-medium">Total Transaksi</p>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-4 md:p-6 text-white transform hover:scale-105 transition-transform">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <div className="flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-white/20 backdrop-blur-sm rounded-xl">
               <svg
-                className="w-8 h-8"
+                className="w-6 h-6 md:w-8 md:h-8"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
@@ -95,19 +95,19 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold">
+              <p className="text-xl md:text-3xl font-bold">
                 Rp {Math.floor((summary?.totalRevenue || 0) / 1000)}K
               </p>
             </div>
           </div>
-          <p className="text-green-100 text-sm font-medium">Total Pendapatan</p>
+          <p className="text-green-100 text-xs md:text-sm font-medium">Total Pendapatan</p>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl">
+        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg p-4 md:p-6 text-white transform hover:scale-105 transition-transform">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <div className="flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-white/20 backdrop-blur-sm rounded-xl">
               <svg
-                className="w-8 h-8"
+                className="w-6 h-6 md:w-8 md:h-8"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
@@ -121,32 +121,32 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="text-right">
-              <p className="text-4xl font-bold">
+              <p className="text-2xl md:text-4xl font-bold">
                 {lowStockAlerts.length}
               </p>
             </div>
           </div>
-          <p className="text-amber-100 text-sm font-medium">Stok Menipis</p>
+          <p className="text-amber-100 text-xs md:text-sm font-medium">Stok Menipis</p>
         </div>
       </div>
 
       {/* Payment Method Breakdown */}
       {summary?.paymentMethodBreakdown && summary.paymentMethodBreakdown.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6 md:mb-8">
+          <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">
             Metode Pembayaran
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {summary.paymentMethodBreakdown.map((method: any) => (
               <div
                 key={method.paymentMethod}
-                className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                className="p-3 md:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
               >
-                <p className="text-sm text-gray-600 dark:text-gray-400">{method.paymentMethod}</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">{method.paymentMethod}</p>
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                   {method._count.id} transaksi
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
                   Rp {(method._sum.total || 0).toLocaleString('id-ID')}
                 </p>
               </div>
@@ -157,15 +157,16 @@ export default function DashboardPage() {
 
       {/* Low Stock Alerts */}
       {lowStockAlerts.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">
             Peringatan Stok Menipis
           </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+          <div className="overflow-x-auto -mx-4 md:mx-0">
+            <div className="inline-block min-w-full align-middle px-4 md:px-0">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Produk
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -212,6 +213,7 @@ export default function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
@@ -219,40 +221,13 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <a
-          href="/dashboard/pos"
-          className="group block p-8 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 rounded-xl shadow-lg transition transform hover:scale-105"
-        >
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-4 bg-white bg-opacity-20 rounded-xl group-hover:bg-opacity-30 transition">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-            <div className="ml-6">
-              <h3 className="text-xl font-bold text-white mb-1">Kasir / POS</h3>
-              <p className="text-slate-100">Mulai transaksi penjualan baru</p>
-            </div>
-          </div>
-        </a>
-
-        <a
           href="/dashboard/products"
-          className="group block p-8 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl shadow-lg border-2 border-gray-200 dark:border-gray-700 hover:border-slate-500 dark:hover:border-slate-400 transition transform hover:scale-105"
+          className="group block p-6 md:p-8 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 rounded-xl shadow-lg transition transform hover:scale-105"
         >
           <div className="flex items-center">
-            <div className="flex-shrink-0 p-4 bg-slate-100 dark:bg-slate-900 rounded-xl group-hover:bg-slate-200 dark:group-hover:bg-slate-800 transition">
+            <div className="flex-shrink-0 p-3 md:p-4 bg-white bg-opacity-20 rounded-xl group-hover:bg-opacity-30 transition">
               <svg
-                className="w-8 h-8 text-slate-600 dark:text-slate-400"
+                className="w-6 h-6 md:w-8 md:h-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -265,9 +240,36 @@ export default function DashboardPage() {
                 />
               </svg>
             </div>
-            <div className="ml-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Kelola Produk</h3>
-              <p className="text-gray-600 dark:text-gray-400">Tambah atau edit produk & stok</p>
+            <div className="ml-4 md:ml-6">
+              <h3 className="text-lg md:text-xl font-bold text-white mb-1">Kelola Produk</h3>
+              <p className="text-sm md:text-base text-slate-100">Tambah atau edit produk & stok</p>
+            </div>
+          </div>
+        </a>
+
+        <a
+          href="/dashboard/transactions"
+          className="group block p-6 md:p-8 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl shadow-lg border-2 border-gray-200 dark:border-gray-700 hover:border-slate-500 dark:hover:border-slate-400 transition transform hover:scale-105"
+        >
+          <div className="flex items-center">
+            <div className="flex-shrink-0 p-3 md:p-4 bg-slate-100 dark:bg-slate-900 rounded-xl group-hover:bg-slate-200 dark:group-hover:bg-slate-800 transition">
+              <svg
+                className="w-6 h-6 md:w-8 md:h-8 text-slate-600 dark:text-slate-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                />
+              </svg>
+            </div>
+            <div className="ml-4 md:ml-6">
+              <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-1">Riwayat Transaksi</h3>
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">Lihat semua transaksi</p>
             </div>
           </div>
         </a>
