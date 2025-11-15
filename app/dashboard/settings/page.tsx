@@ -6,14 +6,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'general' | 'printer' | 'backup'>('general');
 
   return (
-    <div className="p-4 md:p-6">
-      <div className="mb-4 md:mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
-        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
-          Kelola pengaturan sistem dan preferensi aplikasi
-        </p>
-      </div>
-
+    <div className="px-4 md:px-6">
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700 mb-4 md:mb-6 overflow-x-auto">
         <nav className="flex space-x-4 md:space-x-8 min-w-max md:min-w-0">

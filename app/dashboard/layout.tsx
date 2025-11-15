@@ -145,13 +145,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        {/* Mobile Overlay - untuk close sidebar saat klik di luar */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+        {/* Mobile Overlay - untuk close sidebar saat klik di luar (HANYA MOBILE) */}
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden transition-opacity duration-300 ${
+            sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setSidebarOpen(false)}
+        />
         
         {/* Sidebar */}
         <aside
@@ -298,9 +298,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content */}
-        <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-16'}`}>
-          {/* Header - STICKY */}
-          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300 sticky top-0 z-30">
+        <div className="transition-all duration-300">
+          {/* Header - STICKY dengan margin sesuai sidebar */}
+          <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-30 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>
             <div className="px-4 md:px-6 py-3 md:py-4">
               {/* Mobile: Title + User Dropdown */}
               <div className="flex items-center justify-between md:hidden mb-2">
@@ -528,8 +528,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          {/* Page Content */}
-          <main className="p-6 min-h-screen">{children}</main>
+          {/* Page Content dengan margin sesuai sidebar */}
+          <main className={`p-6 min-h-screen transition-all duration-300 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>{children}</main>
         </div>
       </div>
     </ProtectedRoute>

@@ -150,16 +150,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Test Account Info */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 text-center mb-2">
-              <strong>Akun Test:</strong>
-            </p>
-            <p className="text-xs text-gray-500 text-center font-mono">
-              owner@toko.com / owner123
-            </p>
-          </div>
         </div>
 
         {/* Footer */}
