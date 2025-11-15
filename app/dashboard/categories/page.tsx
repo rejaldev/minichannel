@@ -80,16 +80,19 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 px-4 md:px-0">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Kategori Produk</h1>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Kelola kategori untuk produk Anda</p>
-        </div>
+    <div className="space-y-4 md:space-y-6 px-4 md:px-6">
+      {/* Breadcrumb + Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+            Home
+          </a>
+          <span>›</span>
+          <span className="font-semibold text-gray-900 dark:text-white">Kategori Produk</span>
+        </nav>
         <button
           onClick={() => handleOpenModal()}
-          className="w-full md:w-auto px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg md:rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 text-xs sm:text-sm md:text-base bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all whitespace-nowrap"
         >
           + Tambah Kategori
         </button>

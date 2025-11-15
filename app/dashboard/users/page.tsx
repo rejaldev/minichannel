@@ -94,17 +94,19 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="px-4 md:px-0">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
-            User Management
-          </h1>
-        </div>
+    <div className="px-4 md:px-6">
+      {/* Breadcrumb + Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+            Home
+          </a>
+          <span>›</span>
+          <span className="font-semibold text-gray-900 dark:text-white">Manajemen Users</span>
+        </nav>
         <button
           onClick={() => setShowModal(true)}
-          className="w-full md:w-auto px-4 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg md:rounded-xl hover:from-slate-700 hover:to-slate-800 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 text-xs sm:text-sm md:text-base bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:from-slate-700 hover:to-slate-800 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all whitespace-nowrap"
         >
           + Tambah User
         </button>

@@ -252,8 +252,6 @@ export default function EditProductPage() {
           </svg>
           Kembali
         </button>
-        <h1 className="text-3xl font-bold text-gray-900">Edit Produk</h1>
-        <p className="text-gray-600 mt-1">Update informasi produk dan stok</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

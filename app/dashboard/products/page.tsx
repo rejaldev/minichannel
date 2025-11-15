@@ -88,49 +88,45 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="px-4 md:px-0">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
-            Produk
-          </h1>
-        </div>
-        <div className="flex items-center space-x-2 md:space-x-3 w-full md:w-auto">
-          {selectedProducts.length > 0 && (
-            <button
-              onClick={handleBulkDelete}
-              disabled={deleting}
-              className="inline-flex items-center px-3 md:px-6 py-2 md:py-3 bg-slate-600 text-white rounded-lg md:rounded-xl hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl text-sm md:text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              <span className="hidden md:inline">{deleting ? 'Menghapus...' : `Hapus ${selectedProducts.length} Produk`}</span>
-              <span className="md:hidden">{deleting ? '...' : `Hapus (${selectedProducts.length})`}</span>
-            </button>
-          )}
-          <a
-            href="/dashboard/products/new"
-            className="inline-flex items-center px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg md:rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-sm md:text-base font-medium flex-1 md:flex-none justify-center"
-          >
-            <svg
-              className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Tambah Produk
+    <div className="px-4 md:px-6">
+      {/* Breadcrumb + Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+            Home
           </a>
-        </div>
+          <span>›</span>
+          <span className="font-semibold text-gray-900 dark:text-white">Kelola Produk</span>
+        </nav>
+        <a
+          href="/dashboard/products/new"
+          className="inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg hover:shadow-xl text-xs sm:text-sm font-medium whitespace-nowrap"
+        >
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Tambah Produk
+        </a>
       </div>
+
+      {/* Bulk Actions */}
+      {selectedProducts.length > 0 && (
+        <div className="mb-4 flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+          <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+            {selectedProducts.length} produk dipilih
+          </span>
+          <button
+            onClick={handleBulkDelete}
+            disabled={deleting}
+            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm font-medium disabled:opacity-50"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            {deleting ? 'Menghapus...' : `Hapus ${selectedProducts.length} Produk`}
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-gradient-to-br from-white to-slate-50 dark:from-gray-800 dark:to-slate-900/20 rounded-xl md:rounded-2xl shadow-lg border border-slate-100 dark:border-slate-800 p-4 md:p-6 mb-6 md:mb-8">
