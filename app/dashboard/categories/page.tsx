@@ -81,8 +81,15 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-4 md:space-y-6 px-4 md:px-6">
-      {/* Action Button */}
-      <div className="flex justify-end mb-4">
+      {/* Breadcrumb + Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+            Home
+          </a>
+          <span>›</span>
+          <span className="font-semibold text-gray-900 dark:text-white">Kategori Produk</span>
+        </nav>
         <button
           onClick={() => handleOpenModal()}
           className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 text-xs sm:text-sm md:text-base bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all whitespace-nowrap"
