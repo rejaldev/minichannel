@@ -388,21 +388,102 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-16'}`}>
           {/* Header - STICKY */}
           <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300 sticky top-0 z-30">
-            <div className="px-6 py-4 flex items-center justify-end">
-              <div className="flex items-center space-x-4">
-                <div className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-xl">
-                  <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+            <div className="px-4 md:px-6 py-3 md:py-4">
+              {/* Mobile: Hamburger + Title */}
+              <div className="flex items-center justify-between md:hidden mb-2">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {new Date().toLocaleDateString('id-ID', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </span>
+                </button>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {pathname === '/dashboard' ? 'Dashboard' :
+                   pathname.includes('/products') ? 'Produk' :
+                   pathname.includes('/transactions') ? 'Transaksi' :
+                   pathname.includes('/reports') ? 'Laporan' :
+                   pathname.includes('/users') ? 'Users' :
+                   pathname.includes('/settings') ? 'Settings' :
+                   pathname.includes('/categories') ? 'Kategori' : 'Dashboard'}
+                </h1>
+                <div className="w-10"></div>
+              </div>
+              
+              {/* Desktop: Full navbar with page title, greeting, and date */}
+              <div className="hidden md:flex items-center justify-between">
+                {/* Left: Page title + greeting */}
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {pathname === '/dashboard' ? 'Dashboard' :
+                     pathname.includes('/products') ? 'Kelola Produk' :
+                     pathname.includes('/transactions') ? 'Transaksi' :
+                     pathname.includes('/reports') ? 'Laporan' :
+                     pathname.includes('/users') ? 'Manajemen Users' :
+                     pathname.includes('/settings') ? 'Pengaturan' :
+                     pathname.includes('/categories') ? 'Kategori Produk' : 'Dashboard'}
+                  </h1>
+                  {user && pathname === '/dashboard' && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Selamat datang kembali, <span className="font-semibold">{user.name}</span>
+                    </p>
+                  )}
                 </div>
+                
+                {/* Right: User info + date */}
+                <div className="flex items-center gap-4">
+                  {/* Branch selector (if multi-branch) */}
+                  {user?.cabang && (
+                    <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">Cabang:</span>
+                      <span className="ml-1.5 text-sm font-semibold text-gray-900 dark:text-white">
+                        {user.cabang.name}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Date */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-lg">
+                    <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {new Date().toLocaleDateString('id-ID', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  
+                  {/* User badge */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-600 text-white rounded-lg">
+                    <div className="w-7 h-7 flex items-center justify-center bg-white/20 rounded-full text-xs font-bold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold">{user?.name}</p>
+                      <p className="text-xs opacity-80">{user?.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Mobile: Date */}
+              <div className="flex md:hidden items-center justify-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-lg">
+                <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {new Date().toLocaleDateString('id-ID', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </span>
               </div>
             </div>
           </header>

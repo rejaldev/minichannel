@@ -43,12 +43,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="px-4 md:px-0">
-      {/* Page Header */}
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-      </div>
-
+    <div className="px-4 md:px-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <div className="bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl shadow-lg p-4 md:p-6 text-white transform hover:scale-105 transition-transform">
@@ -95,12 +90,16 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div className="text-right">
-              <p className="text-xl md:text-3xl font-bold">
-                Rp {Math.floor((summary?.totalRevenue || 0) / 1000)}K
+              <p className="text-lg md:text-2xl lg:text-3xl font-bold">
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                  minimumFractionDigits: 0
+                }).format(summary?.totalRevenue || 0)}
               </p>
             </div>
           </div>
-          <p className="text-green-100 text-xs md:text-sm font-medium">Total Pendapatan</p>
+          <p className="text-blue-100 text-xs md:text-sm font-medium">Total Pendapatan</p>
         </div>
 
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg p-4 md:p-6 text-white transform hover:scale-105 transition-transform">
