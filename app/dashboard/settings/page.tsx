@@ -7,15 +7,6 @@ export default function SettingsPage() {
 
   return (
     <div className="px-4 md:px-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Home
-        </a>
-        <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Pengaturan</span>
-      </nav>
-
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700 mb-4 md:mb-6 overflow-x-auto">
         <nav className="flex space-x-4 md:space-x-8 min-w-max md:min-w-0">

@@ -156,7 +156,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Sidebar */}
         <aside
           className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl ${
-            sidebarOpen ? 'w-72' : 'w-16'
+            sidebarOpen ? 'w-72' : 'w-16 -translate-x-full md:translate-x-0'
           }`}
         >
           <div className="h-full flex flex-col overflow-hidden">
@@ -302,17 +302,27 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {/* Header - STICKY dengan margin sesuai sidebar */}
           <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-30 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>
             <div className="px-4 md:px-6 py-3 md:py-4">
-              {/* Mobile: Title + User Dropdown */}
-              <div className="flex items-center justify-between md:hidden mb-2">
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {pathname === '/dashboard' ? 'Dashboard' :
-                   pathname.includes('/products') ? 'Produk' :
-                   pathname.includes('/transactions') ? 'Transaksi' :
-                   pathname.includes('/reports') ? 'Laporan' :
-                   pathname.includes('/users') ? 'Users' :
-                   pathname.includes('/settings') ? 'Settings' :
-                   pathname.includes('/categories') ? 'Kategori' : 'Dashboard'}
-                </h1>
+              {/* Mobile: Hamburger + Title + User Dropdown */}
+              <div className="flex items-center justify-between md:hidden">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                  <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {pathname === '/dashboard' ? 'Dashboard' :
+                     pathname.includes('/products') ? 'Produk' :
+                     pathname.includes('/transactions') ? 'Transaksi' :
+                     pathname.includes('/reports') ? 'Laporan' :
+                     pathname.includes('/users') ? 'Users' :
+                     pathname.includes('/settings') ? 'Settings' :
+                     pathname.includes('/categories') ? 'Kategori' : 'Dashboard'}
+                  </h1>
+                </div>
                 
                 {/* User Dropdown - Mobile */}
                 {user && (
@@ -509,21 +519,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     </div>
                   )}
                 </div>
-              </div>
-              
-              {/* Mobile: Date */}
-              <div className="flex md:hidden items-center justify-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-lg">
-                <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {new Date().toLocaleDateString('id-ID', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
               </div>
             </div>
           </header>

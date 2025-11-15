@@ -89,15 +89,8 @@ export default function ProductsPage() {
 
   return (
     <div className="px-4 md:px-6">
-      {/* Breadcrumb + Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-            Home
-          </a>
-          <span>›</span>
-          <span className="font-semibold text-gray-900 dark:text-white">Kelola Produk</span>
-        </nav>
+      {/* Action Button */}
+      <div className="flex justify-end mb-6">
         <a
           href="/dashboard/products/new"
           className="inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg hover:shadow-xl text-xs sm:text-sm font-medium whitespace-nowrap"
