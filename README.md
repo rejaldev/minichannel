@@ -2,7 +2,7 @@
 
 Dashboard browser untuk manajemen toko Aneka Buana (Next.js 15 + TypeScript + Tailwind CSS).
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 npm install
@@ -11,7 +11,7 @@ npm run dev
 
 **URL:** http://localhost:3000
 
-## 🌟 Features
+## Features
 
 ### Pages
 - **Dashboard** (`/dashboard`) - Overview transaksi, revenue, low stock alerts
@@ -20,9 +20,9 @@ npm run dev
 - **Reports** (`/dashboard/reports`) - Summary revenue & payment methods
 - **Users** (`/dashboard/users`) - User management dengan role (OWNER, MANAGER, KASIR)
 - **Categories** (`/dashboard/categories`) - Manajemen kategori produk
-- **Settings** (`/dashboard/settings`) - ⭐ **NEW** Printer settings dengan live preview
+- **Settings** (`/dashboard/settings`) -  **NEW** Printer settings dengan live preview
 
-### Settings Page (New!)
+### Settings Page
 **Path:** `/dashboard/settings`
 
 **3 Tabs:**
@@ -38,10 +38,10 @@ npm run dev
 3. **Backup & Data** - Auto backup, export, danger zone
 
 **Features:**
-- ✅ Fully mobile responsive
-- ✅ Real-time preview as you type
-- ✅ Saves to backend API (`/api/settings/printer`)
-- ✅ Desktop POS fetches these settings
+- Fully mobile responsive
+- Real-time preview as you type
+- Saves to backend API (`/api/settings/printer`)
+- Desktop POS fetches these settings
 
 ### Authentication
 - JWT-based authentication with localStorage
@@ -49,11 +49,11 @@ npm run dev
 - Role-based access control (OWNER, MANAGER, KASIR)
 
 ### Responsive Design
-- ✅ Mobile-first approach
-- ✅ Breakpoints: mobile (<768px), tablet (≥768px), desktop (≥1024px)
-- ✅ All pages responsive including Settings
+- Mobile-first approach
+- Breakpoints: mobile (<768px), tablet (≥768px), desktop (≥1024px)
+- All pages responsive including Settings
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 frontend/
@@ -65,7 +65,7 @@ frontend/
 │   │   ├── reports/        # Reports & analytics
 │   │   ├── users/          # User management
 │   │   ├── categories/     # Category management
-│   │   └── settings/       # ⭐ NEW - Printer settings
+│   │   └── settings/       # Printer settings
 │   ├── login/              # Login page
 │   ├── layout.tsx          # Root layout
 │   └── globals.css         # Global styles
@@ -75,12 +75,11 @@ frontend/
 │   └── ThemeContext.tsx    # Theme provider
 ├── lib/                    # Utilities
 │   ├── api.ts              # API client functions
-│   ├── auth.ts             # Auth utilities
-│   └── platform.ts         # Platform detection
+│   └── auth.ts             # Auth utilities
 └── public/                 # Static assets
 ```
 
-## 🔌 API Integration
+## API Integration
 
 ### Backend API
 **Base URL:** http://localhost:5000
@@ -91,8 +90,8 @@ frontend/
 - `GET /api/products` - Get products with filters
 - `GET /api/transactions` - Get transactions
 - `GET /api/transactions/summary` - Get summary
-- `GET /api/settings/printer?cabangId=xxx` - ⭐ NEW Get printer settings
-- `PUT /api/settings/printer` - ⭐ NEW Update printer settings
+- `GET /api/settings/printer?cabangId=xxx` - Get printer settings
+- `PUT /api/settings/printer` - Update printer settings
 
 ### Example API Call
 ```typescript
@@ -115,17 +114,16 @@ export const settingsAPI = {
 };
 ```
 
-## 🎨 Tech Stack
+## Tech Stack
 
 - **Framework:** Next.js 15 (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
-- **Icons:** Lucide React
-- **HTTP Client:** Fetch API
+- **HTTP Client:** Axios (lib/api.ts)
 - **Authentication:** JWT with localStorage
 - **State Management:** React Hooks (useState, useEffect, useContext)
 
-## 📝 Environment Variables
+## Environment Variables
 
 Create `.env.local`:
 
@@ -133,7 +131,7 @@ Create `.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
-## 🛠️ Available Scripts
+## Available Scripts
 
 ```bash
 # Development
@@ -147,7 +145,7 @@ npm run start        # Start production server
 npm run lint         # Run ESLint
 ```
 
-## 📱 Mobile Responsive Examples
+## Mobile Responsive Examples
 
 ```tsx
 // Padding responsive
@@ -163,22 +161,29 @@ npm run lint         # Run ESLint
 <button className="w-full md:w-auto">
 ```
 
-## 🔄 Recent Updates
+## Recent Updates
+
+### v1.2.1 (Nov 15, 2025)
+- Removed unused Electron dependencies (escpos, electron, electron-builder, concurrently, wait-on)
+- Removed unused files (lib/desktop-api.ts, lib/platform.ts, types/electron.d.ts)
+- Simplified login logic (removed Electron detection)
+- Updated package.json to web-only dependencies
+- Package size reduced by ~40%
 
 ### v1.1.0 (Nov 13, 2025)
-- ✅ Added centralized printer settings page
-- ✅ Live receipt preview with customizable header/footer
-- ✅ API integration for settings persistence
-- ✅ Mobile responsive settings page
+- Added centralized printer settings page
+- Live receipt preview with customizable header/footer
+- API integration for settings persistence
+- Mobile responsive settings page
 
 ### v1.0.0
-- ✅ All dashboard pages mobile responsive
-- ✅ User management with roles
-- ✅ Product management with variants
-- ✅ Transaction history with filters
-- ✅ Reports & analytics
+- All dashboard pages mobile responsive
+- User management with roles
+- Product management with variants
+- Transaction history with filters
+- Reports & analytics
 
-## 🚀 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 ```bash
@@ -193,15 +198,14 @@ vercel --prod
 Add in Vercel dashboard:
 - `NEXT_PUBLIC_API_URL` - Your backend API URL
 
-## 📚 Learn More
+## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [TypeScript](https://www.typescriptlang.org/docs)
-- [Lucide Icons](https://lucide.dev)
 
 ---
 
-**Last Updated:** November 13, 2025  
-**Version:** 1.1.0  
+**Last Updated:** November 15, 2025  
+**Version:** 1.2.1  
 **Port:** 3000

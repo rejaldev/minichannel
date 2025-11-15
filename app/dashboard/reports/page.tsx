@@ -120,12 +120,16 @@ export default function ReportsPage() {
               </svg>
             </div>
             <div className="text-right">
-              <p className="text-2xl md:text-3xl font-bold">
-                Rp {((summary?.totalRevenue || 0) / 1000).toFixed(0)}K
+              <p className="text-lg md:text-2xl lg:text-3xl font-bold">
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                  minimumFractionDigits: 0
+                }).format(summary?.totalRevenue || 0)}
               </p>
             </div>
           </div>
-          <p className="text-green-100 text-xs md:text-sm font-medium">Total Pendapatan</p>
+          <p className="text-blue-100 text-xs md:text-sm font-medium">Total Pendapatan</p>
         </div>
 
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg p-4 md:p-6 text-white">

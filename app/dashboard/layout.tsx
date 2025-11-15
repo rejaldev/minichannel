@@ -5,7 +5,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { getAuth, clearAuth } from '@/lib/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useTheme } from '@/contexts/ThemeContext';
-import { isElectron } from '@/lib/platform';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,7 +21,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
   const [productMenuOpen, setProductMenuOpen] = useState(false);
-  const [inElectron, setInElectron] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
     // Set sidebar open by default on desktop only
@@ -45,15 +44,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const { user: authUser } = getAuth();
     setUser(authUser);
-    
-    // Check if running in Electron
-    setInElectron(isElectron());
-    
-    // KASIR should ONLY use desktop app, block web access
-    if (authUser?.role === 'KASIR' && !isElectron()) {
-      router.replace('/access-denied');
-      return;
-    }
     
     // Auto open product menu if on product-related page
     if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories')) {
@@ -216,43 +206,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* User Info */}
-            {user && (
-              <div className={`mx-3 my-4 transition-all ${
-                sidebarOpen 
-                  ? 'p-3.5 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700'
-                  : 'p-2 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center'
-              }`}>
-                {sidebarOpen ? (
-                  <>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user.name}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 truncate">{user.email}</p>
-                    <div className="mt-2.5 flex items-center gap-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-bold bg-slate-600 text-white rounded-full uppercase tracking-wide">
-                        {user.role}
-                      </span>
-                      {user.cabang && (
-                        <span className="text-xs text-gray-600 dark:text-gray-300 font-medium truncate">
-                          {user.cabang.name}
-                        </span>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="w-8 h-8 flex items-center justify-center text-white font-bold text-sm">
-                    {user.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Divider */}
-            {sidebarOpen && (
-              <div className="px-4 mb-2">
-                <div className="h-px bg-gray-200 dark:bg-gray-700"></div>
-              </div>
-            )}
-
             {/* Navigation Menu */}
             <nav className="flex-1 px-3 pb-4 space-y-0.5 overflow-y-auto">
               {filteredMenuItems.map((item) => {
@@ -341,46 +294,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 );
               })}
             </nav>
-
-            {/* Bottom Section - STICKY */}
-            <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-3 space-y-1 bg-white dark:bg-gray-800 sticky bottom-0 z-10">
-              {/* Dark Mode Toggle */}
-              <button
-                onClick={toggleTheme}
-                className={`w-full flex items-center ${sidebarOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-sm font-medium`}
-                title={!sidebarOpen ? 'Dark Mode' : ''}
-              >
-                {theme === 'dark' ? (
-                  <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                  </svg>
-                )}
-                {sidebarOpen && (
-                  <>
-                    <span>Dark Mode</span>
-                    <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                      {theme === 'dark' ? 'On' : 'Off'}
-                    </span>
-                  </>
-                )}
-              </button>
-
-              {/* Logout */}
-              <button
-                onClick={handleLogout}
-                className={`w-full flex items-center ${sidebarOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/20 transition-all text-sm font-medium`}
-                title={!sidebarOpen ? 'Logout' : ''}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                {sidebarOpen && <span>Logout</span>}
-              </button>
-            </div>
           </div>
         </aside>
 
@@ -389,16 +302,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {/* Header - STICKY */}
           <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300 sticky top-0 z-30">
             <div className="px-4 md:px-6 py-3 md:py-4">
-              {/* Mobile: Hamburger + Title */}
+              {/* Mobile: Title + User Dropdown */}
               <div className="flex items-center justify-between md:hidden mb-2">
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                   {pathname === '/dashboard' ? 'Dashboard' :
                    pathname.includes('/products') ? 'Produk' :
@@ -408,7 +313,83 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                    pathname.includes('/settings') ? 'Settings' :
                    pathname.includes('/categories') ? 'Kategori' : 'Dashboard'}
                 </h1>
-                <div className="w-10"></div>
+                
+                {/* User Dropdown - Mobile */}
+                {user && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      className="flex items-center gap-2 px-2 py-1.5 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+                    >
+                      <div className="w-7 h-7 flex items-center justify-center bg-white/20 rounded-full text-xs font-bold">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm font-semibold">{user.name.split(' ')[0]}</span>
+                      <svg className={`w-4 h-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {/* Dropdown Menu */}
+                    {userMenuOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                          {/* User Info */}
+                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{user.email}</p>
+                            <span className="inline-block mt-2 px-2 py-0.5 text-xs font-bold bg-slate-600 text-white rounded uppercase">
+                              {user.role}
+                            </span>
+                          </div>
+                          
+                          {/* Branch Info */}
+                          {user.cabang && (
+                            <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Cabang</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.cabang.name}</p>
+                            </div>
+                          )}
+                          
+                          {/* Dark Mode Toggle */}
+                          <button
+                            onClick={() => {
+                              toggleTheme();
+                              setUserMenuOpen(false);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+                          >
+                            {theme === 'dark' ? (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                              </svg>
+                            )}
+                            <span>{theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}</span>
+                          </button>
+                          
+                          {/* Logout */}
+                          <button
+                            onClick={() => {
+                              handleLogout();
+                              setUserMenuOpen(false);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            <span>Logout</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
               
               {/* Desktop: Full navbar with page title, greeting, and date */}
@@ -431,18 +412,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   )}
                 </div>
                 
-                {/* Right: User info + date */}
+                {/* Right: Date + User Dropdown */}
                 <div className="flex items-center gap-4">
-                  {/* Branch selector (if multi-branch) */}
-                  {user?.cabang && (
-                    <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Cabang:</span>
-                      <span className="ml-1.5 text-sm font-semibold text-gray-900 dark:text-white">
-                        {user.cabang.name}
-                      </span>
-                    </div>
-                  )}
-                  
                   {/* Date */}
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-lg">
                     <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
@@ -458,16 +429,85 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     </span>
                   </div>
                   
-                  {/* User badge */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-600 text-white rounded-lg">
-                    <div className="w-7 h-7 flex items-center justify-center bg-white/20 rounded-full text-xs font-bold">
-                      {user?.name?.charAt(0).toUpperCase()}
+                  {/* User Dropdown - Desktop */}
+                  {user && (
+                    <div className="relative">
+                      <button
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+                      >
+                        <div className="w-7 h-7 flex items-center justify-center bg-white/20 rounded-full text-xs font-bold">
+                          {user.name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-semibold">{user.name}</p>
+                          <p className="text-xs opacity-80">{user.role}</p>
+                        </div>
+                        <svg className={`w-4 h-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Dropdown Menu */}
+                      {userMenuOpen && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                          <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                            {/* User Info */}
+                            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{user.email}</p>
+                              <span className="inline-block mt-2 px-2 py-0.5 text-xs font-bold bg-slate-600 text-white rounded uppercase">
+                                {user.role}
+                              </span>
+                            </div>
+                            
+                            {/* Branch Info */}
+                            {user.cabang && (
+                              <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Cabang</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.cabang.name}</p>
+                              </div>
+                            )}
+                            
+                            {/* Dark Mode Toggle */}
+                            <button
+                              onClick={() => {
+                                toggleTheme();
+                                setUserMenuOpen(false);
+                              }}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+                            >
+                              {theme === 'dark' ? (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                              ) : (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                              )}
+                              <span>{theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}</span>
+                            </button>
+                            
+                            {/* Logout */}
+                            <button
+                              onClick={() => {
+                                handleLogout();
+                                setUserMenuOpen(false);
+                              }}
+                              className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                              </svg>
+                              <span>Logout</span>
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold">{user?.name}</p>
-                      <p className="text-xs opacity-80">{user?.role}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
               
