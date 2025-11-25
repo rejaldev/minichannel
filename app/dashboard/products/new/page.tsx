@@ -272,7 +272,10 @@ export default function NewProductPage() {
             {/* Dynamic Variant Builder */}
             {showDynamicBuilder ? (
               <div className="space-y-4">
-                <DynamicVariantBuilder onGenerate={handleGeneratedVariants} />
+                <DynamicVariantBuilder 
+                  onGenerate={handleGeneratedVariants}
+                  existingVariants={variants.length > 0 ? variants : undefined}
+                />
                 <button
                   type="button"
                   onClick={() => setShowDynamicBuilder(false)}
@@ -285,18 +288,13 @@ export default function NewProductPage() {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="space-y-3 mb-4">
                   <div className="text-center">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daftar Varian</h2>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Gunakan generator otomatis untuk membuat varian dengan mudah</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowDynamicBuilder(true)}
                     className="w-full px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    <span>Buka Generator Varian Otomatis</span>
+                    <span>Buka Variant</span>
                   </button>
                 </div>
           
@@ -422,9 +420,6 @@ export default function NewProductPage() {
               onClick={() => setShowDynamicBuilder(true)}
               className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center justify-center gap-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
               Generate Ulang
             </button>
             <button
@@ -443,15 +438,11 @@ export default function NewProductPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Belum Ada Varian</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Gunakan generator otomatis untuk membuat varian dengan cepat</p>
                 <button
                   type="button"
                   onClick={() => setShowDynamicBuilder(true)}
                   className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition-all shadow-sm flex items-center justify-center gap-2 mx-auto"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
                   Buka Generator
                 </button>
               </div>

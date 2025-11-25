@@ -17,14 +17,30 @@ interface GeneratedVariant {
 
 interface DynamicVariantBuilderProps {
   onGenerate: (variants: GeneratedVariant[]) => void;
+  existingVariants?: Array<{ variantName: string; variantValue: string; sku: string; price: number; stock: number }>;
 }
 
-export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuilderProps) {
-  const [variantTypes, setVariantTypes] = useState<VariantType[]>([
-    { name: 'Ukuran', options: [''] }
-  ]);
-  const [basePrice, setBasePrice] = useState('');
-  const [baseStock, setBaseStock] = useState('');
+export default function DynamicVariantBuilder({ onGenerate, existingVariants = [] }: DynamicVariantBuilderProps) {
+  // Load existing variants on mount if available
+  const loadExistingVariants = () => {
+    if (existingVariants.length === 0) {
+      return [{ name: 'Ukuran', options: [''] }];
+    }
+
+    // Extract unique variant names
+    const variantName = existingVariants[0]?.variantName || 'Ukuran';
+    const options = existingVariants.map(v => {
+      // Extract just the value (before parentheses if exists)
+      const match = v.variantValue.match(/^([^(]+)/);
+      return match ? match[1].trim() : v.variantValue;
+    }).filter((v, i, arr) => arr.indexOf(v) === i); // unique values
+
+    return [{ name: variantName, options: options.length > 0 ? options : [''] }];
+  };
+
+  const [variantTypes, setVariantTypes] = useState<VariantType[]>(loadExistingVariants);
+  const [basePrice, setBasePrice] = useState(existingVariants[0]?.price?.toString() || '');
+  const [baseStock, setBaseStock] = useState(existingVariants[0]?.stock?.toString() || '');
 
   const updateVariantTypeName = (index: number, name: string) => {
     const updated = [...variantTypes];
@@ -197,10 +213,7 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
         onClick={generateVariants}
         className="w-full py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-all text-sm font-bold shadow-sm flex items-center justify-center gap-2"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        Generate Semua Kombinasi Varian
+        Generate Varian
       </button>
     </div>
   );
