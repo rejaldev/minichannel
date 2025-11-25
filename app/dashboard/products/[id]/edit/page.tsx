@@ -20,6 +20,11 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [cabangs, setCabangs] = useState<any[]>([]);
   const [variants, setVariants] = useState<any[]>([]);
+  const [bulkApply, setBulkApply] = useState({
+    sku: '',
+    price: '',
+    stock: ''
+  });
 
   useEffect(() => {
     fetchData();
@@ -146,6 +151,23 @@ export default function EditProductPage() {
       });
       return updated;
     });
+  };
+
+  const applyBulkValues = () => {
+    const updated = variants.map((v, index) => ({
+      ...v,
+      ...(bulkApply.sku && { sku: `${bulkApply.sku}${index + 1}` }),
+      ...(bulkApply.price && { price: parseFloat(bulkApply.price) || v.price }),
+      ...(bulkApply.stock && {
+        stocks: v.stocks.map((s: any) => ({
+          ...s,
+          quantity: parseInt(bulkApply.stock) || s.quantity
+        }))
+      })
+    }));
+    setVariants(updated);
+    setBulkApply({ sku: '', price: '', stock: '' });
+    alert(`✓ Nilai berhasil diterapkan ke ${variants.length} varian!`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -383,7 +405,7 @@ export default function EditProductPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Stok per Cabang</h2>
             <div className="space-y-3">
               {variants[0].stocks.map((stock: any, stockIndex: number) => (
-                <div key={`stock-${stockIndex}-${stock.cabangId}`} className="grid grid-cols-3 gap-4 items-center p-3 bg-gray-50 rounded-lg">
+                <div key={`stock-${stockIndex}-${stock.cabangId}`} className="grid grid-cols-2 gap-4 items-center p-3 bg-gray-50 rounded-lg">
                   <div className="text-sm font-medium text-gray-700">
                     {stock.cabangName}
                   </div>
@@ -406,25 +428,6 @@ export default function EditProductPage() {
                       min="0"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Min. Stok</label>
-                    <input
-                      type="number"
-                      value={variants[0].stocks[stockIndex]?.minStock || ''}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/^0+/, '') || '0'; // Remove leading zeros
-                        handleStockChange(0, stockIndex, 'minStock', val);
-                      }}
-                      onBlur={(e) => {
-                        // Ensure proper number format on blur
-                        const num = parseInt(e.target.value) || 0;
-                        handleStockChange(0, stockIndex, 'minStock', String(num));
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                      placeholder="Min Stock"
-                      min="0"
-                    />
-                  </div>
                 </div>
               ))}
             </div>
@@ -444,6 +447,66 @@ export default function EditProductPage() {
               + Tambah Varian
             </button>
           </div>
+
+          {/* Bulk Apply Form - Always visible */}
+          <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Terapkan ke Semua Varian</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  SKU Prefix
+                </label>
+                <input
+                  type="text"
+                  value={bulkApply.sku}
+                  onChange={(e) => setBulkApply({...bulkApply, sku: e.target.value})}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                  placeholder="e.g., PRD-"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Stok (ke semua cabang)
+                </label>
+                <input
+                  type="number"
+                  value={bulkApply.stock}
+                  onChange={(e) => setBulkApply({...bulkApply, stock: e.target.value})}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Harga (Rp)
+                </label>
+                <input
+                  type="number"
+                  value={bulkApply.price}
+                  onChange={(e) => setBulkApply({...bulkApply, price: e.target.value})}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                  placeholder="50000"
+                  min="0"
+                  step="any"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={applyBulkValues}
+                  className="w-full px-4 py-1.5 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+                >
+                  Terapkan
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              SKU akan menambahkan nomor urut (e.g., PRD-1, PRD-2). Kosongkan field yang tidak ingin diubah.
+            </p>
+          </div>
+
+          
 
           {variants.map((variant, variantIndex) => (
             <div key={variantIndex} className="mb-6 p-4 border border-gray-200 rounded-lg">
@@ -527,7 +590,7 @@ export default function EditProductPage() {
                 </label>
                 <div className="space-y-2">
                   {variant.stocks.map((stock: any, stockIndex: number) => (
-                    <div key={stockIndex} className="grid grid-cols-3 gap-3 items-center">
+                    <div key={stockIndex} className="grid grid-cols-2 gap-3 items-center">
                       <div className="text-sm text-gray-700 font-medium">
                         {stock.cabangName}
                       </div>
@@ -545,23 +608,6 @@ export default function EditProductPage() {
                           }}
                           className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
                           placeholder="Qty"
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="number"
-                          value={stock.minStock || ''}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/^0+/, '') || '0';
-                            handleStockChange(variantIndex, stockIndex, 'minStock', val);
-                          }}
-                          onBlur={(e) => {
-                            const num = parseInt(e.target.value) || 0;
-                            handleStockChange(variantIndex, stockIndex, 'minStock', String(num));
-                          }}
-                          className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
-                          placeholder="Min Stock"
                           min="0"
                         />
                       </div>

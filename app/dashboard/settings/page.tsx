@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'general' | 'printer' | 'backup'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'stock' | 'printer' | 'backup'>('general');
 
   return (
     <div className="px-4 md:px-6">
@@ -28,6 +28,16 @@ export default function SettingsPage() {
             }`}
           >
             General
+          </button>
+          <button
+            onClick={() => setActiveTab('stock')}
+            className={`py-3 md:py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+              activeTab === 'stock'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            Stok
           </button>
           <button
             onClick={() => setActiveTab('printer')}
@@ -55,6 +65,7 @@ export default function SettingsPage() {
       {/* Tab Content */}
       <div>
         {activeTab === 'general' && <GeneralSettings />}
+        {activeTab === 'stock' && <StockSettings />}
         {activeTab === 'printer' && <PrinterSettings />}
         {activeTab === 'backup' && <BackupSettings />}
       </div>
@@ -162,6 +173,281 @@ function GeneralSettings() {
           </button>
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center md:text-right">
             Refresh halaman untuk melihat perubahan
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StockSettings() {
+  const [minStock, setMinStock] = useState('5');
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [message, setMessage] = useState('');
+
+  // Load settings from API on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/settings', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setMinStock(data.minStock || '5');
+        }
+      } catch (error) {
+        console.error('Failed to load stock settings:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  const handleSave = async () => {
+    setLoading(true);
+    setMessage('');
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          minStock: minStock
+        }),
+      });
+
+      if (response.ok) {
+        setMessage('✓ Pengaturan stok berhasil disimpan');
+      } else {
+        const error = await response.json();
+        setMessage(`✗ ${error.error || 'Gagal menyimpan pengaturan'}`);
+      }
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Save error:', error);
+      setMessage('✗ Gagal menyimpan pengaturan');
+      setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loadingData) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Memuat pengaturan...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-slate-100 dark:bg-slate-900 rounded-xl">
+            <svg className="w-5 h-5 md:w-6 md:h-6 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Pengaturan Stok</h2>
+            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              Konfigurasi alert dan manajemen stok produk
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8">
+        {/* Minimum Stock Setting */}
+        <div>
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-900 dark:text-white mb-3">
+            <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Minimum Stok (Global)</span>
+          </label>
+          <div className="p-5 bg-slate-50 dark:bg-slate-900/20 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex-1">
+                <input
+                  type="number"
+                  min="0"
+                  value={minStock}
+                  onChange={(e) => setMinStock(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-2xl font-bold focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-shadow"
+                  placeholder="5"
+                />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <p className="flex items-center">
+                    <svg className="w-4 h-4 mr-2 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Berlaku untuk <strong>semua produk</strong>
+                  </p>
+                  <p className="flex items-center">
+                    <svg className="w-4 h-4 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    Alert jika stok ≤ {minStock || 0} unit
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-slate-200 dark:border-slate-700">
+              <div className="flex items-start space-x-3">
+                <svg className="w-5 h-5 text-slate-600 dark:text-slate-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="font-semibold text-gray-900 dark:text-white mb-1">Cara Kerja:</p>
+                  <ul className="space-y-1 list-disc list-inside">
+                    <li>Sistem akan menampilkan alert jika stok produk mencapai atau di bawah nilai ini</li>
+                    <li>Pengaturan ini berlaku global untuk semua produk dan cabang</li>
+                    <li>Rekomendasi: set 5-10 untuk stok minimum yang aman</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Example Alert Preview */}
+        <div>
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-900 dark:text-white mb-3">
+            <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>Preview Alert Stok Rendah</span>
+          </label>
+          <div className="space-y-3">
+            {/* Example Alert 1 - Critical */}
+            <div className="p-4 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-red-800 dark:text-red-300">Stok Kritis!</p>
+                  <p className="text-xs text-red-700 dark:text-red-400 mt-1">
+                    <strong>Seragam SD Size 10</strong> di <strong>Cabang Pusat</strong> - Stok tersisa: <strong>2 unit</strong> (Min: {minStock || 5})
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Example Alert 2 - Warning */}
+            <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border-l-4 border-amber-500 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-amber-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Stok Rendah</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                    <strong>Celana Olahraga L</strong> di <strong>Cabang Timur</strong> - Stok tersisa: <strong>{minStock || 5} unit</strong> (Min: {minStock || 5})
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center">
+            <svg className="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Alert akan muncul di dashboard dan halaman stok saat ada produk di bawah minimum
+          </p>
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/20 dark:to-gray-900/20 border-2 border-slate-200 dark:border-slate-800 rounded-xl p-5">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="w-6 h-6 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-4 flex-1">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-300 mb-1">
+                💡 Tips Manajemen Stok
+              </h3>
+              <ul className="text-sm text-slate-800 dark:text-slate-400 space-y-1 mt-2">
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>Set minimum stok berdasarkan rata-rata penjualan mingguan</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>Monitor dashboard secara rutin untuk cek alert stok rendah</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>Lakukan restock sebelum stok mencapai nilai minimum</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Message */}
+        {message && (
+          <div className={`flex items-center space-x-3 p-4 rounded-xl border-2 ${
+            message.includes('✓') 
+              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300' 
+              : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
+          }`}>
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              {message.includes('✓') ? (
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              ) : (
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              )}
+            </svg>
+            <span className="font-medium">{message}</span>
+          </div>
+        )}
+
+        {/* Save Button */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-2">
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center space-x-2">
+                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Menyimpan...</span>
+              </span>
+            ) : (
+              <span className="flex items-center justify-center space-x-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Simpan Perubahan</span>
+              </span>
+            )}
+          </button>
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center md:text-right">
+            Perubahan akan berlaku segera untuk semua produk
           </p>
         </div>
       </div>

@@ -266,17 +266,17 @@ export default function ProductsPage() {
                           />
                         </td>
                         <td className="px-4 py-4">
-                          <div className="flex items-start space-x-3">
+                          <div className="flex items-start space-x-3 max-w-xs">
                             <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg flex items-center justify-center">
                               <span className="text-slate-600 dark:text-slate-300 font-bold text-lg">
                                 {product.name.charAt(0).toUpperCase()}
                               </span>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">
                                 {product.name}
                               </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                                 {product.description || '-'}
                               </p>
                             </div>
