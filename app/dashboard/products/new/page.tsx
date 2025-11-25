@@ -112,13 +112,13 @@ export default function NewProductPage() {
     <div className="max-w-4xl mx-auto px-4 md:px-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+        <button onClick={() => router.push('/dashboard')} className="hover:text-gray-900 dark:hover:text-white transition">
           Home
-        </a>
+        </button>
         <span>›</span>
-        <a href="/dashboard/products" className="hover:text-gray-900 dark:hover:text-white transition">
+        <button onClick={() => router.push('/dashboard/products')} className="hover:text-gray-900 dark:hover:text-white transition">
           Kelola Produk
-        </a>
+        </button>
         <span>›</span>
         <span className="font-semibold text-gray-900 dark:text-white">Tambah Produk Baru</span>
       </nav>
