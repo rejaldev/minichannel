@@ -460,32 +460,54 @@ export default function ProductsPage() {
                           ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                           : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                       }`}>
-                        Stok: {totalStock}
+                        Total: {totalStock}
                       </span>
                     </div>
                     
-                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-                      {(() => {
+                    {/* Per-Cabang Stock & Price (Mobile) */}
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700 space-y-1.5">
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Stok & Harga per Cabang</p>
+                      {cabangs.map((cabang) => {
+                        let stockQty = 0;
+                        let stockPrice = 0;
+
                         if (product.productType === 'SINGLE') {
-                          return (
-                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
-                              Rp {product.price?.toLocaleString('id-ID')}
-                            </p>
-                          );
+                          const variant = product.variants?.[0];
+                          const stock = variant?.stocks?.find((s: any) => s.cabangId === cabang.id);
+                          stockQty = stock?.quantity || 0;
+                          stockPrice = stock?.price || 0;
                         } else {
-                          const prices = product.variants?.map((v: any) => v.price) || [];
-                          const minPrice = Math.min(...prices);
-                          const maxPrice = Math.max(...prices);
-                          return (
-                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
-                              {minPrice === maxPrice 
-                                ? `Rp ${minPrice.toLocaleString('id-ID')}`
-                                : `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
-                              }
-                            </p>
-                          );
+                          product.variants?.forEach((variant: any) => {
+                            const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
+                            stockQty += stock?.quantity || 0;
+                            if (stock?.price && (stockPrice === 0 || stock.price < stockPrice)) {
+                              stockPrice = stock.price;
+                            }
+                          });
                         }
-                      })()}
+
+                        return (
+                          <div key={cabang.id} className="flex items-center justify-between py-1 px-2 bg-gray-50 dark:bg-gray-700/30 rounded">
+                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                              {cabang.name}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
+                                stockQty <= 5
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                  : stockQty <= 20
+                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                  : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                              }`}>
+                                {stockQty}
+                              </span>
+                              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                   
