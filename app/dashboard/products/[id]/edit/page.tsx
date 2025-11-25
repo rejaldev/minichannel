@@ -46,19 +46,19 @@ export default function EditProductPage() {
       setProductType(product.productType || 'VARIANT');
       setPrice(product.price || 0);
       
-      // Transform variants for editing (include price)
+      // Transform variants for editing (include price per cabang)
       const variantsData = product.variants.map((v: any) => ({
         id: v.id,
         variantName: v.variantName,
         variantValue: v.variantValue,
         sku: v.sku,
-        price: parseFloat(v.price) || 0, // Ensure it's a number
         stocks: cabangsRes.data.map((cabang: any) => {
           const existingStock = v.stocks?.find((s: any) => s.cabangId === cabang.id);
           return {
             cabangId: cabang.id,
             cabangName: cabang.name,
             quantity: existingStock?.quantity || 0,
+            price: parseFloat(v.price) || 0, // Price per cabang (temporary: use global price)
           };
         }),
       }));
@@ -82,11 +82,11 @@ export default function EditProductPage() {
         variantName: '',
         variantValue: '',
         sku: '',
-        price: 0,
         stocks: cabangs.map((cabang) => ({
           cabangId: cabang.id,
           cabangName: cabang.name,
           quantity: 0,
+          price: 0, // Price per cabang
         })),
       },
     ]);
@@ -105,11 +105,11 @@ export default function EditProductPage() {
         variantName: 'Default',
         variantValue: 'Standard',
         sku: name.toUpperCase().replace(/\s+/g, '-') + '-01',
-        price: price || 0,
         stocks: cabangs.map((cabang) => ({
           cabangId: cabang.id,
           cabangName: cabang.name,
           quantity: 0,
+          price: price || 0, // Price per cabang
         })),
       }]);
     }
@@ -117,13 +117,7 @@ export default function EditProductPage() {
 
   const handleVariantChange = (index: number, field: string, value: string) => {
     const updated = [...variants];
-    // Convert to number for price field
-    if (field === 'price') {
-      const numValue = parseFloat(value) || 0;
-      updated[index][field] = numValue;
-    } else {
-      updated[index][field] = value;
-    }
+    updated[index][field] = value;
     setVariants(updated);
   };
 
@@ -135,10 +129,18 @@ export default function EditProductPage() {
             ...variant,
             stocks: variant.stocks.map((stock: any, sIdx: number) => {
               if (sIdx === cabangIndex) {
-                return {
-                  ...stock,
-                  [field]: parseInt(value) || 0
-                };
+                // Handle both quantity and price fields
+                if (field === 'price') {
+                  return {
+                    ...stock,
+                    [field]: parseFloat(value) || 0
+                  };
+                } else {
+                  return {
+                    ...stock,
+                    [field]: parseInt(value) || 0
+                  };
+                }
               }
               return stock;
             })
@@ -154,11 +156,16 @@ export default function EditProductPage() {
     const updated = variants.map((v, index) => ({
       ...v,
       ...(bulkApply.sku && { sku: `${bulkApply.sku}${index + 1}` }),
-      ...(bulkApply.price && { price: parseFloat(bulkApply.price) || v.price }),
       ...(bulkApply.stock && {
         stocks: v.stocks.map((s: any) => ({
           ...s,
           quantity: parseInt(bulkApply.stock) || s.quantity
+        }))
+      }),
+      ...(bulkApply.price && {
+        stocks: v.stocks.map((s: any) => ({
+          ...s,
+          price: parseFloat(bulkApply.price) || s.price
         }))
       })
     }));
@@ -193,8 +200,10 @@ export default function EditProductPage() {
           alert('Semua varian harus lengkap (Nama, Value, SKU)!');
           return;
         }
-        if (!variant.price || variant.price <= 0) {
-          alert('Semua varian harus punya harga yang valid!');
+        // Validate that at least one cabang has a price
+        const hasPrice = variant.stocks.some((s: any) => s.price && s.price > 0);
+        if (!hasPrice) {
+          alert(`Varian "${variant.variantName}: ${variant.variantValue}" harus punya harga minimal di 1 cabang!`);
           return;
         }
       }
@@ -219,23 +228,27 @@ export default function EditProductPage() {
             variantName: v.variantName || 'Default',
             variantValue: v.variantValue || 'Standard',
             sku: v.sku,
-            price: price, // Sync with product price
+            price: price, // Sync with product price (temporary: use first cabang price)
             stocks: v.stocks.map((s: any) => ({
               cabangId: s.cabangId,
               quantity: s.quantity,
-              minStock: s.minStock,
+              price: s.price || price, // Price per cabang
             })),
           }));
         }
       } else {
-        // VARIANT product
+        // VARIANT product - use first cabang price as variant price (temporary)
         updateData.variants = variants.map((v) => ({
           id: v.id,
           variantName: v.variantName,
           variantValue: v.variantValue,
           sku: v.sku,
-          price: parseFloat(v.price),
-          stocks: v.stocks,
+          price: v.stocks[0]?.price || 0, // Use first cabang price as default
+          stocks: v.stocks.map((s: any) => ({
+            cabangId: s.cabangId,
+            quantity: s.quantity,
+            price: s.price, // Price per cabang
+          })),
         }));
       }
 
@@ -399,12 +412,36 @@ export default function EditProductPage() {
         {/* Stock Management for SINGLE products */}
         {productType === 'SINGLE' && variants.length > 0 && variants[0].stocks && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Stok per Cabang</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Harga & Stok per Cabang</h2>
             <div className="space-y-3">
               {variants[0].stocks.map((stock: any, stockIndex: number) => (
-                <div key={`stock-${stockIndex}-${stock.cabangId}`} className="grid grid-cols-2 gap-4 items-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-sm font-medium text-gray-700">
+                <div key={`stock-${stockIndex}-${stock.cabangId}`} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center text-sm font-medium text-gray-700">
                     {stock.cabangName}
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Harga</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                        Rp
+                      </span>
+                      <input
+                        type="number"
+                        value={variants[0].stocks[stockIndex]?.price || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+(?=\d)/, '');
+                          handleStockChange(0, stockIndex, 'price', val);
+                        }}
+                        onBlur={(e) => {
+                          const num = parseFloat(e.target.value) || 0;
+                          handleStockChange(0, stockIndex, 'price', String(num));
+                        }}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded text-sm"
+                        placeholder="50000"
+                        min="0"
+                        step="any"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs text-gray-600 mb-1">Jumlah Stok</label>
@@ -412,11 +449,10 @@ export default function EditProductPage() {
                       type="number"
                       value={variants[0].stocks[stockIndex]?.quantity || ''}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/^0+/, '') || '0'; // Remove leading zeros
+                        const val = e.target.value.replace(/^0+/, '') || '0';
                         handleStockChange(0, stockIndex, 'quantity', val);
                       }}
                       onBlur={(e) => {
-                        // Ensure proper number format on blur
                         const num = parseInt(e.target.value) || 0;
                         handleStockChange(0, stockIndex, 'quantity', String(num));
                       }}
@@ -561,74 +597,74 @@ export default function EditProductPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      SKU
-                    </label>
-                    <input
-                      type="text"
-                      value={variant.sku}
-                      onChange={(e) => handleVariantChange(variantIndex, 'sku', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
-                      placeholder="VAR-009"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Harga <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
-                        Rp
-                      </span>
-                      <input
-                        type="number"
-                        value={variant.price || ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/^0+(?=\d)/, '');
-                          handleVariantChange(variantIndex, 'price', val);
-                        }}
-                        onBlur={(e) => {
-                          const num = parseFloat(e.target.value) || 0;
-                          handleVariantChange(variantIndex, 'price', String(num));
-                        }}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
-                        placeholder="50000"
-                        min="0"
-                        step="any"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    SKU
+                  </label>
+                  <input
+                    type="text"
+                    value={variant.sku}
+                    onChange={(e) => handleVariantChange(variantIndex, 'sku', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                    placeholder="VAR-009"
+                  />
                 </div>
 
-                {/* Stock Section */}
+                {/* Harga & Stock per Cabang Section */}
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <label className="block text-xs font-medium text-gray-700 mb-2">
-                    Stok per Cabang
+                    Harga & Stok per Cabang
                   </label>
                   <div className="space-y-2">
                     {variant.stocks.map((stock: any, stockIndex: number) => (
-                      <div key={stockIndex} className="flex items-center justify-between gap-3 p-2.5 bg-gray-50 rounded-md">
-                        <span className="text-sm text-gray-700 font-medium">
-                          {stock.cabangName}
-                        </span>
-                        <input
-                          type="number"
-                          value={stock.quantity || ''}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/^0+/, '') || '0';
-                            handleStockChange(variantIndex, stockIndex, 'quantity', val);
-                          }}
-                          onBlur={(e) => {
-                            const num = parseInt(e.target.value) || 0;
-                            handleStockChange(variantIndex, stockIndex, 'quantity', String(num));
-                          }}
-                          className="w-20 px-2 py-1.5 border border-gray-300 rounded-md text-sm text-center font-semibold focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
-                          placeholder="0"
-                          min="0"
-                        />
+                      <div key={stockIndex} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-2.5 bg-gray-50 rounded-md">
+                        <div className="flex items-center">
+                          <span className="text-sm text-gray-700 font-medium">
+                            {stock.cabangName}
+                          </span>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Harga</label>
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">
+                              Rp
+                            </span>
+                            <input
+                              type="number"
+                              value={stock.price || ''}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/^0+(?=\d)/, '');
+                                handleStockChange(variantIndex, stockIndex, 'price', val);
+                              }}
+                              onBlur={(e) => {
+                                const num = parseFloat(e.target.value) || 0;
+                                handleStockChange(variantIndex, stockIndex, 'price', String(num));
+                              }}
+                              className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                              placeholder="50000"
+                              min="0"
+                              step="any"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Stok</label>
+                          <input
+                            type="number"
+                            value={stock.quantity || ''}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/^0+/, '') || '0';
+                              handleStockChange(variantIndex, stockIndex, 'quantity', val);
+                            }}
+                            onBlur={(e) => {
+                              const num = parseInt(e.target.value) || 0;
+                              handleStockChange(variantIndex, stockIndex, 'quantity', String(num));
+                            }}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm text-center font-semibold focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                            placeholder="0"
+                            min="0"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
