@@ -163,7 +163,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Products Grid */}
+      {/* Products Table/List */}
       {products.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 md:p-12 text-center">
           <svg
@@ -186,147 +186,292 @@ export default function ProductsPage() {
         </div>
       ) : (
         <>
-          {/* Select All */}
-          <div className="flex items-center mb-4 bg-white dark:bg-gray-800 rounded-lg md:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 md:p-4">
-            <input
-              type="checkbox"
-              checked={selectedProducts.length === products.length}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              className="h-4 w-4 md:h-5 md:w-5 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
-            />
-            <label className="ml-2 md:ml-3 text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
-              Pilih Semua ({products.length} produk)
-            </label>
-          </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white dark:bg-gray-800 rounded-xl md:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl hover:border-slate-200 dark:hover:border-slate-600 transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="p-4 md:p-6">
-                <div className="flex items-start justify-between mb-3 md:mb-4">
-                  <div className="flex items-start space-x-2 md:space-x-3 flex-1">
-                    <input
-                      type="checkbox"
-                      checked={selectedProducts.includes(product.id)}
-                      onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                      className="h-4 w-4 md:h-5 md:w-5 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer mt-1"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-base md:text-xl font-bold text-gray-900 dark:text-white mb-1 md:mb-2">
-                        {product.name}
-                      </h3>
-                      <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{product.description}</p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold ${
-                      product.isActive
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    {product.isActive ? 'Aktif' : 'Nonaktif'}
-                  </span>
-                </div>
-
-                <div className="mb-3 md:mb-4">
-                  <span className="inline-block px-2 md:px-3 py-1 md:py-1.5 text-xs font-semibold bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-full shadow-sm">
-                    {product.category?.name}
-                  </span>
-                </div>
-
-                <div className="mb-4 md:mb-5 pb-3 md:pb-4 border-b border-gray-100 dark:border-gray-700">
-                  {(() => {
-                    if (product.productType === 'SINGLE') {
-                      return (
-                        <p className="text-xl md:text-3xl font-bold text-slate-700 dark:text-slate-300">
-                          Rp {product.price?.toLocaleString('id-ID')}
-                        </p>
-                      );
-                    } else {
-                      const prices = product.variants?.map((v: any) => v.price) || [];
-                      const minPrice = Math.min(...prices);
-                      const maxPrice = Math.max(...prices);
-                      return (
-                        <p className="text-xl md:text-3xl font-bold text-slate-700 dark:text-slate-300">
-                          {minPrice === maxPrice 
-                            ? `Rp ${minPrice.toLocaleString('id-ID')}`
-                            : `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
-                          }
-                        </p>
-                      );
-                    }
-                  })()}
-                </div>
-
-                {/* Variants Summary */}
-                <div className="mb-4 md:mb-5">
-                  <p className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 md:mb-3">
-                    {product.variants?.length || 0} Varian
-                  </p>
-                  {product.variants && product.variants.length > 0 && (
-                    <div className="space-y-1.5 md:space-y-2 max-h-28 md:max-h-32 overflow-y-auto">
-                      {product.variants.slice(0, 3).map((variant: any) => {
-                        const totalStock = variant.stocks?.reduce(
-                          (sum: number, s: any) => sum + s.quantity,
-                          0
+          {/* Desktop: Table View */}
+          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
+                  <tr>
+                    <th scope="col" className="w-12 px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.length === products.length}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        className="h-5 w-5 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
+                      />
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                      Produk
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                      Kategori
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                      Tipe
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                      Harga
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                      Stok
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {products.map((product, index) => {
+                    const totalStock = product.productType === 'SINGLE'
+                      ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
+                      : product.variants?.reduce((sum: number, v: any) => 
+                          sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
                         ) || 0;
-                        const isLowStock = totalStock <= (variant.stocks?.[0]?.minStock || 5);
-                        return (
-                          <div
-                            key={variant.id}
-                            className="flex items-center justify-between text-xs md:text-sm bg-gray-50 dark:bg-gray-700 p-1.5 md:p-2 rounded-lg"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <span className="text-gray-700 dark:text-gray-200 font-medium block truncate">
-                                {variant.variantName}: {variant.variantValue}
-                              </span>
-                              <span className="ml-0 md:ml-2 text-xs text-blue-600 dark:text-blue-400 font-semibold block md:inline">
-                                Rp {variant.price?.toLocaleString('id-ID')}
+                    const variantCount = product.variants?.length || 0;
+                    
+                    return (
+                      <tr 
+                        key={product.id} 
+                        className={`hover:bg-slate-50 dark:hover:bg-gray-700/50 transition-colors ${
+                          index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-800/50'
+                        }`}
+                      >
+                        <td className="px-4 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedProducts.includes(product.id)}
+                            onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                            className="h-5 w-5 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg flex items-center justify-center">
+                              <span className="text-slate-600 dark:text-slate-300 font-bold text-lg">
+                                {product.name.charAt(0).toUpperCase()}
                               </span>
                             </div>
-                            <span className={`font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-md text-xs md:text-sm ${
-                              isLowStock
-                                ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                                : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                {product.name}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {product.description || '-'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            {product.category?.name || '-'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-sm">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              product.productType === 'SINGLE'
+                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
                             }`}>
-                              {totalStock}
+                              {product.productType === 'SINGLE' ? 'Tunggal' : `Varian (${variantCount})`}
                             </span>
                           </div>
-                        );
-                      })}
-                      {product.variants.length > 3 && (
-                        <p className="text-xs text-gray-500 mt-2 text-center">
-                          +{product.variants.length - 3} varian lainnya
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex space-x-2">
-                  <a
-                    href={`/dashboard/products/${product.id}`}
-                    className="flex-1 text-center px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-lg md:rounded-xl hover:from-slate-600 hover:to-slate-700 transition-all text-xs md:text-sm font-semibold shadow-sm hover:shadow-md"
-                  >
-                    Detail
-                  </a>
-                  <a
-                    href={`/dashboard/products/${product.id}/edit`}
-                    className="flex-1 text-center px-3 md:px-4 py-2 md:py-2.5 bg-gray-100 text-gray-700 rounded-lg md:rounded-xl hover:bg-gray-200 transition-all text-xs md:text-sm font-semibold"
-                  >
-                    Edit
-                  </a>
-                </div>
-              </div>
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          {(() => {
+                            if (product.productType === 'SINGLE') {
+                              return (
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                  Rp {product.price?.toLocaleString('id-ID')}
+                                </p>
+                              );
+                            } else {
+                              const prices = product.variants?.map((v: any) => v.price) || [];
+                              const minPrice = Math.min(...prices);
+                              const maxPrice = Math.max(...prices);
+                              return (
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                  {minPrice === maxPrice 
+                                    ? `Rp ${minPrice.toLocaleString('id-ID')}`
+                                    : `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
+                                  }
+                                </p>
+                              );
+                            }
+                          })()}
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+                            totalStock <= 5
+                              ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                              : totalStock <= 20
+                              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                              : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                          }`}>
+                            {totalStock}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            product.isActive
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {product.isActive ? 'Aktif' : 'Nonaktif'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center justify-center space-x-2">
+                            <a
+                              href={`/dashboard/products/${product.id}`}
+                              className="inline-flex items-center px-3 py-1.5 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-all text-xs font-medium"
+                              title="Lihat Detail"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </a>
+                            <a
+                              href={`/dashboard/products/${product.id}/edit`}
+                              className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-medium"
+                              title="Edit"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+          </div>
+
+          {/* Mobile: Card View */}
+          <div className="md:hidden space-y-3">
+            {products.map((product) => {
+              const totalStock = product.productType === 'SINGLE'
+                ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
+                : product.variants?.reduce((sum: number, v: any) => 
+                    sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
+                  ) || 0;
+              const variantCount = product.variants?.length || 0;
+              
+              return (
+                <div
+                  key={product.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm"
+                >
+                  {/* Header with checkbox and status */}
+                  <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(product.id)}
+                        onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                        className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
+                      />
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        product.isActive
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}>
+                        {product.isActive ? 'Aktif' : 'Nonaktif'}
+                      </span>
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      product.productType === 'SINGLE'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                    }`}>
+                      {product.productType === 'SINGLE' ? 'Tunggal' : `${variantCount} Varian`}
+                    </span>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="p-3 space-y-2.5">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                        {product.description || '-'}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {product.category?.name || '-'}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                        totalStock <= 5
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                          : totalStock <= 20
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      }`}>
+                        Stok: {totalStock}
+                      </span>
+                    </div>
+                    
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                      {(() => {
+                        if (product.productType === 'SINGLE') {
+                          return (
+                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
+                              Rp {product.price?.toLocaleString('id-ID')}
+                            </p>
+                          );
+                        } else {
+                          const prices = product.variants?.map((v: any) => v.price) || [];
+                          const minPrice = Math.min(...prices);
+                          const maxPrice = Math.max(...prices);
+                          return (
+                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
+                              {minPrice === maxPrice 
+                                ? `Rp ${minPrice.toLocaleString('id-ID')}`
+                                : `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
+                              }
+                            </p>
+                          );
+                        }
+                      })()}
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex border-t border-gray-200 dark:border-gray-700 divide-x divide-gray-200 dark:divide-gray-700">
+                    <a
+                      href={`/dashboard/products/${product.id}`}
+                      className="flex-1 flex items-center justify-center py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span className="text-xs font-medium">Detail</span>
+                    </a>
+                    <a
+                      href={`/dashboard/products/${product.id}/edit`}
+                      className="flex-1 flex items-center justify-center py-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span className="text-xs font-medium">Edit</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </>
       )}
     </div>

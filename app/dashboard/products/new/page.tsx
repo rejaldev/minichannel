@@ -15,9 +15,10 @@ export default function NewProductPage() {
     productType: 'VARIANT' as 'SINGLE' | 'VARIANT',
     price: 0,
     sku: '',
+    stock: 0,
   });
-  const [variants, setVariants] = useState<Array<{ variantName: string; variantValue: string; sku: string; price: number }>>([
-    { variantName: '', variantValue: '', sku: '', price: 0 },
+  const [variants, setVariants] = useState<Array<{ variantName: string; variantValue: string; sku: string; price: number; stock: number }>>([
+    { variantName: '', variantValue: '', sku: '', price: 0, stock: 0 },
   ]);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function NewProductPage() {
   };
 
   const addVariant = () => {
-    setVariants([...variants, { variantName: '', variantValue: '', sku: '', price: 0 }]);
+    setVariants([...variants, { variantName: '', variantValue: '', sku: '', price: 0, stock: 0 }]);
   };
 
   const removeVariant = (index: number) => {
@@ -125,7 +126,7 @@ export default function NewProductPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Kategori *
@@ -149,11 +150,11 @@ export default function NewProductPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Tipe Produk *
                 </label>
-                <div className="flex gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, productType: 'SINGLE' })}
-                    className={`flex-1 px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+                    className={`px-3 py-2.5 rounded-lg border-2 font-medium transition-all text-sm ${
                       formData.productType === 'SINGLE'
                         ? 'border-slate-500 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
                         : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
@@ -164,7 +165,7 @@ export default function NewProductPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, productType: 'VARIANT' })}
-                    className={`flex-1 px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+                    className={`px-3 py-2.5 rounded-lg border-2 font-medium transition-all text-sm ${
                       formData.productType === 'VARIANT'
                         ? 'border-slate-500 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
                         : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
@@ -173,7 +174,7 @@ export default function NewProductPage() {
                     Produk Varian
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   {formData.productType === 'SINGLE' 
                     ? 'Produk tanpa varian (contoh: Pulpen merek X)' 
                     : 'Produk dengan varian (contoh: Baju SD nomor 6, 8, 10)'}
@@ -183,40 +184,67 @@ export default function NewProductPage() {
 
             {/* Show price and SKU input only for SINGLE product */}
             {formData.productType === 'SINGLE' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    SKU *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.sku || ''}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 font-mono bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="SKU"
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      SKU <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.sku || ''}
+                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                      placeholder="Contoh: SERAGAM-SD-06"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Harga <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">Rp</span>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={formData.price || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+(?=\d)/, '');
+                          setFormData({ ...formData, price: parseFloat(val) || 0 });
+                        }}
+                        onBlur={(e) => {
+                          const num = parseFloat(e.target.value) || 0;
+                          setFormData({ ...formData, price: num });
+                        }}
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                        placeholder="50000"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Harga *
+                    Stok Awal <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
                     required
                     min="0"
-                    value={formData.price || ''}
+                    value={formData.stock || ''}
                     onChange={(e) => {
                       const val = e.target.value.replace(/^0+(?=\d)/, '');
-                      setFormData({ ...formData, price: parseFloat(val) || 0 });
+                      setFormData({ ...formData, stock: parseInt(val) || 0 });
                     }}
                     onBlur={(e) => {
-                      const num = parseFloat(e.target.value) || 0;
-                      setFormData({ ...formData, price: num });
+                      const num = parseInt(e.target.value) || 0;
+                      setFormData({ ...formData, stock: num });
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="50000"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    placeholder="15"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Jumlah stok produk yang tersedia</p>
                 </div>
               </div>
             )}
@@ -227,69 +255,137 @@ export default function NewProductPage() {
         {formData.productType === 'VARIANT' && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Varian Produk</h2>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daftar Varian</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Tambahkan varian produk dengan detail lengkap</p>
+            </div>
             <button
               type="button"
               onClick={addVariant}
-              className="px-4 py-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100 text-sm font-medium"
+              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center gap-2"
             >
-              + Tambah Varian
+              <span className="text-lg leading-none">+</span>
+              <span className="hidden sm:inline">Tambah Varian</span>
             </button>
           </div>
-          <div className="space-y-3">
+          
+          {/* Header for desktop */}
+          <div className="hidden md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] gap-2 mb-2 px-1">
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nama Varian</div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nilai</div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">SKU</div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Stok</div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Harga</div>
+            <div className="w-10"></div>
+          </div>
+          
+          <div className="space-y-2.5">
             {variants.map((variant, index) => (
-              <div key={index} className="grid gap-2" style={{ gridTemplateColumns: '2.5fr 1.2fr 1.5fr 1.5fr 40px' }}>
-                <input
-                  type="text"
-                  value={variant.variantName}
-                  onChange={(e) => updateVariant(index, 'variantName', e.target.value)}
-                  placeholder="Variant Produk"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-                <input
-                  type="text"
-                  value={variant.variantValue}
-                  onChange={(e) => updateVariant(index, 'variantValue', e.target.value)}
-                  placeholder="Warna / Ukuran"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-                <input
-                  type="text"
-                  value={variant.sku}
-                  onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                  placeholder="SKU"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 text-xs font-mono bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-                <input
-                  type="number"
-                  value={variant.price || ''}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/^0+(?=\d)/, '');
-                    updateVariant(index, 'price', val);
-                  }}
-                  onBlur={(e) => {
-                    const num = parseFloat(e.target.value) || 0;
-                    updateVariant(index, 'price', String(num));
-                  }}
-                  placeholder="Harga"
-                  min="0"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-                {variants.length > 1 ? (
+              <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 md:p-0 md:border-0 md:bg-transparent md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] md:gap-2 md:items-center space-y-2 md:space-y-0">
+                {/* Row 1: Varian Name + Value (Mobile: side by side) */}
+                <div className="grid grid-cols-2 gap-2 md:block md:space-y-1">
+                  <div>
+                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Nama</label>
+                    <input
+                      type="text"
+                      value={variant.variantName}
+                      onChange={(e) => updateVariant(index, 'variantName', e.target.value)}
+                      placeholder="Ukuran"
+                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    />
+                  </div>
+                  <div className="md:hidden">
+                    <label className="block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Nilai</label>
+                    <input
+                      type="text"
+                      value={variant.variantValue}
+                      onChange={(e) => updateVariant(index, 'variantValue', e.target.value)}
+                      placeholder="6"
+                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    />
+                  </div>
+                </div>
+                
+                {/* Desktop only: Separate Value field */}
+                <div className="hidden md:block space-y-1">
+                  <input
+                    type="text"
+                    value={variant.variantValue}
+                    onChange={(e) => updateVariant(index, 'variantValue', e.target.value)}
+                    placeholder="Contoh: 6 / Merah"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                  />
+                </div>
+                
+                {/* Row 2: SKU + Stock + Price (Mobile: 3 columns) */}
+                <div className="grid grid-cols-3 gap-2 md:contents">
+                  <div className="md:space-y-1">
+                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">SKU</label>
+                    <input
+                      type="text"
+                      value={variant.sku}
+                      onChange={(e) => updateVariant(index, 'sku', e.target.value)}
+                      placeholder="001"
+                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-xs font-mono bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    />
+                  </div>
+                  <div className="md:space-y-1">
+                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Stok</label>
+                    <input
+                      type="number"
+                      value={variant.stock || ''}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/^0+(?=\d)/, '');
+                        updateVariant(index, 'stock', val);
+                      }}
+                      onBlur={(e) => {
+                        const num = parseInt(e.target.value) || 0;
+                        updateVariant(index, 'stock', String(num));
+                      }}
+                      placeholder="15"
+                      min="0"
+                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    />
+                  </div>
+                  <div className="md:space-y-1">
+                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Harga</label>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-[10px]">Rp</span>
+                      <input
+                        type="number"
+                        value={variant.price || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+(?=\d)/, '');
+                          updateVariant(index, 'price', val);
+                        }}
+                        onBlur={(e) => {
+                          const num = parseFloat(e.target.value) || 0;
+                          updateVariant(index, 'price', String(num));
+                        }}
+                        placeholder="50000"
+                        min="0"
+                        className="w-full pl-7 pr-2 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Delete button */}
+                <div className="md:flex md:items-end -mx-3 -mb-3 mt-2 md:m-0">
                   <button
                     type="button"
                     onClick={() => removeVariant(index)}
-                    className="w-10 h-10 flex items-center justify-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 text-xl"
+                    className="w-full md:w-10 h-9 md:h-10 flex items-center justify-center gap-1.5 text-red-600 hover:text-white hover:bg-red-600 bg-red-50 dark:bg-red-900/20 md:bg-transparent border-t md:border border-red-200 md:border-red-300 hover:border-red-600 rounded-b-lg md:rounded-lg transition-all duration-150 font-medium text-xs md:text-base"
+                    title="Hapus varian"
                   >
-                    ×
+                    <span className="text-lg leading-none">×</span>
+                    <span className="md:hidden">Hapus</span>
                   </button>
-                ) : (
-                  <div className="w-10"></div>
-                )}
+                </div>
               </div>
             ))}
           </div>
-          </div>
+        </div>
         )}
 
         {/* Actions */}
