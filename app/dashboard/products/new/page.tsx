@@ -14,14 +14,12 @@ export default function NewProductPage() {
     name: '',
     description: '',
     categoryId: '',
-    productType: 'VARIANT' as 'SINGLE' | 'VARIANT',
+    productType: 'SINGLE' as 'SINGLE' | 'VARIANT',
     price: 0,
     sku: '',
     stock: 0,
   });
-  const [variants, setVariants] = useState<Array<{ variantName: string; variantValue: string; sku: string; price: number; stock: number }>>([
-    { variantName: '', variantValue: '', sku: '', price: 0, stock: 0 },
-  ]);
+  const [variants, setVariants] = useState<Array<{ variantName: string; variantValue: string; sku: string; price: number; stock: number }>>([]);
   const [bulkApply, setBulkApply] = useState({
     sku: '',
     price: '',
