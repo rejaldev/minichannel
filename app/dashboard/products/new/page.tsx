@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsAPI } from '@/lib/api';
+import { productsAPI, cabangAPI } from '@/lib/api';
 import DynamicVariantBuilder from '@/components/DynamicVariantBuilder';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
+  const [cabangs, setCabangs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDynamicBuilder, setShowDynamicBuilder] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,7 +20,12 @@ export default function NewProductPage() {
     sku: '',
     stock: 0,
   });
-  const [variants, setVariants] = useState<Array<{ variantName: string; variantValue: string; sku: string; price: number; stock: number }>>([]);
+  const [variants, setVariants] = useState<Array<{ 
+    variantName: string; 
+    variantValue: string; 
+    sku: string; 
+    stocks: Array<{ cabangId: string; cabangName: string; quantity: number; price: number }>;
+  }>>([]);
   const [bulkApply, setBulkApply] = useState({
     sku: '',
     price: '',
@@ -28,6 +34,7 @@ export default function NewProductPage() {
 
   useEffect(() => {
     fetchCategories();
+    fetchCabangs();
   }, []);
 
   const fetchCategories = async () => {
@@ -39,8 +46,22 @@ export default function NewProductPage() {
     }
   };
 
+  const fetchCabangs = async () => {
+    try {
+      const res = await cabangAPI.getCabangs();
+      setCabangs(res.data.filter((c: any) => c.isActive));
+    } catch (error) {
+      console.error('Error fetching cabangs:', error);
+    }
+  };
+
   const addVariant = () => {
-    setVariants([...variants, { variantName: '', variantValue: '', sku: '', price: 0, stock: 0 }]);
+    setVariants([...variants, { 
+      variantName: '', 
+      variantValue: '', 
+      sku: '', 
+      stocks: cabangs.map(c => ({ cabangId: c.id, cabangName: c.name, quantity: 0, price: 0 }))
+    }]);
   };
 
   const removeVariant = (index: number) => {
@@ -53,13 +74,41 @@ export default function NewProductPage() {
     setVariants(newVariants);
   };
 
+  const handleStockChange = (variantIndex: number, cabangIndex: number, field: string, value: string) => {
+    setVariants(prevVariants => {
+      const updated = prevVariants.map((variant, vIdx) => {
+        if (vIdx === variantIndex) {
+          return {
+            ...variant,
+            stocks: variant.stocks.map((stock: any, sIdx: number) => {
+              if (sIdx === cabangIndex) {
+                if (field === 'price') {
+                  return { ...stock, [field]: parseFloat(value) || 0 };
+                } else {
+                  return { ...stock, [field]: parseInt(value) || 0 };
+                }
+              }
+              return stock;
+            })
+          };
+        }
+        return variant;
+      });
+      return updated;
+    });
+  };
+
   const handleGeneratedVariants = (generated: Array<{ variantName: string; variantValue: string; sku: string; price: string; stock: string }>) => {
     const converted = generated.map(v => ({
       variantName: v.variantName,
       variantValue: v.variantValue,
       sku: v.sku,
-      price: parseFloat(v.price) || 0,
-      stock: parseInt(v.stock) || 0
+      stocks: cabangs.map(c => ({
+        cabangId: c.id,
+        cabangName: c.name,
+        quantity: parseInt(v.stock) || 0,
+        price: parseFloat(v.price) || 0
+      }))
     }));
     setVariants(converted);
     setShowDynamicBuilder(false);
@@ -67,11 +116,16 @@ export default function NewProductPage() {
   };
 
   const applyBulkValues = () => {
-    const updated = variants.map(v => ({
+    const updated = variants.map((v, index) => ({
       ...v,
-      ...(bulkApply.sku && { sku: bulkApply.sku }),
-      ...(bulkApply.price && { price: parseFloat(bulkApply.price) || v.price }),
-      ...(bulkApply.stock && { stock: parseInt(bulkApply.stock) || v.stock })
+      ...(bulkApply.sku && { sku: `${bulkApply.sku}${index + 1}` }),
+      ...(bulkApply.price || bulkApply.stock ? {
+        stocks: v.stocks.map(s => ({
+          ...s,
+          ...(bulkApply.price && { price: parseFloat(bulkApply.price) }),
+          ...(bulkApply.stock && { quantity: parseInt(bulkApply.stock) })
+        }))
+      } : {})
     }));
     setVariants(updated);
     setBulkApply({ sku: '', price: '', stock: '' });
@@ -93,8 +147,27 @@ export default function NewProductPage() {
       if (formData.productType === 'SINGLE') {
         payload.price = Number(formData.price);
         payload.sku = formData.sku;
+        // Note: SINGLE products will be handled by backend to create default variant with stocks
       } else {
-        payload.variants = variants.filter(v => v.variantName && v.variantValue && v.price > 0);
+        // Validate variants have at least one cabang with price
+        for (const variant of variants) {
+          const hasPrice = variant.stocks.some(s => s.price && s.price > 0);
+          if (!hasPrice) {
+            alert(`Varian "${variant.variantName}: ${variant.variantValue}" harus punya harga minimal di 1 cabang!`);
+            setLoading(false);
+            return;
+          }
+        }
+        
+        payload.variants = variants
+          .filter(v => v.variantName && v.variantValue)
+          .map(v => ({
+            variantName: v.variantName,
+            variantValue: v.variantValue,
+            sku: v.sku,
+            price: v.stocks[0]?.price || 0, // Use first cabang price as default
+            stocks: v.stocks
+          }));
       }
 
       await productsAPI.createProduct(payload);
@@ -304,19 +377,19 @@ export default function NewProductPage() {
           {/* Bulk Apply Section */}
             <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
               <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Terapkan ke Semua Varian</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SKU Prefix</label>
                   <input
                     type="text"
                     value={bulkApply.sku}
                     onChange={(e) => setBulkApply({ ...bulkApply, sku: e.target.value })}
-                    placeholder="SKU-001"
+                    placeholder="PRD-"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Stok</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Stok (semua cabang)</label>
                   <input
                     type="number"
                     value={bulkApply.stock}
@@ -327,7 +400,7 @@ export default function NewProductPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Harga</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Harga (semua cabang)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-xs">Rp</span>
                     <input
@@ -340,127 +413,151 @@ export default function NewProductPage() {
                     />
                   </div>
                 </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={applyBulkValues}
+                    className="w-full py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition"
+                  >
+                    Terapkan
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={applyBulkValues}
-                className="mt-3 w-full py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition"
-              >
-                Terapkan ke Semua
-              </button>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                SKU akan menambahkan nomor urut (e.g., PRD-1, PRD-2). Kosongkan field yang tidak ingin diubah.
+              </p>
             </div>
           
-          {/* Header for desktop */}
-          <div className="hidden md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] gap-2 mb-2 px-1">
-            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nama Varian</div>
-            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nilai</div>
-            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">SKU</div>
-            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Stok</div>
-            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Harga</div>
-            <div className="w-10"></div>
-          </div>
-          
-          <div className="space-y-2.5">
-            {variants.map((variant, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 md:p-0 md:border-0 md:bg-transparent md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] md:gap-2 md:items-center space-y-2 md:space-y-0">
-                {/* Row 1: Varian Name + Value (Mobile: side by side) */}
-                <div className="grid grid-cols-2 gap-2 md:block md:space-y-1">
-                  <div>
-                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Nama</label>
-                    <input
-                      type="text"
-                      value={variant.variantName}
-                      onChange={(e) => updateVariant(index, 'variantName', e.target.value)}
-                      placeholder="Ukuran"
-                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                    />
+          {/* Variant Cards */}
+          <div className="space-y-4">
+            {variants.map((variant, variantIndex) => (
+              <div key={variantIndex} className="p-4 md:p-5 border border-gray-200 rounded-lg bg-white hover:border-slate-400 transition-colors">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex items-center justify-center w-7 h-7 bg-slate-600 text-white rounded-md font-semibold text-sm">
+                      {variantIndex + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {variant.variantName && variant.variantValue 
+                          ? `${variant.variantName}: ${variant.variantValue}` 
+                          : `Varian #${variantIndex + 1}`}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">{variant.sku || 'SKU belum diisi'}</p>
+                    </div>
                   </div>
-                  <div className="md:hidden">
-                    <label className="block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Nilai</label>
-                    <input
-                      type="text"
-                      value={variant.variantValue}
-                      onChange={(e) => updateVariant(index, 'variantValue', e.target.value)}
-                      placeholder="6"
-                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(variantIndex)}
+                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-600 rounded-md transition-colors"
+                  >
+                    Hapus
+                  </button>
                 </div>
-                
-                {/* Desktop only: Separate Value field */}
-                <div className="hidden md:block space-y-1">
-                  <input
-                    type="text"
-                    value={variant.variantValue}
-                    onChange={(e) => updateVariant(index, 'variantValue', e.target.value)}
-                    placeholder="Contoh: 6 / Merah"
-                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                  />
-                </div>
-                
-                {/* Row 2: SKU + Stock + Price (Mobile: 3 columns) */}
-                <div className="grid grid-cols-3 gap-2 md:contents">
-                  <div className="md:space-y-1">
-                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">SKU</label>
-                    <input
-                      type="text"
-                      value={variant.sku}
-                      onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                      placeholder="001"
-                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-xs font-mono bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                    />
-                  </div>
-                  <div className="md:space-y-1">
-                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Stok</label>
-                    <input
-                      type="number"
-                      value={variant.stock || ''}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/^0+(?=\d)/, '');
-                        updateVariant(index, 'stock', val);
-                      }}
-                      onBlur={(e) => {
-                        const num = parseInt(e.target.value) || 0;
-                        updateVariant(index, 'stock', String(num));
-                      }}
-                      placeholder="15"
-                      min="0"
-                      className="w-full px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                    />
-                  </div>
-                  <div className="md:space-y-1">
-                    <label className="md:hidden block text-[10px] font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">Harga</label>
-                    <div className="relative">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-[10px]">Rp</span>
+
+                {/* Variant Details */}
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Nama Varian
+                      </label>
                       <input
-                        type="number"
-                        value={variant.price || ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/^0+(?=\d)/, '');
-                          updateVariant(index, 'price', val);
-                        }}
-                        onBlur={(e) => {
-                          const num = parseFloat(e.target.value) || 0;
-                          updateVariant(index, 'price', String(num));
-                        }}
-                        placeholder="50000"
-                        min="0"
-                        className="w-full pl-7 pr-2 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                        type="text"
+                        value={variant.variantName}
+                        onChange={(e) => updateVariant(variantIndex, 'variantName', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                        placeholder="Contoh: Nomor, Size"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        Value
+                      </label>
+                      <input
+                        type="text"
+                        value={variant.variantValue}
+                        onChange={(e) => updateVariant(variantIndex, 'variantValue', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                        placeholder="Contoh: 13, M, XL"
                       />
                     </div>
                   </div>
-                </div>
-                
-                {/* Delete button */}
-                <div className="md:flex md:items-end -mx-3 -mb-3 mt-2 md:m-0">
-                  <button
-                    type="button"
-                    onClick={() => removeVariant(index)}
-                    className="w-full md:w-10 h-9 md:h-10 flex items-center justify-center gap-1.5 text-red-600 hover:text-white hover:bg-red-600 bg-red-50 dark:bg-red-900/20 md:bg-transparent border-t md:border border-red-200 md:border-red-300 hover:border-red-600 rounded-b-lg md:rounded-lg transition-all duration-150 font-medium text-xs md:text-base"
-                    title="Hapus varian"
-                  >
-                    <span className="text-lg leading-none">×</span>
-                  </button>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      SKU
+                    </label>
+                    <input
+                      type="text"
+                      value={variant.sku}
+                      onChange={(e) => updateVariant(variantIndex, 'sku', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                      placeholder="VAR-009"
+                    />
+                  </div>
+
+                  {/* Harga & Stock per Cabang Section */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                      Harga & Stok per Cabang
+                    </label>
+                    <div className="space-y-2">
+                      {variant.stocks.map((stock: any, stockIndex: number) => (
+                        <div key={stockIndex} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-2.5 bg-gray-50 rounded-md">
+                          <div className="flex items-center">
+                            <span className="text-sm text-gray-700 font-medium">
+                              {stock.cabangName}
+                            </span>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Harga</label>
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">
+                                Rp
+                              </span>
+                              <input
+                                type="number"
+                                value={stock.price || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/^0+(?=\d)/, '');
+                                  handleStockChange(variantIndex, stockIndex, 'price', val);
+                                }}
+                                onBlur={(e) => {
+                                  const num = parseFloat(e.target.value) || 0;
+                                  handleStockChange(variantIndex, stockIndex, 'price', String(num));
+                                }}
+                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                                placeholder="50000"
+                                min="0"
+                                step="any"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Stok</label>
+                            <input
+                              type="number"
+                              value={stock.quantity || ''}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/^0+/, '') || '0';
+                                handleStockChange(variantIndex, stockIndex, 'quantity', val);
+                              }}
+                              onBlur={(e) => {
+                                const num = parseInt(e.target.value) || 0;
+                                handleStockChange(variantIndex, stockIndex, 'quantity', String(num));
+                              }}
+                              className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm text-center font-semibold focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                              placeholder="0"
+                              min="0"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
