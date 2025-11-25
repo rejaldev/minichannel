@@ -21,18 +21,10 @@ interface DynamicVariantBuilderProps {
 
 export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuilderProps) {
   const [variantTypes, setVariantTypes] = useState<VariantType[]>([
-    { name: '', options: [''] }
+    { name: 'Ukuran', options: [''] }
   ]);
   const [basePrice, setBasePrice] = useState('');
   const [baseStock, setBaseStock] = useState('');
-
-  const addVariantType = () => {
-    setVariantTypes([...variantTypes, { name: '', options: [''] }]);
-  };
-
-  const removeVariantType = (index: number) => {
-    setVariantTypes(variantTypes.filter((_, i) => i !== index));
-  };
 
   const updateVariantTypeName = (index: number, name: string) => {
     const updated = [...variantTypes];
@@ -119,7 +111,7 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
             Generator Varian Otomatis
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Buat tipe varian (Ukuran, Warna, dll) dan sistem akan generate semua kombinasi otomatis
+            Tentukan nama varian dan opsi-opsinya, sistem akan generate semua kombinasi otomatis
           </p>
         </div>
       </div>
@@ -128,23 +120,14 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
       <div className="space-y-3">
         {variantTypes.map((type, typeIndex) => (
           <div key={typeIndex} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-            <div className="flex items-center gap-2">
+            <div>
               <input
                 type="text"
                 value={type.name}
                 onChange={(e) => updateVariantTypeName(typeIndex, e.target.value)}
-                placeholder="Nama Tipe (Ukuran, Warna, Material...)"
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Nama Tipe Varian (Ukuran, Warna, Material...)"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm font-semibold bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
-              {variantTypes.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeVariantType(typeIndex)}
-                  className="px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition text-sm font-medium"
-                >
-                  ✕
-                </button>
-              )}
             </div>
 
             {/* Options */}
@@ -183,14 +166,6 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
           </div>
         ))}
       </div>
-
-      <button
-        type="button"
-        onClick={addVariantType}
-        className="w-full py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition text-sm font-medium"
-      >
-        + Tambah Tipe Varian
-      </button>
 
       {/* Base Price & Stock */}
       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
