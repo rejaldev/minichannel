@@ -26,6 +26,7 @@ export default function ProductsPage() {
         productsAPI.getProducts({
           categoryId: selectedCategory || undefined,
           search: search || undefined,
+          isActive: true, // Only fetch active products
         }),
         productsAPI.getCategories(),
       ]);
@@ -67,9 +68,11 @@ export default function ProductsPage() {
     }
 
     setDeleting(true);
+    const productsToDelete = [...selectedProducts]; // Store before clear
+    
     try {
       const results = await Promise.allSettled(
-        selectedProducts.map(id => productsAPI.deleteProduct(id))
+        productsToDelete.map(id => productsAPI.deleteProduct(id))
       );
       
       const failed = results.filter(r => r.status === 'rejected');
@@ -79,15 +82,13 @@ export default function ProductsPage() {
         console.error('Failed deletions:', failed);
         alert(`Berhasil menghapus ${success.length} produk. ${failed.length} produk gagal dihapus.`);
       } else {
-        alert(`${selectedProducts.length} produk berhasil dihapus!`);
+        alert(`${productsToDelete.length} produk berhasil dihapus!`);
       }
       
-      // Remove deleted products from UI immediately
-      setProducts(products.filter(p => !selectedProducts.includes(p.id)));
+      // Immediately remove deleted products from UI
+      setProducts(prevProducts => prevProducts.filter(p => !productsToDelete.includes(p.id)));
       setSelectedProducts([]);
       
-      // Then fetch fresh data from server
-      await fetchData();
     } catch (error: any) {
       console.error('Error deleting products:', error);
       alert(error.response?.data?.error || 'Gagal menghapus produk');
