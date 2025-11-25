@@ -15,19 +15,31 @@ npm run dev
 
 ### Pages
 - **Dashboard** (`/dashboard`) - Overview transaksi, revenue, low stock alerts
-- **Products** (`/dashboard/products`) - CRUD produk dengan varian & multi-branch stock
+- **Products** (`/dashboard/products`) - CRUD produk dengan varian & **per-cabang pricing**
+  - Product list: Multi-column table showing stock & price per cabang
+  - New/Edit product: Per-cabang input for price & stock
+  - Support SINGLE (produk tunggal) & VARIANT (dengan varian)
+  - Bulk apply: Set price/stock to all cabangs at once
+  - Validation: At least one cabang must have price
+  - Mobile: Card view with per-cabang breakdown
 - **Transactions** (`/dashboard/transactions`) - Riwayat transaksi dengan filter
 - **Reports** (`/dashboard/reports`) - Summary revenue & payment methods
 - **Users** (`/dashboard/users`) - User management dengan role (OWNER, MANAGER, KASIR)
 - **Categories** (`/dashboard/categories`) - Manajemen kategori produk
-- **Settings** (`/dashboard/settings`) -  **NEW** Printer settings dengan live preview
+- **Settings** (`/dashboard/settings`) - Pengaturan sistem
 
 ### Settings Page
 **Path:** `/dashboard/settings`
 
-**3 Tabs:**
-1. **General** - Theme, language, currency
-2. **Printer** - Centralized printer configuration:
+**5 Tabs:**
+1. **General** - Nama toko, contact info, timezone
+2. **Stock** - Min stock threshold global
+3. **Cabang** - CRUD branches dengan stats (users, stocks, transactions)
+   - Add/edit cabang with name, address, phone
+   - Toggle active/inactive status
+   - View stats per cabang
+   - Card-based grid layout
+4. **Printer** - Centralized printer configuration:
    - Auto Print toggle
    - Printer name (optional)
    - Paper width (58mm/80mm) with live preview
@@ -35,12 +47,12 @@ npm run dev
    - Receipt header customization (store name, branch, address, phone)
    - Receipt footer customization (2 lines)
    - Live receipt preview with dynamic width
-3. **Backup & Data** - Auto backup, export, danger zone
+5. **Backup & Data** - Auto backup, export, danger zone
 
 **Features:**
 - Fully mobile responsive
 - Real-time preview as you type
-- Saves to backend API (`/api/settings/printer`)
+- Saves to backend API
 - Desktop POS fetches these settings
 
 ### Authentication
@@ -162,6 +174,31 @@ npm run lint         # Run ESLint
 ```
 
 ## Recent Updates
+
+### v1.4.0 (Nov 26, 2025) - Per-Cabang Pricing
+- **Multi-Column Product Table**: Show stock & price per cabang in table
+  - Multi-row header: cabang names with stock/price sub-headers
+  - Color-coded stock badges (red/yellow/green)
+  - Border separation between cabang columns
+  - React.Fragment with proper keys to fix warnings
+- **Per-Cabang Pricing UI**:
+  - New product page: per-cabang input for SINGLE & VARIANT
+  - Edit product page: per-cabang grid for each variant
+  - Bulk apply: Set price/stock to all cabangs
+  - Validation: At least 1 cabang must have price
+- **Mobile Card View**: Per-cabang breakdown in product cards
+  - "Total" stock badge at top
+  - List of cabangs with individual stock & price
+  - Color-coded badges per cabang
+- **Cabang Management**: Settings → Cabang tab
+  - CRUD operations with stats
+  - Active/inactive toggle
+  - Card-based grid layout (2 columns)
+  - Shows users/stocks/transactions count
+- **Bug Fixes**: 
+  - Fixed React key props warnings
+  - Fixed hydration error from table whitespace
+  - Fixed TypeScript errors in variant builder
 
 ### v1.2.1 (Nov 15, 2025)
 - Removed unused Electron dependencies (escpos, electron, electron-builder, concurrently, wait-on)
