@@ -66,14 +66,25 @@ export default function ProductsPage() {
 
     setDeleting(true);
     try {
-      await Promise.all(
+      const results = await Promise.allSettled(
         selectedProducts.map(id => productsAPI.deleteProduct(id))
       );
-      alert(`${selectedProducts.length} produk berhasil dihapus!`);
+      
+      const failed = results.filter(r => r.status === 'rejected');
+      const success = results.filter(r => r.status === 'fulfilled');
+      
+      if (failed.length > 0) {
+        console.error('Failed deletions:', failed);
+        alert(`Berhasil menghapus ${success.length} produk. ${failed.length} produk gagal dihapus.`);
+      } else {
+        alert(`${selectedProducts.length} produk berhasil dihapus!`);
+      }
+      
+      setSelectedProducts([]);
       fetchData();
     } catch (error: any) {
       console.error('Error deleting products:', error);
-      alert('Gagal menghapus beberapa produk');
+      alert(error.response?.data?.error || 'Gagal menghapus produk');
     } finally {
       setDeleting(false);
     }
