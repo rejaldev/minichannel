@@ -25,6 +25,7 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
   ]);
   const [basePrice, setBasePrice] = useState('');
   const [baseStock, setBaseStock] = useState('');
+  const [skuPrefix, setSkuPrefix] = useState('VAR');
 
   const addVariantType = () => {
     setVariantTypes([...variantTypes, { name: '', options: [''] }]);
@@ -99,7 +100,7 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
         variantValue: secondaryValues 
           ? `${primaryVariant.value} (${secondaryValues})`
           : primaryVariant.value,
-        sku: `VAR-${String(index + 1).padStart(3, '0')}`,
+        sku: `${skuPrefix}-${String(index + 1).padStart(3, '0')}`,
         price: basePrice || '',
         stock: baseStock || ''
       };
@@ -192,8 +193,19 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
         + Tambah Tipe Varian
       </button>
 
-      {/* Base Price & Stock */}
-      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+      {/* SKU Prefix, Base Price & Stock */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-blue-200 dark:border-blue-800">
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Prefix SKU</label>
+          <input
+            type="text"
+            value={skuPrefix}
+            onChange={(e) => setSkuPrefix(e.target.value.toUpperCase())}
+            placeholder="VAR"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">SKU: {skuPrefix}-001, {skuPrefix}-002, ...</p>
+        </div>
         <div>
           <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Harga Default (opsional)</label>
           <div className="relative">
