@@ -121,6 +121,7 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
         {variantTypes.map((type, typeIndex) => (
           <div key={typeIndex} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
             <div>
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase">Nama Varian:</label>
               <input
                 type="text"
                 value={type.name}
@@ -132,7 +133,7 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
 
             {/* Options */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Opsi Varian (Nilai):</label>
+              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Opsi:</label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {type.options.map((option, optionIndex) => (
                   <div key={optionIndex} className="flex items-center gap-1">
@@ -140,7 +141,7 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
                       type="text"
                       value={option}
                       onChange={(e) => updateOption(typeIndex, optionIndex, e.target.value)}
-                      placeholder={type.name === 'Ukuran' ? `${6 + optionIndex * 2}` : `Nilai ${optionIndex + 1}`}
+                      placeholder={type.name === 'Ukuran' ? `${6 + optionIndex * 2}` : `Opsi ${optionIndex + 1}`}
                       className="flex-1 px-2.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                     {type.options.length > 1 && (
