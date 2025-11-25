@@ -254,7 +254,8 @@ export default function ProductsPage() {
                       </React.Fragment>
                     ))}
                   </tr>
-                </thead>                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {products.map((product, index) => {
                     const totalStock = product.productType === 'SINGLE'
                       ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
