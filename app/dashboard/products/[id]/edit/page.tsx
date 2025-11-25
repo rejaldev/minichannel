@@ -59,7 +59,6 @@ export default function EditProductPage() {
             cabangId: cabang.id,
             cabangName: cabang.name,
             quantity: existingStock?.quantity || 0,
-            minStock: existingStock?.minStock || 5,
           };
         }),
       }));
@@ -88,7 +87,6 @@ export default function EditProductPage() {
           cabangId: cabang.id,
           cabangName: cabang.name,
           quantity: 0,
-          minStock: 5,
         })),
       },
     ]);
@@ -112,7 +110,6 @@ export default function EditProductPage() {
           cabangId: cabang.id,
           cabangName: cabang.name,
           quantity: 0,
-          minStock: 5,
         })),
       }]);
     }

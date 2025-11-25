@@ -191,9 +191,6 @@ export default function ProductDetailPage() {
                     Stok Tersedia
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Min. Stok
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Status
                   </th>
                 </tr>
@@ -222,10 +219,7 @@ export default function ProductDetailPage() {
                         <div className="text-lg font-bold text-gray-900">{stock.quantity}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">{stock.minStock}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {stock.quantity <= stock.minStock ? (
+                        {stock.quantity <= 5 ? (
                           <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
                             Stok Menipis
                           </span>
@@ -238,7 +232,7 @@ export default function ProductDetailPage() {
                     </tr>
                   )) || (
                     <tr key={variant.id}>
-                      <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                         Belum ada stok untuk varian ini
                       </td>
                     </tr>
