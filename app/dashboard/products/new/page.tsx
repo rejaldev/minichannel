@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsAPI } from '@/lib/api';
+import DynamicVariantBuilder from '@/components/DynamicVariantBuilder';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showDynamicBuilder, setShowDynamicBuilder] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -46,6 +48,19 @@ export default function NewProductPage() {
     const newVariants = [...variants];
     newVariants[index] = { ...newVariants[index], [field]: value };
     setVariants(newVariants);
+  };
+
+  const handleGeneratedVariants = (generated: Array<{ variantName: string; variantValue: string; sku: string; price: string; stock: string }>) => {
+    const converted = generated.map(v => ({
+      variantName: v.variantName,
+      variantValue: v.variantValue,
+      sku: v.sku,
+      price: parseFloat(v.price) || 0,
+      stock: parseInt(v.stock) || 0
+    }));
+    setVariants(converted);
+    setShowDynamicBuilder(false);
+    alert(`✓ ${generated.length} varian berhasil di-generate!`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -253,21 +268,49 @@ export default function NewProductPage() {
 
         {/* Variants - Only show for VARIANT product type */}
         {formData.productType === 'VARIANT' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daftar Varian</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Tambahkan varian produk dengan detail lengkap</p>
-            </div>
-            <button
-              type="button"
-              onClick={addVariant}
-              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center gap-2"
-            >
-              <span className="text-lg leading-none">+</span>
-              <span className="hidden sm:inline">Tambah Varian</span>
-            </button>
-          </div>
+          <>
+            {/* Dynamic Variant Builder */}
+            {showDynamicBuilder ? (
+              <div className="space-y-4">
+                <DynamicVariantBuilder onGenerate={handleGeneratedVariants} />
+                <button
+                  type="button"
+                  onClick={() => setShowDynamicBuilder(false)}
+                  className="w-full py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
+                >
+                  ← Kembali ke Mode Manual
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daftar Varian</h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Tambahkan varian produk dengan detail lengkap</p>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setShowDynamicBuilder(true)}
+                      className="flex-1 sm:flex-none px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 text-xs font-medium transition flex items-center justify-center gap-1.5 shadow-md"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span className="hidden sm:inline">Auto Generate</span>
+                      <span className="sm:hidden">Generate</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addVariant}
+                      className="flex-1 sm:flex-none px-3 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-xs font-medium transition flex items-center justify-center gap-1.5"
+                    >
+                      <span className="text-lg leading-none">+</span>
+                      <span className="hidden sm:inline">Tambah Manual</span>
+                      <span className="sm:hidden">Manual</span>
+                    </button>
+                  </div>
+                </div>
           
           {/* Header for desktop */}
           <div className="hidden md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] gap-2 mb-2 px-1">
@@ -379,13 +422,14 @@ export default function NewProductPage() {
                     title="Hapus varian"
                   >
                     <span className="text-lg leading-none">×</span>
-                    <span className="md:hidden">Hapus</span>
                   </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
+            )}
+          </>
         )}
 
         {/* Actions */}
