@@ -16,10 +16,14 @@ export default function NewProductPage() {
     description: '',
     categoryId: '',
     productType: 'SINGLE' as 'SINGLE' | 'VARIANT',
-    price: 0,
     sku: '',
-    stock: 0,
   });
+  const [singleProductStocks, setSingleProductStocks] = useState<Array<{ 
+    cabangId: string; 
+    cabangName: string; 
+    quantity: number; 
+    price: number;
+  }>>([]);
   const [variants, setVariants] = useState<Array<{ 
     variantName: string; 
     variantValue: string; 
@@ -28,6 +32,10 @@ export default function NewProductPage() {
   }>>([]);
   const [bulkApply, setBulkApply] = useState({
     sku: '',
+    price: '',
+    stock: ''
+  });
+  const [singleBulkApply, setSingleBulkApply] = useState({
     price: '',
     stock: ''
   });
@@ -49,7 +57,15 @@ export default function NewProductPage() {
   const fetchCabangs = async () => {
     try {
       const res = await cabangAPI.getCabangs();
-      setCabangs(res.data.filter((c: any) => c.isActive));
+      const activeCabangs = res.data.filter((c: any) => c.isActive);
+      setCabangs(activeCabangs);
+      // Initialize single product stocks with active cabangs
+      setSingleProductStocks(activeCabangs.map((c: any) => ({
+        cabangId: c.id,
+        cabangName: c.name,
+        quantity: 0,
+        price: 0
+      })));
     } catch (error) {
       console.error('Error fetching cabangs:', error);
     }
@@ -96,6 +112,34 @@ export default function NewProductPage() {
       });
       return updated;
     });
+  };
+
+  const handleSingleStockChange = (cabangIndex: number, field: string, value: string) => {
+    setSingleProductStocks(prev => {
+      return prev.map((stock, idx) => {
+        if (idx === cabangIndex) {
+          if (field === 'price') {
+            return { ...stock, [field]: parseFloat(value) || 0 };
+          } else {
+            return { ...stock, [field]: parseInt(value) || 0 };
+          }
+        }
+        return stock;
+      });
+    });
+  };
+
+  const applySingleBulkValues = () => {
+    const price = parseFloat(singleBulkApply.price) || 0;
+    const stock = parseInt(singleBulkApply.stock) || 0;
+    
+    setSingleProductStocks(prev => prev.map(s => ({
+      ...s,
+      price: price > 0 ? price : s.price,
+      quantity: stock >= 0 ? stock : s.quantity
+    })));
+    
+    alert('✓ Harga & stok berhasil diterapkan ke semua cabang!');
   };
 
   const handleGeneratedVariants = (generated: Array<{ variantName: string; variantValue: string; sku: string; price: string; stock: string }>) => {
@@ -145,9 +189,17 @@ export default function NewProductPage() {
       };
 
       if (formData.productType === 'SINGLE') {
-        payload.price = Number(formData.price);
+        // Validate single product has at least one cabang with price
+        const hasPrice = singleProductStocks.some(s => s.price && s.price > 0);
+        if (!hasPrice) {
+          alert('Produk harus punya harga minimal di 1 cabang!');
+          setLoading(false);
+          return;
+        }
+        
         payload.sku = formData.sku;
-        // Note: SINGLE products will be handled by backend to create default variant with stocks
+        payload.price = singleProductStocks[0]?.price || 0; // Use first cabang price as default
+        payload.stocks = singleProductStocks;
       } else {
         // Validate variants have at least one cabang with price
         for (const variant of variants) {
@@ -285,69 +337,97 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            {/* Show price and SKU input only for SINGLE product */}
+            {/* Show SKU input and per-cabang pricing for SINGLE product */}
             {formData.productType === 'SINGLE' && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      SKU <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.sku || ''}
-                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                      placeholder="Contoh: SERAGAM-SD-06"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Harga <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">Rp</span>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        value={formData.price || ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/^0+(?=\d)/, '');
-                          setFormData({ ...formData, price: parseFloat(val) || 0 });
-                        }}
-                        onBlur={(e) => {
-                          const num = parseFloat(e.target.value) || 0;
-                          setFormData({ ...formData, price: num });
-                        }}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                        placeholder="50000"
-                      />
-                    </div>
-                  </div>
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Stok Awal <span className="text-red-500">*</span>
+                    SKU <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    min="0"
-                    value={formData.stock || ''}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/^0+(?=\d)/, '');
-                      setFormData({ ...formData, stock: parseInt(val) || 0 });
-                    }}
-                    onBlur={(e) => {
-                      const num = parseInt(e.target.value) || 0;
-                      setFormData({ ...formData, stock: num });
-                    }}
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
-                    placeholder="15"
+                    value={formData.sku || ''}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                    placeholder="Contoh: SERAGAM-SD-06"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Jumlah stok produk yang tersedia</p>
+                </div>
+
+                {/* Per-Cabang Pricing for SINGLE product */}
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-700/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Harga & Stok per Cabang <span className="text-red-500">*</span>
+                    </h4>
+                  </div>
+
+                  {/* Bulk Apply */}
+                  <div className="p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Terapkan ke Semua Cabang</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div>
+                        <input
+                          type="number"
+                          value={singleBulkApply.price}
+                          onChange={(e) => setSingleBulkApply({ ...singleBulkApply, price: e.target.value })}
+                          placeholder="Harga"
+                          min="0"
+                          className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="number"
+                          value={singleBulkApply.stock}
+                          onChange={(e) => setSingleBulkApply({ ...singleBulkApply, stock: e.target.value })}
+                          placeholder="Stok"
+                          min="0"
+                          className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={applySingleBulkValues}
+                        className="px-3 py-1.5 bg-slate-600 text-white rounded text-sm font-medium hover:bg-slate-700 transition"
+                      >
+                        Terapkan
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Per-Cabang Grid */}
+                  <div className="space-y-2">
+                    {singleProductStocks.map((stock, idx) => (
+                      <div key={stock.cabangId} className="grid grid-cols-3 gap-2 items-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {stock.cabangName}
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400">Rp</span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={stock.price || ''}
+                            onChange={(e) => handleSingleStockChange(idx, 'price', e.target.value)}
+                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="0"
+                          />
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          value={stock.quantity || ''}
+                          onChange={(e) => handleSingleStockChange(idx, 'quantity', e.target.value)}
+                          className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm text-center bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="0"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                    Minimal 1 cabang harus punya harga untuk bisa menyimpan produk
+                  </p>
                 </div>
               </div>
             )}
