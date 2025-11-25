@@ -506,101 +506,81 @@ export default function EditProductPage() {
           
 
           {variants.map((variant, variantIndex) => (
-            <div key={variantIndex} className="mb-4 p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-white hover:border-slate-300 transition-colors">
+            <div key={variantIndex} className="mb-4 p-4 md:p-5 border border-gray-200 rounded-lg bg-white hover:border-slate-400 transition-colors">
               {/* Header */}
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-slate-600 text-white rounded-lg font-bold text-sm">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center w-7 h-7 bg-slate-600 text-white rounded-md font-semibold text-sm">
                     {variantIndex + 1}
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Varian #{variantIndex + 1}</h3>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-semibold text-gray-900">
                       {variant.variantName && variant.variantValue 
                         ? `${variant.variantName}: ${variant.variantValue}` 
-                        : 'Belum diisi'}
+                        : `Varian #${variantIndex + 1}`}
                     </p>
+                    <p className="text-xs text-gray-500 mt-0.5">{variant.sku || 'SKU belum diisi'}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleRemoveVariant(variantIndex)}
-                  className="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-600 rounded-lg transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-600 rounded-md transition-colors"
                 >
                   Hapus
                 </button>
               </div>
 
               {/* Variant Details */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        Nama Varian
-                      </span>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Nama Varian
                     </label>
                     <input
                       type="text"
                       value={variant.variantName}
                       onChange={(e) => handleVariantChange(variantIndex, 'variantName', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                      placeholder="e.g., Nomor, Size, Ukuran"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                      placeholder="Contoh: Nomor, Size"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Value
-                      </span>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Value
                     </label>
                     <input
                       type="text"
                       value={variant.variantValue}
                       onChange={(e) => handleVariantChange(variantIndex, 'variantValue', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                      placeholder="e.g., 13, M, XL"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                      placeholder="Contoh: 13, M, XL"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                        </svg>
-                        SKU
-                      </span>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      SKU
                     </label>
                     <input
                       type="text"
                       value={variant.sku}
                       onChange={(e) => handleVariantChange(variantIndex, 'sku', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                      placeholder="e.g., VAR-009"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                      placeholder="VAR-009"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Harga <span className="text-red-500">*</span>
-                      </span>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Harga <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
                         Rp
                       </span>
                       <input
@@ -614,7 +594,7 @@ export default function EditProductPage() {
                           const num = parseFloat(e.target.value) || 0;
                           handleVariantChange(variantIndex, 'price', String(num));
                         }}
-                        className="w-full pl-12 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
                         placeholder="50000"
                         min="0"
                         step="any"
@@ -624,45 +604,31 @@ export default function EditProductPage() {
                 </div>
 
                 {/* Stock Section */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    <span className="flex items-center gap-1.5">
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                      </svg>
-                      Stok per Cabang
-                    </span>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Stok per Cabang
                   </label>
                   <div className="space-y-2">
                     {variant.stocks.map((stock: any, stockIndex: number) => (
-                      <div key={stockIndex} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span className="text-sm font-medium text-gray-700 truncate">
-                              {stock.cabangName}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex-shrink-0 w-24">
-                          <input
-                            type="number"
-                            value={stock.quantity || ''}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/^0+/, '') || '0';
-                              handleStockChange(variantIndex, stockIndex, 'quantity', val);
-                            }}
-                            onBlur={(e) => {
-                              const num = parseInt(e.target.value) || 0;
-                              handleStockChange(variantIndex, stockIndex, 'quantity', String(num));
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-center font-semibold focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                            placeholder="0"
-                            min="0"
-                          />
-                        </div>
+                      <div key={stockIndex} className="flex items-center justify-between gap-3 p-2.5 bg-gray-50 rounded-md">
+                        <span className="text-sm text-gray-700 font-medium">
+                          {stock.cabangName}
+                        </span>
+                        <input
+                          type="number"
+                          value={stock.quantity || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/^0+/, '') || '0';
+                            handleStockChange(variantIndex, stockIndex, 'quantity', val);
+                          }}
+                          onBlur={(e) => {
+                            const num = parseInt(e.target.value) || 0;
+                            handleStockChange(variantIndex, stockIndex, 'quantity', String(num));
+                          }}
+                          className="w-20 px-2 py-1.5 border border-gray-300 rounded-md text-sm text-center font-semibold focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
+                          placeholder="0"
+                          min="0"
+                        />
                       </div>
                     ))}
                   </div>
