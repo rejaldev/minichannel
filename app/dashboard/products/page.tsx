@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { productsAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
