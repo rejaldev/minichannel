@@ -57,15 +57,19 @@ export default function NewProductPage() {
   const fetchCabangs = async () => {
     try {
       const res = await cabangAPI.getCabangs();
+      console.log('🔍 Fetched cabangs:', res.data);
       const activeCabangs = res.data.filter((c: any) => c.isActive);
+      console.log('✅ Active cabangs:', activeCabangs);
       setCabangs(activeCabangs);
       // Initialize single product stocks with active cabangs
-      setSingleProductStocks(activeCabangs.map((c: any) => ({
+      const initialStocks = activeCabangs.map((c: any) => ({
         cabangId: c.id,
         cabangName: c.name,
         quantity: 0,
         price: 0
-      })));
+      }));
+      console.log('📦 Single product stocks initialized:', initialStocks);
+      setSingleProductStocks(initialStocks);
     } catch (error) {
       console.error('Error fetching cabangs:', error);
     }
@@ -143,6 +147,12 @@ export default function NewProductPage() {
   };
 
   const handleGeneratedVariants = (generated: Array<{ variantName: string; variantValue: string; sku: string; price: string; stock: string }>) => {
+    console.log('🔧 Generate variants with cabangs:', cabangs);
+    if (cabangs.length === 0) {
+      alert('⚠️ Belum ada cabang! Tunggu sebentar atau refresh halaman.');
+      return;
+    }
+    
     const converted = generated.map(v => ({
       variantName: v.variantName,
       variantValue: v.variantValue,
@@ -154,6 +164,7 @@ export default function NewProductPage() {
         price: parseFloat(v.price) || 0
       }))
     }));
+    console.log('✅ Converted variants:', converted);
     setVariants(converted);
     setShowDynamicBuilder(false);
     alert(`✓ ${generated.length} varian berhasil di-generate!`);
@@ -398,7 +409,12 @@ export default function NewProductPage() {
 
                   {/* Per-Cabang Grid */}
                   <div className="space-y-2">
-                    {singleProductStocks.map((stock, idx) => (
+                    {singleProductStocks.length === 0 && (
+                      <div className="text-sm text-red-500">⚠️ Tidak ada cabang aktif! Tambahkan cabang di Settings → Cabang</div>
+                    )}
+                    {singleProductStocks.map((stock, idx) => {
+                      console.log(`🎨 Rendering cabang ${idx}:`, stock);
+                      return (
                       <div key={stock.cabangId} className="grid grid-cols-3 gap-2 items-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
                         <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {stock.cabangName}
@@ -423,7 +439,8 @@ export default function NewProductPage() {
                           placeholder="0"
                         />
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                     Minimal 1 cabang harus punya harga untuk bisa menyimpan produk

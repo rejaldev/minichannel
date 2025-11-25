@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsAPI } from '@/lib/api';
+import { productsAPI, cabangAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
 
 export default function ProductsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [cabangs, setCabangs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -22,17 +23,19 @@ export default function ProductsPage() {
 
   const fetchData = async () => {
     try {
-      const [productsRes, categoriesRes] = await Promise.all([
+      const [productsRes, categoriesRes, cabangsRes] = await Promise.all([
         productsAPI.getProducts({
           categoryId: selectedCategory || undefined,
           search: search || undefined,
           isActive: true, // Only fetch active products
         }),
         productsAPI.getCategories(),
+        cabangAPI.getCabangs(),
       ]);
 
       setProducts(productsRes.data);
       setCategories(categoriesRes.data);
+      setCabangs(cabangsRes.data.filter((c: any) => c.isActive));
       setSelectedProducts([]); // Reset selection after fetch
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -210,7 +213,7 @@ export default function ProductsPage() {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
                   <tr>
-                    <th scope="col" className="w-12 px-4 py-4">
+                    <th scope="col" className="w-12 px-4 py-4" rowSpan={2}>
                       <input
                         type="checkbox"
                         checked={selectedProducts.length === products.length}
@@ -218,30 +221,40 @@ export default function ProductsPage() {
                         className="h-5 w-5 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
                       />
                     </th>
-                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider" rowSpan={2}>
                       Produk
                     </th>
-                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider" rowSpan={2}>
                       Kategori
                     </th>
-                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider" rowSpan={2}>
                       Tipe
                     </th>
-                    <th scope="col" className="px-4 py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
-                      Harga
-                    </th>
-                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
-                      Stok
-                    </th>
-                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    {cabangs.map((cabang) => (
+                      <th key={cabang.id} scope="col" colSpan={2} className="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-l border-gray-300 dark:border-gray-600">
+                        {cabang.name}
+                      </th>
+                    ))}
+                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-l border-gray-300 dark:border-gray-600" rowSpan={2}>
                       Status
                     </th>
-                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider" rowSpan={2}>
                       Aksi
                     </th>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr>
+                    {cabangs.map((cabang) => (
+                      <>
+                        <th key={`${cabang.id}-stock`} className="px-2 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600">
+                          Stok
+                        </th>
+                        <th key={`${cabang.id}-price`} className="px-2 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                          Harga
+                        </th>
+                      </>
+                    ))}
+                  </tr>
+                </thead>                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {products.map((product, index) => {
                     const totalStock = product.productType === 'SINGLE'
                       ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
@@ -298,41 +311,52 @@ export default function ProductsPage() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-right">
-                          {(() => {
-                            if (product.productType === 'SINGLE') {
-                              return (
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                  Rp {product.price?.toLocaleString('id-ID')}
-                                </p>
-                              );
-                            } else {
-                              const prices = product.variants?.map((v: any) => v.price) || [];
-                              const minPrice = Math.min(...prices);
-                              const maxPrice = Math.max(...prices);
-                              return (
-                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                  {minPrice === maxPrice 
-                                    ? `Rp ${minPrice.toLocaleString('id-ID')}`
-                                    : `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
-                                  }
-                                </p>
-                              );
-                            }
-                          })()}
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
-                            totalStock <= 5
-                              ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                              : totalStock <= 20
-                              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                              : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                          }`}>
-                            {totalStock}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 text-center">
+                        {/* Per-Cabang Stock & Price */}
+                        {cabangs.map((cabang) => {
+                          // Get stock & price for this cabang
+                          let stockQty = 0;
+                          let stockPrice = 0;
+
+                          if (product.productType === 'SINGLE') {
+                            // For SINGLE products, get from variant's stocks
+                            const variant = product.variants?.[0]; // Default variant
+                            const stock = variant?.stocks?.find((s: any) => s.cabangId === cabang.id);
+                            stockQty = stock?.quantity || 0;
+                            stockPrice = stock?.price || 0;
+                          } else {
+                            // For VARIANT products, sum all variants' stock for this cabang
+                            product.variants?.forEach((variant: any) => {
+                              const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
+                              stockQty += stock?.quantity || 0;
+                              // Use min price from all variants
+                              if (stock?.price && (stockPrice === 0 || stock.price < stockPrice)) {
+                                stockPrice = stock.price;
+                              }
+                            });
+                          }
+
+                          return (
+                            <>
+                              <td key={`${cabang.id}-stock`} className="px-2 py-4 text-center border-l border-gray-200 dark:border-gray-700">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
+                                  stockQty <= 5
+                                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                    : stockQty <= 20
+                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                    : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                }`}>
+                                  {stockQty}
+                                </span>
+                              </td>
+                              <td key={`${cabang.id}-price`} className="px-2 py-4 text-right">
+                                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                  {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
+                                </span>
+                              </td>
+                            </>
+                          );
+                        })}
+                        <td className="px-4 py-4 text-center border-l border-gray-200 dark:border-gray-700">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                             product.isActive
                               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
