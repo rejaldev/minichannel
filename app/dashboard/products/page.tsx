@@ -82,8 +82,12 @@ export default function ProductsPage() {
         alert(`${selectedProducts.length} produk berhasil dihapus!`);
       }
       
+      // Remove deleted products from UI immediately
+      setProducts(products.filter(p => !selectedProducts.includes(p.id)));
       setSelectedProducts([]);
-      fetchData();
+      
+      // Then fetch fresh data from server
+      await fetchData();
     } catch (error: any) {
       console.error('Error deleting products:', error);
       alert(error.response?.data?.error || 'Gagal menghapus produk');
