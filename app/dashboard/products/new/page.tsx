@@ -22,6 +22,12 @@ export default function NewProductPage() {
   const [variants, setVariants] = useState<Array<{ variantName: string; variantValue: string; sku: string; price: number; stock: number }>>([
     { variantName: '', variantValue: '', sku: '', price: 0, stock: 0 },
   ]);
+  const [bulkApply, setBulkApply] = useState({
+    sku: '',
+    price: '',
+    stock: ''
+  });
+  const [showBulkApply, setShowBulkApply] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -61,6 +67,19 @@ export default function NewProductPage() {
     setVariants(converted);
     setShowDynamicBuilder(false);
     alert(`✓ ${generated.length} varian berhasil di-generate!`);
+  };
+
+  const applyBulkValues = () => {
+    const updated = variants.map(v => ({
+      ...v,
+      ...(bulkApply.sku && { sku: bulkApply.sku }),
+      ...(bulkApply.price && { price: parseFloat(bulkApply.price) || v.price }),
+      ...(bulkApply.stock && { stock: parseInt(bulkApply.stock) || v.stock })
+    }));
+    setVariants(updated);
+    setBulkApply({ sku: '', price: '', stock: '' });
+    setShowBulkApply(false);
+    alert(`✓ Nilai berhasil diterapkan ke semua varian!`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -286,6 +305,66 @@ export default function NewProductPage() {
               </div>
             ) : variants.length > 0 ? (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          {/* Bulk Apply Section */}
+          {showBulkApply && (
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Terapkan ke Semua Varian</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkApply(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
+                  <input
+                    type="text"
+                    value={bulkApply.sku}
+                    onChange={(e) => setBulkApply({ ...bulkApply, sku: e.target.value })}
+                    placeholder="SKU-001"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Stok</label>
+                  <input
+                    type="number"
+                    value={bulkApply.stock}
+                    onChange={(e) => setBulkApply({ ...bulkApply, stock: e.target.value })}
+                    placeholder="15"
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Harga</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-xs">Rp</span>
+                    <input
+                      type="number"
+                      value={bulkApply.price}
+                      onChange={(e) => setBulkApply({ ...bulkApply, price: e.target.value })}
+                      placeholder="50000"
+                      min="0"
+                      className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={applyBulkValues}
+                className="mt-3 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+              >
+                Terapkan ke Semua
+              </button>
+            </div>
+          )}
+          
           {/* Header for desktop */}
           <div className="hidden md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] gap-2 mb-2 px-1">
             <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nama Varian</div>
@@ -402,7 +481,14 @@ export default function NewProductPage() {
             ))}
           </div>
           
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={() => setShowBulkApply(!showBulkApply)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition flex items-center justify-center gap-2"
+            >
+              {showBulkApply ? '✕ Tutup' : '⚡ Terapkan ke Semua'}
+            </button>
             <button
               type="button"
               onClick={() => setShowDynamicBuilder(true)}
