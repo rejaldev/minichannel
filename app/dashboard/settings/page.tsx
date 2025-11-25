@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { cabangAPI } from '@/lib/api';
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'general' | 'stock' | 'printer' | 'backup'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'stock' | 'cabang' | 'printer' | 'backup'>('general');
 
   return (
     <div className="px-4 md:px-6">
@@ -40,6 +41,16 @@ export default function SettingsPage() {
             Stok
           </button>
           <button
+            onClick={() => setActiveTab('cabang')}
+            className={`py-3 md:py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+              activeTab === 'cabang'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            Cabang
+          </button>
+          <button
             onClick={() => setActiveTab('printer')}
             className={`py-3 md:py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
               activeTab === 'printer'
@@ -66,6 +77,7 @@ export default function SettingsPage() {
       <div>
         {activeTab === 'general' && <GeneralSettings />}
         {activeTab === 'stock' && <StockSettings />}
+        {activeTab === 'cabang' && <CabangSettings />}
         {activeTab === 'printer' && <PrinterSettings />}
         {activeTab === 'backup' && <BackupSettings />}
       </div>
@@ -452,6 +464,304 @@ function StockSettings() {
         </div>
       </div>
     </div>
+  );
+}
+
+function CabangSettings() {
+  const [cabangs, setCabangs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCabang, setEditingCabang] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    phone: ''
+  });
+
+  useEffect(() => {
+    fetchCabangs();
+  }, []);
+
+  const fetchCabangs = async () => {
+    try {
+      setLoading(true);
+      const response = await cabangAPI.getCabangs();
+      setCabangs(response.data);
+    } catch (error) {
+      console.error('Error fetching cabangs:', error);
+      alert('Gagal memuat data cabang');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenModal = (cabang?: any) => {
+    if (cabang) {
+      setEditingCabang(cabang);
+      setFormData({
+        name: cabang.name,
+        address: cabang.address || '',
+        phone: cabang.phone || ''
+      });
+    } else {
+      setEditingCabang(null);
+      setFormData({ name: '', address: '', phone: '' });
+    }
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingCabang(null);
+    setFormData({ name: '', address: '', phone: '' });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.address) {
+      alert('Nama dan alamat wajib diisi!');
+      return;
+    }
+
+    try {
+      if (editingCabang) {
+        await cabangAPI.updateCabang(editingCabang.id, formData);
+        alert('Cabang berhasil diupdate!');
+      } else {
+        await cabangAPI.createCabang(formData);
+        alert('Cabang berhasil ditambahkan!');
+      }
+      handleCloseModal();
+      fetchCabangs();
+    } catch (error: any) {
+      console.error('Error saving cabang:', error);
+      alert(error.response?.data?.error || 'Gagal menyimpan cabang');
+    }
+  };
+
+  const handleToggleActive = async (cabang: any) => {
+    if (!confirm(`${cabang.isActive ? 'Nonaktifkan' : 'Aktifkan'} cabang ${cabang.name}?`)) {
+      return;
+    }
+
+    try {
+      await cabangAPI.updateCabang(cabang.id, { isActive: !cabang.isActive });
+      alert('Status cabang berhasil diubah!');
+      fetchCabangs();
+    } catch (error) {
+      console.error('Error toggling cabang status:', error);
+      alert('Gagal mengubah status cabang');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Memuat data cabang...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-slate-100 dark:bg-slate-900 rounded-xl">
+                <svg className="w-5 h-5 md:w-6 md:h-6 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Manajemen Cabang</h2>
+                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  Kelola cabang toko dan lokasi bisnis
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => handleOpenModal()}
+              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+            >
+              + Tambah Cabang
+            </button>
+          </div>
+        </div>
+
+        <div className="p-4 md:p-6 lg:p-8">
+          {cabangs.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Belum ada cabang terdaftar</p>
+              <button
+                onClick={() => handleOpenModal()}
+                className="px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+              >
+                Tambah Cabang Pertama
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {cabangs.map((cabang) => (
+                <div
+                  key={cabang.id}
+                  className={`p-5 rounded-lg border-2 transition-all ${
+                    cabang.isActive
+                      ? 'border-slate-200 bg-white dark:border-slate-700 dark:bg-gray-800'
+                      : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                          {cabang.name}
+                        </h3>
+                        {cabang.isActive ? (
+                          <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
+                            Nonaktif
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {cabang.address}
+                      </p>
+                      {cabang.phone && (
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                          📞 {cabang.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 text-center mb-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Users</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">
+                        {cabang._count?.users || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Stocks</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">
+                        {cabang._count?.stocks || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Transaksi</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">
+                        {cabang._count?.transactions || 0}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleOpenModal(cabang)}
+                      className="flex-1 px-3 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleToggleActive(cabang)}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium ${
+                        cabang.isActive
+                          ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
+                    >
+                      {cabang.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal Add/Edit Cabang */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {editingCabang ? 'Edit Cabang' : 'Tambah Cabang Baru'}
+              </h3>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Nama Cabang *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Contoh: Cabang Pusat, Cabang Timur"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Alamat *
+                </label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Jl. Contoh No. 123"
+                  rows={3}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Nomor Telepon
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="08123456789"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium"
+                >
+                  {editingCabang ? 'Update' : 'Tambah'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
