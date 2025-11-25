@@ -286,18 +286,6 @@ export default function NewProductPage() {
               </div>
             ) : variants.length > 0 ? (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div className="space-y-3 mb-4">
-                  <div className="text-center">
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowDynamicBuilder(true)}
-                    className="w-full px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <span>Buka Variant</span>
-                  </button>
-                </div>
-          
           {/* Header for desktop */}
           <div className="hidden md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] gap-2 mb-2 px-1">
             <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nama Varian</div>
