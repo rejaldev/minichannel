@@ -103,21 +103,21 @@ export default function ProductsPage() {
       {/* Breadcrumb + Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+          <button onClick={() => router.push('/dashboard')} className="hover:text-gray-900 dark:hover:text-white transition">
             Home
-          </a>
+          </button>
           <span>›</span>
           <span className="font-semibold text-gray-900 dark:text-white">Kelola Produk</span>
         </nav>
-        <a
-          href="/dashboard/products/new"
+        <button
+          onClick={() => router.push('/dashboard/products/new')}
           className="inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg hover:shadow-xl text-xs sm:text-sm font-medium whitespace-nowrap"
         >
           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Tambah Produk
-        </a>
+        </button>
       </div>
 
       {/* Bulk Actions */}
@@ -336,8 +336,8 @@ export default function ProductsPage() {
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center justify-center space-x-2">
-                            <a
-                              href={`/dashboard/products/${product.id}`}
+                            <button
+                              onClick={() => router.push(`/dashboard/products/${product.id}`)}
                               className="inline-flex items-center px-3 py-1.5 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-all text-xs font-medium"
                               title="Lihat Detail"
                             >
@@ -345,16 +345,16 @@ export default function ProductsPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                               </svg>
-                            </a>
-                            <a
-                              href={`/dashboard/products/${product.id}/edit`}
+                            </button>
+                            <button
+                              onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
                               className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-medium"
                               title="Edit"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
-                            </a>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -459,8 +459,8 @@ export default function ProductsPage() {
                   
                   {/* Actions */}
                   <div className="flex border-t border-gray-200 dark:border-gray-700 divide-x divide-gray-200 dark:divide-gray-700">
-                    <a
-                      href={`/dashboard/products/${product.id}`}
+                    <button
+                      onClick={() => router.push(`/dashboard/products/${product.id}`)}
                       className="flex-1 flex items-center justify-center py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -468,16 +468,16 @@ export default function ProductsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                       <span className="text-xs font-medium">Detail</span>
-                    </a>
-                    <a
-                      href={`/dashboard/products/${product.id}/edit`}
+                    </button>
+                    <button
+                      onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
                       className="flex-1 flex items-center justify-center py-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                     >
                       <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                       <span className="text-xs font-medium">Edit</span>
-                    </a>
+                    </button>
                   </div>
                 </div>
               );
