@@ -27,7 +27,6 @@ export default function NewProductPage() {
     price: '',
     stock: ''
   });
-  const [showBulkApply, setShowBulkApply] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -78,7 +77,6 @@ export default function NewProductPage() {
     }));
     setVariants(updated);
     setBulkApply({ sku: '', price: '', stock: '' });
-    setShowBulkApply(false);
     alert(`✓ Nilai berhasil diterapkan ke semua varian!`);
   };
 
@@ -306,18 +304,8 @@ export default function NewProductPage() {
             ) : variants.length > 0 ? (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           {/* Bulk Apply Section */}
-          {showBulkApply && (
-            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Terapkan ke Semua Varian</h4>
-                <button
-                  type="button"
-                  onClick={() => setShowBulkApply(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  ✕
-                </button>
-              </div>
+            <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Terapkan ke Semua Varian</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
@@ -358,12 +346,11 @@ export default function NewProductPage() {
               <button
                 type="button"
                 onClick={applyBulkValues}
-                className="mt-3 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+                className="mt-3 w-full py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition"
               >
                 Terapkan ke Semua
               </button>
             </div>
-          )}
           
           {/* Header for desktop */}
           <div className="hidden md:grid md:grid-cols-[1.5fr_1.3fr_1.2fr_1fr_1.1fr_auto] gap-2 mb-2 px-1">
@@ -482,13 +469,6 @@ export default function NewProductPage() {
           </div>
           
           <div className="mt-4 flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={() => setShowBulkApply(!showBulkApply)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition flex items-center justify-center gap-2"
-            >
-              {showBulkApply ? '✕ Tutup' : '⚡ Terapkan ke Semua'}
-            </button>
             <button
               type="button"
               onClick={() => setShowDynamicBuilder(true)}
