@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsAPI, cabangAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
@@ -244,14 +244,14 @@ export default function ProductsPage() {
                   </tr>
                   <tr>
                     {cabangs.map((cabang) => (
-                      <>
+                      <React.Fragment key={cabang.id}>
                         <th key={`${cabang.id}-stock`} className="px-2 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600">
                           Stok
                         </th>
                         <th key={`${cabang.id}-price`} className="px-2 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
                           Harga
                         </th>
-                      </>
+                      </React.Fragment>
                     ))}
                   </tr>
                 </thead>                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -336,8 +336,8 @@ export default function ProductsPage() {
                           }
 
                           return (
-                            <>
-                              <td key={`${cabang.id}-stock`} className="px-2 py-4 text-center border-l border-gray-200 dark:border-gray-700">
+                            <React.Fragment key={cabang.id}>
+                              <td className="px-2 py-4 text-center border-l border-gray-200 dark:border-gray-700">
                                 <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
                                   stockQty <= 5
                                     ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
@@ -348,12 +348,12 @@ export default function ProductsPage() {
                                   {stockQty}
                                 </span>
                               </td>
-                              <td key={`${cabang.id}-price`} className="px-2 py-4 text-right">
+                              <td className="px-2 py-4 text-right">
                                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
                                   {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
                                 </span>
                               </td>
-                            </>
+                            </React.Fragment>
                           );
                         })}
                         <td className="px-4 py-4 text-center border-l border-gray-200 dark:border-gray-700">
