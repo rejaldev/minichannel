@@ -104,14 +104,11 @@ export default function DynamicVariantBuilder({ onGenerate }: DynamicVariantBuil
     <div className="bg-gradient-to-br from-slate-50 to-gray-50 dark:from-gray-800 dark:to-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Generator Varian Otomatis
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Generator Varian
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Tentukan nama varian dan opsi-opsinya, sistem akan generate semua kombinasi otomatis
+            Tentukan nama varian dan opsi-opsinya
           </p>
         </div>
       </div>
