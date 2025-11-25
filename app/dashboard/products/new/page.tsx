@@ -362,7 +362,6 @@ export default function NewProductPage() {
               <div className="space-y-4">
                 <DynamicVariantBuilder 
                   onGenerate={handleGeneratedVariants}
-                  existingVariants={variants.length > 0 ? variants : undefined}
                 />
                 <button
                   type="button"
