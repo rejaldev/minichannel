@@ -24,11 +24,11 @@ export default function DynamicVariantBuilder({ onGenerate, existingVariants = [
   // Load existing variants on mount if available
   const loadExistingVariants = () => {
     if (existingVariants.length === 0) {
-      return [{ name: 'Ukuran', options: [''] }];
+      return [{ name: '', options: [''] }];
     }
 
     // Extract unique variant names
-    const variantName = existingVariants[0]?.variantName || 'Ukuran';
+    const variantName = existingVariants[0]?.variantName || '';
     const options = existingVariants.map(v => {
       // Extract just the value (before parentheses if exists)
       const match = v.variantValue.match(/^([^(]+)/);
