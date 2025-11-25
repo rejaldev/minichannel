@@ -416,10 +416,10 @@ export default function ProductsPage() {
                   {/* Content */}
                   <div className="p-3 space-y-2.5">
                     <div>
-                      <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5 line-clamp-1">
                         {product.name}
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                         {product.description || '-'}
                       </p>
                     </div>

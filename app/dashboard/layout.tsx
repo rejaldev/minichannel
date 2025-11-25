@@ -156,7 +156,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Sidebar */}
         <aside
           className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl ${
-            sidebarOpen ? 'w-72' : 'w-16 -translate-x-full md:translate-x-0'
+            sidebarOpen ? 'w-60' : 'w-16 -translate-x-full md:translate-x-0'
           }`}
         >
           <div className="h-full flex flex-col overflow-hidden">
@@ -300,7 +300,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Main Content */}
         <div className="transition-all duration-300">
           {/* Header - STICKY dengan margin sesuai sidebar */}
-          <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-30 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>
+          <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-30 ${sidebarOpen ? 'md:ml-60' : 'md:ml-16'}`}>
             <div className="px-4 md:px-6 py-3 md:py-4">
               {/* Mobile: Hamburger + Title + User Dropdown */}
               <div className="flex items-center justify-between md:hidden">
@@ -524,7 +524,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </header>
 
           {/* Page Content dengan margin sesuai sidebar */}
-          <main className={`p-6 min-h-screen transition-all duration-300 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>{children}</main>
+          <main className={`p-6 min-h-screen transition-all duration-300 ${sidebarOpen ? 'md:ml-60' : 'md:ml-16'}`}>{children}</main>
         </div>
       </div>
     </ProtectedRoute>
