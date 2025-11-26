@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { authAPI } from '@/lib/api';
+import { authAPI, cabangAPI } from '@/lib/api';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
+  const [cabangs, setCabangs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -18,6 +19,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
+    fetchCabangs();
   }, []);
 
   const fetchUsers = async () => {
@@ -30,6 +32,15 @@ export default function UsersPage() {
       alert('Gagal memuat data users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCabangs = async () => {
+    try {
+      const res = await cabangAPI.getCabangs();
+      setCabangs(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error('Error fetching cabangs:', error);
     }
   };
 
@@ -339,17 +350,24 @@ export default function UsersPage() {
 
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cabang ID
+                  Cabang {formData.role === 'KASIR' && <span className="text-red-500">*</span>}
                 </label>
-                <input
-                  type="text"
-                  required
+                <select
+                  required={formData.role === 'KASIR'}
                   value={formData.cabangId}
                   onChange={(e) => setFormData({ ...formData, cabangId: e.target.value })}
                   className="w-full px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="cmhop1v3u0000wgv8iaarkggo"
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">ID cabang yang sudah ada</p>
+                >
+                  <option value="">-- Pilih Cabang --</option>
+                  {cabangs.map((cabang) => (
+                    <option key={cabang.id} value={cabang.id}>
+                      {cabang.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {formData.role === 'KASIR' ? 'Wajib untuk role KASIR' : 'Opsional untuk MANAGER/OWNER'}
+                </p>
               </div>
 
               <div className="flex gap-2 md:gap-3 pt-3 md:pt-4">
