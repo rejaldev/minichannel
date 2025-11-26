@@ -24,7 +24,13 @@ npm run dev
   - Mobile: Card view with per-cabang breakdown
 - **Transactions** (`/dashboard/transactions`) - Riwayat transaksi dengan filter
 - **Reports** (`/dashboard/reports`) - Summary revenue & payment methods
-- **Users** (`/dashboard/users`) - User management dengan role (OWNER, MANAGER, KASIR)
+- **Users** (`/dashboard/users`) - User management dengan role & **cabang assignment**
+  - Create/edit user with cabang dropdown
+  - Cabang dropdown auto-fetches from API
+  - Cabang **required** for KASIR role
+  - Cabang **optional** for MANAGER/OWNER
+  - Table shows assigned cabang name
+  - Supports user-cabang mapping for POS filtering
 - **Categories** (`/dashboard/categories`) - Manajemen kategori produk
 - **Settings** (`/dashboard/settings`) - Pengaturan sistem
 
@@ -175,7 +181,35 @@ npm run lint         # Run ESLint
 
 ## Recent Updates
 
+### v1.5.0 (Nov 26, 2025) - User-Cabang Mapping
+
+**User Management Enhancement:**
+- Added cabang dropdown to user create/edit forms
+- Fetches cabangs from backend API automatically
+- Dropdown shows cabang names (not IDs)
+- Smart validation:
+  - **Required** when role = KASIR (marked with *)
+  - **Optional** when role = MANAGER/OWNER
+- Pre-populates existing cabangId when editing
+- Table displays assigned cabang name
+- Helpful text explaining cabang requirement
+
+**Integration with Backend:**
+- User creation/update includes cabangId in payload
+- JWT token receives cabangId from backend
+- Enables POS to filter products by user's cabang
+- Supports multi-branch stock isolation
+
+**User Flow:**
+1. OWNER creates new KASIR user
+2. Selects "KASIR" role → Cabang dropdown becomes required
+3. Chooses cabang from dropdown (e.g., "Cabang Toko")
+4. User saved with cabangId
+5. KASIR logs into POS → Only sees "Cabang Toko" products
+6. Transaction automatically deducts from "Cabang Toko" stock
+
 ### v1.4.0 (Nov 26, 2025) - Per-Cabang Pricing
+
 - **Multi-Column Product Table**: Show stock & price per cabang in table
   - Multi-row header: cabang names with stock/price sub-headers
   - Color-coded stock badges (red/yellow/green)
@@ -243,6 +277,6 @@ Add in Vercel dashboard:
 
 ---
 
-**Last Updated:** November 15, 2025  
-**Version:** 1.2.1  
+**Last Updated:** November 26, 2025  
+**Version:** 1.5.0  
 **Port:** 3000
