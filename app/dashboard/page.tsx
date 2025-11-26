@@ -3,11 +3,16 @@
 import { useEffect, useState } from 'react';
 import { transactionsAPI, productsAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Package, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Package, AlertTriangle, Clock, Calendar } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<any>(null);
   const [lowStockAlerts, setLowStockAlerts] = useState<any[]>([]);
+  const [salesTrend, setSalesTrend] = useState<any[]>([]);
+  const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [branchPerformance, setBranchPerformance] = useState<any[]>([]);
+  const [timeStats, setTimeStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { user } = getAuth();
 
@@ -18,12 +23,21 @@ export default function DashboardPage() {
       try {
         // Only fetch summary for owner/manager (not kasir)
         if (currentUser && currentUser.role !== 'KASIR') {
-          const summaryRes = await transactionsAPI.getSummary();
-          setSummary(summaryRes.data);
+          const [summaryRes, alertsRes, trendRes, topProductsRes, branchRes, timeStatsRes] = await Promise.all([
+            transactionsAPI.getSummary(),
+            productsAPI.getLowStockAlerts(),
+            transactionsAPI.getSalesTrend({ days: 7 }),
+            transactionsAPI.getTopProducts({ limit: 5 }),
+            transactionsAPI.getBranchPerformance(),
+            transactionsAPI.getTimeStats()
+          ]);
 
-          // Fetch low stock alerts
-          const alertsRes = await productsAPI.getLowStockAlerts();
+          setSummary(summaryRes.data);
           setLowStockAlerts(alertsRes.data);
+          setSalesTrend(trendRes.data.trend);
+          setTopProducts(topProductsRes.data.topProducts);
+          setBranchPerformance(branchRes.data.branchPerformance);
+          setTimeStats(timeStatsRes.data);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -114,6 +128,176 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Sales Trend Chart */}
+      {salesTrend.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center mb-4">
+            <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Tren Penjualan (7 Hari Terakhir)
+            </h2>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={salesTrend}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+              <XAxis 
+                dataKey="date" 
+                className="text-xs text-gray-600 dark:text-gray-400"
+                tickFormatter={(value) => new Date(value).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}
+              />
+              <YAxis className="text-xs text-gray-600 dark:text-gray-400" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                labelFormatter={(value) => new Date(value).toLocaleDateString('id-ID', { weekday: 'long', month: 'long', day: 'numeric' })}
+                formatter={(value: any) => ['Rp ' + value.toLocaleString('id-ID'), 'Total Penjualan']}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="total" 
+                stroke="#8b5cf6" 
+                strokeWidth={3}
+                name="Total Penjualan"
+                dot={{ fill: '#8b5cf6', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Top Products & Branch Performance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Products */}
+        {topProducts.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center mb-4">
+              <Package className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Produk Terlaris
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {topProducts.map((product, index) => (
+                <div key={product.productVariantId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-8 h-8 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{product.productName}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{product.category}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">{product.totalQuantity} unit</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Rp {product.totalRevenue.toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Branch Performance */}
+        {branchPerformance.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center mb-4">
+              <ShoppingBag className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Performa Cabang
+              </h2>
+            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={branchPerformance}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis 
+                  dataKey="cabangName" 
+                  className="text-xs text-gray-600 dark:text-gray-400"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis className="text-xs text-gray-600 dark:text-gray-400" />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                  formatter={(value: any) => 'Rp ' + value.toLocaleString('id-ID')}
+                />
+                <Bar dataKey="totalRevenue" fill="#8b5cf6" name="Total Pendapatan" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Time Statistics */}
+      {timeStats && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Busiest Hour & Day */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center mb-4">
+              <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Waktu Tersibuk
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/10 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Jam Tersibuk</span>
+                  <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  {timeStats.busiestHour.hour}:00
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {timeStats.busiestHour.count} transaksi · Rp {timeStats.busiestHour.total.toLocaleString('id-ID')}
+                </p>
+              </div>
+              <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Hari Tersibuk</span>
+                  <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  {timeStats.busiestDay.day}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {timeStats.busiestDay.count} transaksi · Rp {timeStats.busiestDay.total.toLocaleString('id-ID')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Distribution */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center mb-4">
+              <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Distribusi Transaksi per Hari
+              </h2>
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={timeStats.dailyStats}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis 
+                  dataKey="day" 
+                  className="text-xs text-gray-600 dark:text-gray-400"
+                />
+                <YAxis className="text-xs text-gray-600 dark:text-gray-400" />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                  formatter={(value: any) => [value + ' transaksi', 'Total']}
+                />
+                <Bar dataKey="count" fill="#3b82f6" name="Jumlah Transaksi" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Payment Method Breakdown */}
       {summary?.paymentMethodBreakdown && summary.paymentMethodBreakdown.length > 0 && (

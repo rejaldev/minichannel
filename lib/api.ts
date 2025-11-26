@@ -117,6 +117,29 @@ export const transactionsAPI = {
     endDate?: string;
   }) => api.get('/transactions/reports/summary', { params }),
   
+  getSalesTrend: (params?: {
+    cabangId?: string;
+    days?: number;
+  }) => api.get('/transactions/reports/sales-trend', { params }),
+  
+  getTopProducts: (params?: {
+    cabangId?: string;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+  }) => api.get('/transactions/reports/top-products', { params }),
+  
+  getBranchPerformance: (params?: {
+    startDate?: string;
+    endDate?: string;
+  }) => api.get('/transactions/reports/branch-performance', { params }),
+  
+  getTimeStats: (params?: {
+    cabangId?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => api.get('/transactions/reports/time-stats', { params }),
+  
   cancelTransaction: (id: string, reason: string) =>
     api.put(`/transactions/${id}/cancel`, { reason }),
 };
