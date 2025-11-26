@@ -17,6 +17,9 @@ export default function ProductsPage() {
   const [deleting, setDeleting] = useState(false);
   const { user } = getAuth();
   
+  // Expandable rows for variant products
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  
   // Inline stock adjustment
   const [editingStock, setEditingStock] = useState<{
     variantId: string;
@@ -181,6 +184,18 @@ export default function ProductsPage() {
     setEditingStock(null);
     setNewStockQty('');
     setAdjustmentReason('');
+  };
+
+  const toggleExpandProduct = (productId: string) => {
+    setExpandedProducts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
   };
 
   if (loading) {
@@ -408,49 +423,144 @@ export default function ProductsPage() {
                           </span>
                         </td>
                         <td className="px-3 py-2.5">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            product.productType === 'SINGLE'
-                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                              : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                          }`}>
-                            {product.productType === 'SINGLE' ? 'Tunggal' : `Varian (${variantCount})`}
-                          </span>
+                          {product.productType === 'VARIANT' ? (
+                            <button
+                              onClick={() => toggleExpandProduct(product.id)}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors hover:ring-2 hover:ring-purple-300 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300`}
+                            >
+                              <svg 
+                                className={`w-3 h-3 transition-transform ${expandedProducts.has(product.id) ? 'rotate-90' : ''}`} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                              Varian ({variantCount})
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                              Tunggal
+                            </span>
+                          )}
                         </td>
                         {/* Per-Cabang Stock & Price */}
-                        {cabangs.map((cabang) => {
-                          // Get stock & price for this cabang
-                          let stockQty = 0;
-                          let stockPrice = 0;
-
-                          if (product.productType === 'SINGLE') {
-                            // For SINGLE products, get from variant's stocks
-                            const variant = product.variants?.[0]; // Default variant
+                        {product.productType === 'SINGLE' ? (
+                          // SINGLE Product - Show stock directly with edit capability
+                          cabangs.map((cabang) => {
+                            const variant = product.variants?.[0];
                             const stock = variant?.stocks?.find((s: any) => s.cabangId === cabang.id);
-                            stockQty = stock?.quantity || 0;
-                            stockPrice = stock?.price || 0;
-                          } else {
-                            // For VARIANT products, sum all variants' stock for this cabang
+                            const stockQty = stock?.quantity || 0;
+                            const stockPrice = stock?.price || 0;
+                            const variantId = variant?.id;
+
+                            return (
+                              <React.Fragment key={cabang.id}>
+                                <td className="px-2 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
+                                  {variantId ? (
+                                    <button
+                                      onClick={(e) => handleStockClick(e, variantId, cabang.id, stockQty)}
+                                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold hover:ring-2 hover:ring-offset-1 transition-all cursor-pointer ${
+                                        stockQty <= 5
+                                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:ring-red-400'
+                                          : stockQty <= 20
+                                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:ring-yellow-400'
+                                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:ring-green-400'
+                                      }`}
+                                      title="Klik untuk edit stok"
+                                    >
+                                      {stockQty}
+                                    </button>
+                                  ) : (
+                                    <span className="text-xs text-gray-400">-</span>
+                                  )}
+                                </td>
+                                <td className="px-2 py-2.5 text-right">
+                                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
+                                  </span>
+                                </td>
+                              </React.Fragment>
+                            );
+                          })
+                        ) : (
+                          // VARIANT Product - Show total stock (not editable)
+                          cabangs.map((cabang) => {
+                            let stockQty = 0;
+                            let stockPrice = 0;
+                            
                             product.variants?.forEach((variant: any) => {
                               const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
                               stockQty += stock?.quantity || 0;
-                              // Use min price from all variants
                               if (stock?.price && (stockPrice === 0 || stock.price < stockPrice)) {
                                 stockPrice = stock.price;
                               }
                             });
-                          }
 
-                          // Get variantId for stock update
-                          const variantId = product.productType === 'SINGLE' 
-                            ? product.variants?.[0]?.id 
-                            : null;
+                            return (
+                              <React.Fragment key={cabang.id}>
+                                <td className="px-2 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
+                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ${
+                                    stockQty <= 5
+                                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                      : stockQty <= 20
+                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                      : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                  }`}>
+                                    {stockQty}
+                                  </span>
+                                </td>
+                                <td className="px-2 py-2.5 text-right">
+                                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
+                                  </span>
+                                </td>
+                              </React.Fragment>
+                            );
+                          })
+                        )}
+                        <td className="px-3 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            product.isActive
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {product.isActive ? 'Aktif' : 'Nonaktif'}
+                          </span>
+                        </td>
+                      </tr>
 
-                          return (
-                            <React.Fragment key={cabang.id}>
-                              <td className="px-2 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
-                                {variantId ? (
+                      {/* Variant Sub-rows */}
+                      {product.productType === 'VARIANT' && expandedProducts.has(product.id) && product.variants?.map((variant: any, vIndex: number) => (
+                        <tr 
+                          key={`${product.id}-${variant.id}`}
+                          className="bg-purple-50/30 dark:bg-purple-900/10 border-l-4 border-purple-300 dark:border-purple-700"
+                        >
+                          <td className="px-3 py-2"></td>
+                          <td className="px-3 py-2 pl-12" colSpan={3}>
+                            <div className="flex items-center gap-2">
+                              <svg className="w-3 h-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {variant.variantName}: <span className="font-bold text-purple-700 dark:text-purple-400">{variant.variantValue}</span>
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                (SKU: {variant.sku})
+                              </span>
+                            </div>
+                          </td>
+                          {/* Per-Cabang Stock for this variant */}
+                          {cabangs.map((cabang) => {
+                            const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
+                            const stockQty = stock?.quantity || 0;
+                            const stockPrice = stock?.price || 0;
+
+                            return (
+                              <React.Fragment key={cabang.id}>
+                                <td className="px-2 py-2 text-center border-l border-gray-200 dark:border-gray-700">
                                   <button
-                                    onClick={(e) => handleStockClick(e, variantId, cabang.id, stockQty)}
+                                    onClick={(e) => handleStockClick(e, variant.id, cabang.id, stockQty)}
                                     className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold hover:ring-2 hover:ring-offset-1 transition-all cursor-pointer ${
                                       stockQty <= 5
                                         ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:ring-red-400'
@@ -462,36 +572,19 @@ export default function ProductsPage() {
                                   >
                                     {stockQty}
                                   </button>
-                                ) : (
-                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ${
-                                    stockQty <= 5
-                                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                      : stockQty <= 20
-                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                                      : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                  }`}>
-                                    {stockQty}
+                                </td>
+                                <td className="px-2 py-2 text-right">
+                                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
                                   </span>
-                                )}
-                              </td>
-                              <td className="px-2 py-2.5 text-right">
-                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                  {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
-                                </span>
-                              </td>
-                            </React.Fragment>
-                          );
-                        })}
-                        <td className="px-3 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            product.isActive
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                          }`}>
-                            {product.isActive ? 'Aktif' : 'Nonaktif'}
-                          </span>
-                        </td>
-                      </tr>
+                                </td>
+                              </React.Fragment>
+                            );
+                          })}
+                          <td className="px-3 py-2 border-l border-gray-200 dark:border-gray-700"></td>
+                        </tr>
+                      ))}
+                    </>
                     );
                   })}
                 </tbody>
