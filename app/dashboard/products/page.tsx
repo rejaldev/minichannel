@@ -134,13 +134,14 @@ export default function ProductsPage() {
 
     setSavingStock(true);
     try {
-      // Call API to update stock (using existing endpoint)
+      // Call API to update stock with reason logging
       await productsAPI.updateStock(
         editingStock.variantId,
         editingStock.cabangId,
         { 
           quantity: qty,
-          // reason will be logged separately if needed
+          reason: adjustmentReason || undefined,
+          notes: adjustmentReason === 'Lainnya' ? 'Custom adjustment' : undefined
         }
       );
 

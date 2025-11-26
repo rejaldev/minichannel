@@ -73,8 +73,14 @@ export const productsAPI = {
   
   getStock: (variantId: string) => api.get(`/products/stock/${variantId}`),
   
-  updateStock: (variantId: string, cabangId: string, data: { quantity: number; minStock?: number }) =>
+  updateStock: (variantId: string, cabangId: string, data: { quantity: number; price?: number; reason?: string; notes?: string }) =>
     api.put(`/products/stock/${variantId}/${cabangId}`, data),
+  
+  getStockAdjustments: (variantId: string, cabangId: string, params?: { limit?: number }) =>
+    api.get(`/products/stock/${variantId}/${cabangId}/adjustments`, { params }),
+  
+  getAllAdjustments: (params?: { cabangId?: string; startDate?: string; endDate?: string; reason?: string; limit?: number }) =>
+    api.get('/products/adjustments/all', { params }),
   
   getLowStockAlerts: () => api.get('/products/alerts/low-stock'),
 };
