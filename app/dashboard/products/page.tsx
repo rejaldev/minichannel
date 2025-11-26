@@ -16,6 +16,17 @@ export default function ProductsPage() {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
   const { user } = getAuth();
+  
+  // Inline stock adjustment
+  const [editingStock, setEditingStock] = useState<{
+    variantId: string;
+    cabangId: string;
+    currentQty: number;
+    position: { x: number; y: number };
+  } | null>(null);
+  const [newStockQty, setNewStockQty] = useState('');
+  const [adjustmentReason, setAdjustmentReason] = useState('');
+  const [savingStock, setSavingStock] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -98,6 +109,77 @@ export default function ProductsPage() {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleStockClick = (e: React.MouseEvent, variantId: string, cabangId: string, currentQty: number) => {
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setEditingStock({
+      variantId,
+      cabangId,
+      currentQty,
+      position: { x: rect.left, y: rect.bottom + 8 }
+    });
+    setNewStockQty(currentQty.toString());
+    setAdjustmentReason('');
+  };
+
+  const handleSaveStock = async () => {
+    if (!editingStock) return;
+    
+    const qty = parseInt(newStockQty);
+    if (isNaN(qty) || qty < 0) {
+      alert('Masukkan jumlah stok yang valid (>= 0)');
+      return;
+    }
+
+    setSavingStock(true);
+    try {
+      // Call API to update stock (using existing endpoint)
+      await productsAPI.updateStock(
+        editingStock.variantId,
+        editingStock.cabangId,
+        { 
+          quantity: qty,
+          // reason will be logged separately if needed
+        }
+      );
+
+      // Update local state
+      setProducts(prevProducts => prevProducts.map(product => ({
+        ...product,
+        variants: product.variants?.map((variant: any) => {
+          if (variant.id === editingStock.variantId) {
+            return {
+              ...variant,
+              stocks: variant.stocks?.map((stock: any) => 
+                stock.cabangId === editingStock.cabangId
+                  ? { ...stock, quantity: qty }
+                  : stock
+              )
+            };
+          }
+          return variant;
+        })
+      })));
+
+      setEditingStock(null);
+      setNewStockQty('');
+      setAdjustmentReason('');
+      
+      // Show success message
+      alert(`✓ Stok berhasil diupdate menjadi ${qty}${adjustmentReason ? ` (${adjustmentReason})` : ''}`);
+    } catch (error: any) {
+      console.error('Error updating stock:', error);
+      alert(error.response?.data?.error || 'Gagal update stok');
+    } finally {
+      setSavingStock(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingStock(null);
+    setNewStockQty('');
+    setAdjustmentReason('');
   };
 
   if (loading) {
@@ -357,18 +439,39 @@ export default function ProductsPage() {
                             });
                           }
 
+                          // Get variantId for stock update
+                          const variantId = product.productType === 'SINGLE' 
+                            ? product.variants?.[0]?.id 
+                            : null;
+
                           return (
                             <React.Fragment key={cabang.id}>
                               <td className="px-2 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
-                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ${
-                                  stockQty <= 5
-                                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                    : stockQty <= 20
-                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                                    : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                }`}>
-                                  {stockQty}
-                                </span>
+                                {variantId ? (
+                                  <button
+                                    onClick={(e) => handleStockClick(e, variantId, cabang.id, stockQty)}
+                                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold hover:ring-2 hover:ring-offset-1 transition-all cursor-pointer ${
+                                      stockQty <= 5
+                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:ring-red-400'
+                                        : stockQty <= 20
+                                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:ring-yellow-400'
+                                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:ring-green-400'
+                                    }`}
+                                    title="Klik untuk edit stok"
+                                  >
+                                    {stockQty}
+                                  </button>
+                                ) : (
+                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ${
+                                    stockQty <= 5
+                                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                      : stockQty <= 20
+                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                      : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                  }`}>
+                                    {stockQty}
+                                  </span>
+                                )}
                               </td>
                               <td className="px-2 py-2.5 text-right">
                                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -534,6 +637,103 @@ export default function ProductsPage() {
                 </div>
               );
             })}
+          </div>
+        </>
+      )}
+
+      {/* Inline Stock Edit Popup */}
+      {editingStock && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={handleCancelEdit}
+          />
+          
+          {/* Popup Modal */}
+          <div
+            className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border-2 border-slate-300 dark:border-slate-600 p-4 w-72"
+            style={{
+              left: `${editingStock.position.x}px`,
+              top: `${editingStock.position.y}px`,
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <div className="space-y-3">
+              {/* Title */}
+              <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                  Edit Stok
+                </h3>
+                <button
+                  onClick={handleCancelEdit}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Current stock info */}
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Stok saat ini: <span className="font-bold text-gray-900 dark:text-white">{editingStock.currentQty}</span>
+              </div>
+
+              {/* New stock input */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Stok Baru
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={newStockQty}
+                  onChange={(e) => setNewStockQty(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                  placeholder="0"
+                  autoFocus
+                />
+              </div>
+
+              {/* Reason dropdown/input */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                  Alasan (opsional)
+                </label>
+                <select
+                  value={adjustmentReason}
+                  onChange={(e) => setAdjustmentReason(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                >
+                  <option value="">- Pilih atau skip -</option>
+                  <option value="Stok opname">Stok opname</option>
+                  <option value="Barang rusak">Barang rusak</option>
+                  <option value="Barang hilang">Barang hilang</option>
+                  <option value="Return supplier">Return supplier</option>
+                  <option value="Koreksi input">Koreksi input</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={savingStock}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  ✗ Batal
+                </button>
+                <button
+                  onClick={handleSaveStock}
+                  disabled={savingStock}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 rounded-lg transition-all disabled:opacity-50"
+                >
+                  {savingStock ? 'Menyimpan...' : '✓ Simpan'}
+                </button>
+              </div>
+            </div>
           </div>
         </>
       )}
