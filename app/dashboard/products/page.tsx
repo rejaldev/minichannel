@@ -268,72 +268,70 @@ export default function ProductsPage() {
                           index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-800/50'
                         }`}
                       >
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-2.5">
                           <input
                             type="checkbox"
                             checked={selectedProducts.includes(product.id)}
                             onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                            className="h-5 w-5 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
+                            className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
                           />
                         </td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-start space-x-3 max-w-md">
-                            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg flex items-center justify-center">
-                              <span className="text-slate-600 dark:text-slate-300 font-bold text-lg">
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-2 max-w-md">
+                            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded flex items-center justify-center">
+                              <span className="text-slate-600 dark:text-slate-300 font-bold text-sm">
                                 {product.name.charAt(0).toUpperCase()}
                               </span>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() => router.push(`/dashboard/products/${product.id}`)}
-                                  className="text-sm font-semibold text-gray-900 dark:text-white hover:text-slate-600 dark:hover:text-slate-400 line-clamp-1 text-left transition-colors"
+                                  className="text-sm font-medium text-gray-900 dark:text-white hover:text-slate-600 dark:hover:text-slate-400 line-clamp-1 text-left transition-colors"
                                 >
                                   {product.name}
                                 </button>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  <button
-                                    onClick={() => router.push(`/dashboard/products/${product.id}`)}
-                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
-                                    title="Lihat Detail"
-                                  >
-                                    <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
-                                    className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors"
-                                    title="Edit"
-                                  >
-                                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                  </button>
-                                </div>
+                                <button
+                                  onClick={() => router.push(`/dashboard/products/${product.id}`)}
+                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors flex-shrink-0"
+                                  title="View"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
+                                  className="p-1 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors flex-shrink-0"
+                                  title="Edit"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
                               </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                                {product.description || '-'}
-                              </p>
+                              {product.description && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+                                  {product.description}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        <td className="px-3 py-2.5">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                             {product.category?.name || '-'}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
-                          <div className="text-sm">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                              product.productType === 'SINGLE'
-                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                            }`}>
-                              {product.productType === 'SINGLE' ? 'Tunggal' : `Varian (${variantCount})`}
-                            </span>
-                          </div>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            product.productType === 'SINGLE'
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                              : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                          }`}>
+                            {product.productType === 'SINGLE' ? 'Tunggal' : `Varian (${variantCount})`}
+                          </span>
                         </td>
                         {/* Per-Cabang Stock & Price */}
                         {cabangs.map((cabang) => {
@@ -361,8 +359,8 @@ export default function ProductsPage() {
 
                           return (
                             <React.Fragment key={cabang.id}>
-                              <td className="px-2 py-4 text-center border-l border-gray-200 dark:border-gray-700">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${
+                              <td className="px-2 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ${
                                   stockQty <= 5
                                     ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                                     : stockQty <= 20
@@ -372,16 +370,16 @@ export default function ProductsPage() {
                                   {stockQty}
                                 </span>
                               </td>
-                              <td className="px-2 py-4 text-right">
-                                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                              <td className="px-2 py-2.5 text-right">
+                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                                   {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
                                 </span>
                               </td>
                             </React.Fragment>
                           );
                         })}
-                        <td className="px-4 py-4 text-center border-l border-gray-200 dark:border-gray-700">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                        <td className="px-3 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             product.isActive
                               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
