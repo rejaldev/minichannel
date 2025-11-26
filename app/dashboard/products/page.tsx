@@ -484,16 +484,23 @@ export default function ProductsPage() {
                             );
                           })
                         ) : (
-                          // VARIANT Product - Show total stock (not editable)
+                          // VARIANT Product - Show total stock with price range
                           cabangs.map((cabang) => {
                             let stockQty = 0;
-                            let stockPrice = 0;
+                            let minPrice = 0;
+                            let maxPrice = 0;
                             
                             product.variants?.forEach((variant: any) => {
                               const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
                               stockQty += stock?.quantity || 0;
-                              if (stock?.price && (stockPrice === 0 || stock.price < stockPrice)) {
-                                stockPrice = stock.price;
+                              
+                              if (stock?.price) {
+                                if (minPrice === 0 || stock.price < minPrice) {
+                                  minPrice = stock.price;
+                                }
+                                if (stock.price > maxPrice) {
+                                  maxPrice = stock.price;
+                                }
                               }
                             });
 
@@ -512,7 +519,13 @@ export default function ProductsPage() {
                                 </td>
                                 <td className="px-2 py-2.5 text-right">
                                   <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                    {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
+                                    {minPrice > 0 && maxPrice > 0 ? (
+                                      minPrice === maxPrice ? (
+                                        `Rp ${minPrice.toLocaleString('id-ID')}`
+                                      ) : (
+                                        `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
+                                      )
+                                    ) : '-'}
                                   </span>
                                 </td>
                               </React.Fragment>
