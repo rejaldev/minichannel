@@ -16,12 +16,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const { user } = getAuth();
 
-  // Widget visibility state
+  // Screen Options state
+  const [showScreenOptions, setShowScreenOptions] = useState(false);
   const [widgetVisibility, setWidgetVisibility] = useState({
     salesTrend: true,
     topProducts: true,
     branchPerformance: true,
     timeStats: true,
+    dailyDistribution: true,
     paymentMethods: true,
     lowStock: true
   });
@@ -34,11 +36,21 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Save visibility preferences to localStorage
+  // Toggle widget visibility
   const toggleWidget = (widget: keyof typeof widgetVisibility) => {
     const newVisibility = { ...widgetVisibility, [widget]: !widgetVisibility[widget] };
     setWidgetVisibility(newVisibility);
     localStorage.setItem('dashboardWidgetVisibility', JSON.stringify(newVisibility));
+  };
+
+  const widgetLabels = {
+    salesTrend: 'Tren Penjualan',
+    topProducts: 'Produk Terlaris',
+    branchPerformance: 'Performa Cabang',
+    timeStats: 'Waktu Tersibuk',
+    dailyDistribution: 'Distribusi Transaksi',
+    paymentMethods: 'Metode Pembayaran',
+    lowStock: 'Peringatan Stok Menipis'
   };
 
   useEffect(() => {
@@ -84,12 +96,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-        <h1 className="text-2xl font-bold mb-2">Selamat Datang, {user?.name || 'User'}!</h1>
-        <p className="text-purple-100">Berikut ringkasan bisnis Anda hari ini</p>
-      </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Total Transaksi */}
@@ -154,30 +160,54 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Sales Trend Chart */}
-      {salesTrend.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Tren Penjualan (7 Hari Terakhir)
-              </h2>
+      {/* Screen Options Button */}
+      <div className="flex justify-end">
+        <div className="relative">
+          <button
+            onClick={() => setShowScreenOptions(!showScreenOptions)}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+          >
+            <Eye className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Opsi Layar</span>
+            {showScreenOptions ? (
+              <ChevronUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+
+          {/* Screen Options Dropdown */}
+          {showScreenOptions && (
+            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Tampilkan Widget</h3>
+              <div className="space-y-2">
+                {Object.entries(widgetLabels).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      checked={widgetVisibility[key as keyof typeof widgetVisibility]}
+                      onChange={() => toggleWidget(key as keyof typeof widgetVisibility)}
+                      className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-            <button
-              onClick={() => toggleWidget('salesTrend')}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-              title={widgetVisibility.salesTrend ? 'Sembunyikan' : 'Tampilkan'}
-            >
-              {widgetVisibility.salesTrend ? (
-                <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              )}
-            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Sales Trend Chart */}
+      {widgetVisibility.salesTrend && salesTrend.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center mb-4">
+            <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Tren Penjualan (7 Hari Terakhir)
+            </h2>
           </div>
-          {widgetVisibility.salesTrend && (
-            <div className="p-6 pt-4">
+          <div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={salesTrend}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
@@ -202,38 +232,23 @@ export default function DashboardPage() {
                     dot={{ fill: '#8b5cf6', r: 4 }}
                     activeDot={{ r: 6 }}
                   />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
       {/* Top Products & Branch Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Products */}
-        {topProducts.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <Package className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Produk Terlaris
-                </h2>
-              </div>
-              <button
-                onClick={() => toggleWidget('topProducts')}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                title={widgetVisibility.topProducts ? 'Sembunyikan' : 'Tampilkan'}
-              >
-                {widgetVisibility.topProducts ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                )}
-              </button>
+        {widgetVisibility.topProducts && topProducts.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center mb-4">
+              <Package className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Produk Terlaris
+              </h2>
             </div>
-            {widgetVisibility.topProducts && (
             <div className="space-y-3">
               {topProducts.map((product, index) => (
                 <div key={product.productVariantId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -255,34 +270,19 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            )}
           </div>
         )}
 
         {/* Branch Performance */}
-        {branchPerformance.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <ShoppingBag className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Performa Cabang
-                </h2>
-              </div>
-              <button
-                onClick={() => toggleWidget('branchPerformance')}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                title={widgetVisibility.branchPerformance ? 'Sembunyikan' : 'Tampilkan'}
-              >
-                {widgetVisibility.branchPerformance ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                )}
-              </button>
+        {widgetVisibility.branchPerformance && branchPerformance.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center mb-4">
+              <ShoppingBag className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Performa Cabang
+              </h2>
             </div>
-            {widgetVisibility.branchPerformance && (
-            <div className="p-6 pt-4">
+            <div>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={branchPerformance}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
@@ -302,37 +302,20 @@ export default function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
             </div>
-            )}
           </div>
         )}
       </div>
 
       {/* Time Statistics */}
-      {timeStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Busiest Hour & Day */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Waktu Tersibuk
-                </h2>
-              </div>
-              <button
-                onClick={() => toggleWidget('timeStats')}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                title={widgetVisibility.timeStats ? 'Sembunyikan' : 'Tampilkan'}
-              >
-                {widgetVisibility.timeStats ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                )}
-              </button>
-            </div>
-            {widgetVisibility.timeStats && (
-            <div className="p-6 pt-4">
+      {widgetVisibility.timeStats && timeStats && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center mb-4">
+            <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Waktu Tersibuk
+            </h2>
+          </div>
+          <div>
             <div className="space-y-4">
               <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/10 rounded-lg border border-orange-200 dark:border-orange-800">
                 <div className="flex items-center justify-between mb-2">
@@ -359,33 +342,20 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            </div>
-            )}
           </div>
+        </div>
+      )}
 
-          {/* Daily Distribution */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Distribusi Transaksi per Hari
-                </h2>
-              </div>
-              <button
-                onClick={() => toggleWidget('timeStats')}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                title={widgetVisibility.timeStats ? 'Sembunyikan' : 'Tampilkan'}
-              >
-                {widgetVisibility.timeStats ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                )}
-              </button>
-            </div>
-            {widgetVisibility.timeStats && (
-            <div className="p-6 pt-4">
+      {/* Daily Distribution */}
+      {widgetVisibility.dailyDistribution && timeStats && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center mb-4">
+            <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Distribusi Transaksi per Hari
+            </h2>
+          </div>
+          <div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={timeStats.dailyStats}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
@@ -401,89 +371,62 @@ export default function DashboardPage() {
                 <Bar dataKey="count" fill="#3b82f6" name="Jumlah Transaksi" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-            </div>
-            )}
           </div>
         </div>
       )}
 
       {/* Payment Method Breakdown */}
-      {summary?.paymentMethodBreakdown && summary.paymentMethodBreakdown.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Metode Pembayaran
-              </h2>
-            </div>
-            <button
-              onClick={() => toggleWidget('paymentMethods')}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-              title={widgetVisibility.paymentMethods ? 'Sembunyikan' : 'Tampilkan'}
-            >
-              {widgetVisibility.paymentMethods ? (
-                <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              )}
-            </button>
+      {widgetVisibility.paymentMethods && summary?.paymentMethodBreakdown && summary.paymentMethodBreakdown.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center mb-4">
+            <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Metode Pembayaran
+            </h2>
           </div>
-          {widgetVisibility.paymentMethods && (
-          <div className="p-6 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {summary.paymentMethodBreakdown.map((method: any) => (
-              <div
-                key={method.paymentMethod}
-                className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-750 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{method.paymentMethod}</span>
-                  <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded">
-                    {method._count.id}x
-                  </span>
-                </div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                  Rp {(method._sum.total || 0).toLocaleString('id-ID')}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Total transaksi {method.paymentMethod.toLowerCase()}
-                </p>
+          <div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {summary.paymentMethodBreakdown.map((method: any) => (
+                  <div
+                    key={method.paymentMethod}
+                    className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-750 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{method.paymentMethod}</span>
+                      <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded">
+                        {method._count.id}x
+                      </span>
+                    </div>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                      Rp {(method._sum.total || 0).toLocaleString('id-ID')}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Total transaksi {method.paymentMethod.toLowerCase()}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
           </div>
-          )}
         </div>
       )}
 
       {/* Low Stock Alerts */}
-      {lowStockAlerts.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Peringatan Stok Menipis
-              </h2>
+      {widgetVisibility.lowStock && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Peringatan Stok Menipis
+            </h2>
+            {lowStockAlerts.length > 0 && (
               <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-sm font-semibold rounded-full">
                 {lowStockAlerts.length} item
               </span>
-            </div>
-            <button
-              onClick={() => toggleWidget('lowStock')}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-              title={widgetVisibility.lowStock ? 'Sembunyikan' : 'Tampilkan'}
-            >
-              {widgetVisibility.lowStock ? (
-                <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              )}
-            </button>
+            )}
           </div>
-          {widgetVisibility.lowStock && (
+          {lowStockAlerts.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-750">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -535,6 +478,11 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Tidak ada stok yang menipis</p>
+            </div>
           )}
         </div>
       )}
