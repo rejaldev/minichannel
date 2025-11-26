@@ -360,12 +360,12 @@ export default function ProductsPage() {
                     const variantCount = product.variants?.length || 0;
                     
                     return (
-                      <tr 
-                        key={product.id} 
-                        className={`hover:bg-slate-50 dark:hover:bg-gray-700/50 transition-colors ${
-                          index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-800/50'
-                        }`}
-                      >
+                      <React.Fragment key={product.id}>
+                        <tr 
+                          className={`hover:bg-slate-50 dark:hover:bg-gray-700/50 transition-colors ${
+                            index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-800/50'
+                          }`}
+                        >
                         <td className="px-3 py-2.5">
                           <input
                             type="checkbox"
@@ -528,10 +528,10 @@ export default function ProductsPage() {
                             {product.isActive ? 'Aktif' : 'Nonaktif'}
                           </span>
                         </td>
-                      </tr>
+                        </tr>
 
-                      {/* Variant Sub-rows */}
-                      {product.productType === 'VARIANT' && expandedProducts.has(product.id) && product.variants?.map((variant: any, vIndex: number) => (
+                        {/* Variant Sub-rows */}
+                        {product.productType === 'VARIANT' && expandedProducts.has(product.id) && product.variants?.map((variant: any, vIndex: number) => (
                         <tr 
                           key={`${product.id}-${variant.id}`}
                           className="bg-purple-50/30 dark:bg-purple-900/10 border-l-4 border-purple-300 dark:border-purple-700"
@@ -582,9 +582,9 @@ export default function ProductsPage() {
                             );
                           })}
                           <td className="px-3 py-2 border-l border-gray-200 dark:border-gray-700"></td>
-                        </tr>
-                      ))}
-                    </>
+                          </tr>
+                        ))}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
