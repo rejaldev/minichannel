@@ -93,17 +93,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           path: '/dashboard/categories',
         },
         {
-          name: 'Manajemen Stok',
-          subMenu: [
-            {
-              name: 'Transfer Antar Cabang',
-              path: '/dashboard/stock/transfers',
-            },
-            {
-              name: 'Stok Opname',
-              path: '/dashboard/stock/opname',
-            },
-          ],
+          name: 'Transfer Antar Cabang',
+          path: '/dashboard/stock/transfers',
+        },
+        {
+          name: 'Stok Opname',
+          path: '/dashboard/stock/opname',
         },
       ],
     },
@@ -333,36 +328,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                         <div className={`overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96 mt-1' : 'max-h-0'}`}>
                           <div className="space-y-0.5 ml-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
                             {item.subMenu.map((subItem: any) => {
-                              // If subItem has nested subMenu (like Manajemen Stok)
-                              if (subItem.subMenu) {
-                                return (
-                                  <div key={subItem.name} className="py-1">
-                                    <div className="px-3 py-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      {subItem.name}
-                                    </div>
-                                    <div className="space-y-0.5 ml-2">
-                                      {subItem.subMenu.map((nestedItem: any) => {
-                                        const isNestedActive = pathname === nestedItem.path || pathname.startsWith(nestedItem.path + '/');
-                                        return (
-                                          <a
-                                            key={nestedItem.path}
-                                            href={nestedItem.path}
-                                            className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                              isNestedActive
-                                                ? 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
-                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
-                                            }`}
-                                          >
-                                            {nestedItem.name}
-                                          </a>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                );
-                              }
-                              
-                              // Regular submenu item
                               const isSubActive = pathname === subItem.path || (pathname.startsWith(subItem.path + '/') && subItem.path !== '/dashboard/products');
                               return (
                                 <a
