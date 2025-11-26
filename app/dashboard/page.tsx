@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { transactionsAPI, productsAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Package, AlertTriangle, Clock, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Package, AlertTriangle, Clock, Calendar, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
@@ -15,6 +15,31 @@ export default function DashboardPage() {
   const [timeStats, setTimeStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { user } = getAuth();
+
+  // Widget visibility state
+  const [widgetVisibility, setWidgetVisibility] = useState({
+    salesTrend: true,
+    topProducts: true,
+    branchPerformance: true,
+    timeStats: true,
+    paymentMethods: true,
+    lowStock: true
+  });
+
+  // Load visibility preferences from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('dashboardWidgetVisibility');
+    if (saved) {
+      setWidgetVisibility(JSON.parse(saved));
+    }
+  }, []);
+
+  // Save visibility preferences to localStorage
+  const toggleWidget = (widget: keyof typeof widgetVisibility) => {
+    const newVisibility = { ...widgetVisibility, [widget]: !widgetVisibility[widget] };
+    setWidgetVisibility(newVisibility);
+    localStorage.setItem('dashboardWidgetVisibility', JSON.stringify(newVisibility));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,39 +156,56 @@ export default function DashboardPage() {
 
       {/* Sales Trend Chart */}
       {salesTrend.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center mb-4">
-            <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Tren Penjualan (7 Hari Terakhir)
-            </h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
+              <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Tren Penjualan (7 Hari Terakhir)
+              </h2>
+            </div>
+            <button
+              onClick={() => toggleWidget('salesTrend')}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              title={widgetVisibility.salesTrend ? 'Sembunyikan' : 'Tampilkan'}
+            >
+              {widgetVisibility.salesTrend ? (
+                <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              )}
+            </button>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={salesTrend}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-              <XAxis 
-                dataKey="date" 
-                className="text-xs text-gray-600 dark:text-gray-400"
-                tickFormatter={(value) => new Date(value).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}
-              />
-              <YAxis className="text-xs text-gray-600 dark:text-gray-400" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
-                labelFormatter={(value) => new Date(value).toLocaleDateString('id-ID', { weekday: 'long', month: 'long', day: 'numeric' })}
-                formatter={(value: any) => ['Rp ' + value.toLocaleString('id-ID'), 'Total Penjualan']}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="total" 
-                stroke="#8b5cf6" 
-                strokeWidth={3}
-                name="Total Penjualan"
-                dot={{ fill: '#8b5cf6', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {widgetVisibility.salesTrend && (
+            <div className="p-6 pt-4">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={salesTrend}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                  <XAxis 
+                    dataKey="date" 
+                    className="text-xs text-gray-600 dark:text-gray-400"
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}
+                  />
+                  <YAxis className="text-xs text-gray-600 dark:text-gray-400" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e5e7eb' }}
+                    labelFormatter={(value) => new Date(value).toLocaleDateString('id-ID', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    formatter={(value: any) => ['Rp ' + value.toLocaleString('id-ID'), 'Total Penjualan']}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="total" 
+                    stroke="#8b5cf6" 
+                    strokeWidth={3}
+                    name="Total Penjualan"
+                    dot={{ fill: '#8b5cf6', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       )}
 
@@ -171,13 +213,27 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Products */}
         {topProducts.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center mb-4">
-              <Package className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Produk Terlaris
-              </h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <Package className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Produk Terlaris
+                </h2>
+              </div>
+              <button
+                onClick={() => toggleWidget('topProducts')}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                title={widgetVisibility.topProducts ? 'Sembunyikan' : 'Tampilkan'}
+              >
+                {widgetVisibility.topProducts ? (
+                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )}
+              </button>
             </div>
+            {widgetVisibility.topProducts && (
             <div className="space-y-3">
               {topProducts.map((product, index) => (
                 <div key={product.productVariantId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -199,18 +255,34 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+            )}
           </div>
         )}
 
         {/* Branch Performance */}
         {branchPerformance.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center mb-4">
-              <ShoppingBag className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Performa Cabang
-              </h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <ShoppingBag className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Performa Cabang
+                </h2>
+              </div>
+              <button
+                onClick={() => toggleWidget('branchPerformance')}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                title={widgetVisibility.branchPerformance ? 'Sembunyikan' : 'Tampilkan'}
+              >
+                {widgetVisibility.branchPerformance ? (
+                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )}
+              </button>
             </div>
+            {widgetVisibility.branchPerformance && (
+            <div className="p-6 pt-4">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={branchPerformance}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
@@ -229,6 +301,8 @@ export default function DashboardPage() {
                 <Bar dataKey="totalRevenue" fill="#8b5cf6" name="Total Pendapatan" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
+            )}
           </div>
         )}
       </div>
@@ -237,13 +311,28 @@ export default function DashboardPage() {
       {timeStats && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Busiest Hour & Day */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center mb-4">
-              <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Waktu Tersibuk
-              </h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Waktu Tersibuk
+                </h2>
+              </div>
+              <button
+                onClick={() => toggleWidget('timeStats')}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                title={widgetVisibility.timeStats ? 'Sembunyikan' : 'Tampilkan'}
+              >
+                {widgetVisibility.timeStats ? (
+                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )}
+              </button>
             </div>
+            {widgetVisibility.timeStats && (
+            <div className="p-6 pt-4">
             <div className="space-y-4">
               <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/10 rounded-lg border border-orange-200 dark:border-orange-800">
                 <div className="flex items-center justify-between mb-2">
@@ -270,16 +359,33 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
+            </div>
+            )}
           </div>
 
           {/* Daily Distribution */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center mb-4">
-              <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Distribusi Transaksi per Hari
-              </h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">low-hidden">
+            <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Distribusi Transaksi per Hari
+                </h2>
+              </div>
+              <button
+                onClick={() => toggleWidget('timeStats')}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                title={widgetVisibility.timeStats ? 'Sembunyikan' : 'Tampilkan'}
+              >
+                {widgetVisibility.timeStats ? (
+                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )}
+              </button>
             </div>
+            {widgetVisibility.timeStats && (
+            <div className="p-6 pt-4">
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={timeStats.dailyStats}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
@@ -295,19 +401,36 @@ export default function DashboardPage() {
                 <Bar dataKey="count" fill="#3b82f6" name="Jumlah Transaksi" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Payment Method Breakdown */}
       {summary?.paymentMethodBreakdown && summary.paymentMethodBreakdown.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center mb-4">
-            <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Metode Pembayaran
-            </h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
+              <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Metode Pembayaran
+              </h2>
+            </div>
+            <button
+              onClick={() => toggleWidget('paymentMethods')}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              title={widgetVisibility.paymentMethods ? 'Sembunyikan' : 'Tampilkan'}
+            >
+              {widgetVisibility.paymentMethods ? (
+                <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              )}
+            </button>
           </div>
+          {widgetVisibility.paymentMethods && (
+          <div className="p-6 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {summary.paymentMethodBreakdown.map((method: any) => (
               <div
@@ -329,23 +452,36 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
 
       {/* Low Stock Alerts */}
       {lowStockAlerts.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Peringatan Stok Menipis
               </h2>
+              <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-sm font-semibold rounded-full">
+                {lowStockAlerts.length} item
+              </span>
             </div>
-            <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-sm font-semibold rounded-full">
-              {lowStockAlerts.length} item
-            </span>
+            <button
+              onClick={() => toggleWidget('lowStock')}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              title={widgetVisibility.lowStock ? 'Sembunyikan' : 'Tampilkan'}
+            >
+              {widgetVisibility.lowStock ? (
+                <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              )}
+            </button>
           </div>
+          {widgetVisibility.lowStock && (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-750">
@@ -399,52 +535,9 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a
-          href="/dashboard/products"
-          className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md hover:border-purple-300 dark:hover:border-purple-600 transition-all"
-        >
-          <div className="flex items-center mb-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg group-hover:scale-110 transition-transform">
-              <Package className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h3 className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Kelola Produk</h3>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Tambah dan edit produk & stok</p>
-        </a>
-
-        <a
-          href="/dashboard/transactions"
-          className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all"
-        >
-          <div className="flex items-center mb-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg group-hover:scale-110 transition-transform">
-              <ShoppingBag className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h3 className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Riwayat Transaksi</h3>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Lihat semua transaksi penjualan</p>
-        </a>
-
-        <a
-          href="/dashboard/categories"
-          className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md hover:border-green-300 dark:hover:border-green-600 transition-all"
-        >
-          <div className="flex items-center mb-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg group-hover:scale-110 transition-transform">
-              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-            </div>
-            <h3 className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Kategori</h3>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Kelola kategori produk</p>
-        </a>
-      </div>
     </div>
   );
 }
