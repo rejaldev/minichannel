@@ -21,6 +21,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
   const [productMenuOpen, setProductMenuOpen] = useState(false);
+  const [salesMenuOpen, setSalesMenuOpen] = useState(false);
+  const [ordersMenuOpen, setOrdersMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -45,9 +47,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     const { user: authUser } = getAuth();
     setUser(authUser);
     
-    // Auto open product menu if on product-related page
-    if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories')) {
+    // Auto open menus based on current page
+    if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories') || pathname.startsWith('/dashboard/stock')) {
       setProductMenuOpen(true);
+    }
+    if (pathname.startsWith('/dashboard/transactions') || pathname.startsWith('/dashboard/returns') || pathname.startsWith('/dashboard/reports')) {
+      setSalesMenuOpen(true);
+    }
+    if (pathname.startsWith('/dashboard/orders') || pathname.startsWith('/dashboard/approvals')) {
+      setOrdersMenuOpen(true);
     }
   }, [pathname, router]);
 
@@ -58,14 +66,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   const menuItems = [
     {
-      name: 'Dashboard',
+      name: 'Beranda',
       path: '/dashboard',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       ),
-      roles: ['OWNER', 'MANAGER'],
+      roles: ['OWNER', 'MANAGER', 'ADMIN', 'KASIR'],
     },
     {
       name: 'Produk',
@@ -74,44 +82,85 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       ),
-      roles: ['OWNER', 'MANAGER'],
+      roles: ['OWNER', 'MANAGER', 'ADMIN'],
       subMenu: [
         {
-          name: 'Semua Produk',
+          name: 'Daftar Produk',
           path: '/dashboard/products',
-        },
-        {
-          name: 'Tambah Baru',
-          path: '/dashboard/products/new',
         },
         {
           name: 'Kategori',
           path: '/dashboard/categories',
         },
+        {
+          name: 'Manajemen Stok',
+          subMenu: [
+            {
+              name: 'Transfer Antar Cabang',
+              path: '/dashboard/stock/transfers',
+            },
+            {
+              name: 'Stok Opname',
+              path: '/dashboard/stock/opname',
+            },
+          ],
+        },
       ],
     },
     {
-      name: 'Transaksi',
-      path: '/dashboard/transactions',
+      name: 'Penjualan',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
       roles: ['OWNER', 'MANAGER'],
+      subMenu: [
+        {
+          name: 'Transaksi',
+          path: '/dashboard/transactions',
+        },
+        {
+          name: 'Retur',
+          path: '/dashboard/returns',
+        },
+        {
+          name: 'Laporan',
+          path: '/dashboard/reports',
+        },
+      ],
     },
     {
-      name: 'Laporan',
-      path: '/dashboard/reports',
+      name: 'Permintaan',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
         </svg>
       ),
-      roles: ['OWNER', 'MANAGER'],
+      roles: ['OWNER', 'MANAGER', 'ADMIN'],
+      subMenu: [
+        {
+          name: 'Permintaan Produk',
+          path: '/dashboard/orders',
+        },
+        {
+          name: 'Approval Transfer',
+          path: '/dashboard/approvals',
+        },
+      ],
     },
     {
-      name: 'Users',
+      name: 'Cabang',
+      path: '/dashboard/branches',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      ),
+      roles: ['OWNER'],
+    },
+    {
+      name: 'Pengguna',
       path: '/dashboard/users',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +170,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER'],
     },
     {
-      name: 'Settings',
+      name: 'Pengaturan',
       path: '/dashboard/settings',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,18 +260,49 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               {filteredMenuItems.map((item) => {
                 // Check if item has submenu
                 if (item.subMenu) {
-                  const isAnySubActive = item.subMenu.some((sub: any) => pathname === sub.path || pathname.startsWith(sub.path + '/'));
+                  // Helper to check if any submenu is active (including nested)
+                  const checkSubMenuActive = (subMenus: any[]): boolean => {
+                    return subMenus.some((sub: any) => {
+                      if (sub.path) {
+                        return pathname === sub.path || pathname.startsWith(sub.path + '/');
+                      }
+                      if (sub.subMenu) {
+                        return checkSubMenuActive(sub.subMenu);
+                      }
+                      return false;
+                    });
+                  };
+                  
+                  const isAnySubActive = checkSubMenuActive(item.subMenu);
+                  
+                  // Determine which menu state to use
+                  const getMenuState = (name: string) => {
+                    if (name === 'Produk') return productMenuOpen;
+                    if (name === 'Penjualan') return salesMenuOpen;
+                    if (name === 'Permintaan') return ordersMenuOpen;
+                    return false;
+                  };
+                  
+                  const getToggleFunction = (name: string) => {
+                    if (name === 'Produk') return () => setProductMenuOpen(!productMenuOpen);
+                    if (name === 'Penjualan') return () => setSalesMenuOpen(!salesMenuOpen);
+                    if (name === 'Permintaan') return () => setOrdersMenuOpen(!ordersMenuOpen);
+                    return () => {};
+                  };
+                  
+                  const menuOpen = getMenuState(item.name);
                   
                   return (
                     <div key={item.name}>
                       <button
                         onClick={() => {
                           if (sidebarOpen) {
-                            setProductMenuOpen(!productMenuOpen);
+                            getToggleFunction(item.name)();
                           } else {
-                            // Jika sidebar minimize, buka sidebar dulu baru toggle menu
                             setSidebarOpen(true);
-                            setProductMenuOpen(true);
+                            if (item.name === 'Produk') setProductMenuOpen(true);
+                            if (item.name === 'Penjualan') setSalesMenuOpen(true);
+                            if (item.name === 'Permintaan') setOrdersMenuOpen(true);
                           }
                         }}
                         className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-lg font-medium transition-all duration-150 ${
@@ -238,7 +318,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                         </div>
                         {sidebarOpen && (
                           <svg 
-                            className={`w-4 h-4 transition-transform duration-200 ${productMenuOpen ? 'rotate-180' : ''}`}
+                            className={`w-4 h-4 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`}
                             fill="none" 
                             stroke="currentColor" 
                             viewBox="0 0 24 24"
@@ -250,9 +330,39 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                       
                       {/* Submenu - only show when sidebar is open */}
                       {sidebarOpen && (
-                        <div className={`overflow-hidden transition-all duration-200 ${productMenuOpen ? 'max-h-40 mt-1' : 'max-h-0'}`}>
+                        <div className={`overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96 mt-1' : 'max-h-0'}`}>
                           <div className="space-y-0.5 ml-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
                             {item.subMenu.map((subItem: any) => {
+                              // If subItem has nested subMenu (like Manajemen Stok)
+                              if (subItem.subMenu) {
+                                return (
+                                  <div key={subItem.name} className="py-1">
+                                    <div className="px-3 py-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                      {subItem.name}
+                                    </div>
+                                    <div className="space-y-0.5 ml-2">
+                                      {subItem.subMenu.map((nestedItem: any) => {
+                                        const isNestedActive = pathname === nestedItem.path || pathname.startsWith(nestedItem.path + '/');
+                                        return (
+                                          <a
+                                            key={nestedItem.path}
+                                            href={nestedItem.path}
+                                            className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                              isNestedActive
+                                                ? 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
+                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
+                                            }`}
+                                          >
+                                            {nestedItem.name}
+                                          </a>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              
+                              // Regular submenu item
                               const isSubActive = pathname === subItem.path || (pathname.startsWith(subItem.path + '/') && subItem.path !== '/dashboard/products');
                               return (
                                 <a
