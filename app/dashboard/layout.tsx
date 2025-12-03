@@ -20,9 +20,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
-  const [productMenuOpen, setProductMenuOpen] = useState(false);
+  const [inventoryMenuOpen, setInventoryMenuOpen] = useState(false);
   const [salesMenuOpen, setSalesMenuOpen] = useState(false);
-  const [ordersMenuOpen, setOrdersMenuOpen] = useState(false);
+  const [reportsMenuOpen, setReportsMenuOpen] = useState(false);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -48,14 +49,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     setUser(authUser);
     
     // Auto open menus based on current page
-    if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories') || pathname.startsWith('/dashboard/stock')) {
-      setProductMenuOpen(true);
+    if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories')) {
+      setInventoryMenuOpen(true);
     }
-    if (pathname.startsWith('/dashboard/transactions') || pathname.startsWith('/dashboard/returns') || pathname.startsWith('/dashboard/reports')) {
+    if (pathname.startsWith('/dashboard/transactions') || pathname.startsWith('/dashboard/returns')) {
       setSalesMenuOpen(true);
     }
-    if (pathname.startsWith('/dashboard/orders') || pathname.startsWith('/dashboard/approvals')) {
-      setOrdersMenuOpen(true);
+    if (pathname.startsWith('/dashboard/reports')) {
+      setReportsMenuOpen(true);
+    }
+    if (pathname.startsWith('/dashboard/settings')) {
+      setSettingsMenuOpen(true);
     }
   }, [pathname, router]);
 
@@ -66,7 +70,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   const menuItems = [
     {
-      name: 'Beranda',
+      name: 'Dashboard',
       path: '/dashboard',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +80,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER', 'MANAGER', 'ADMIN', 'KASIR'],
     },
     {
-      name: 'Produk',
+      name: 'Inventory Management',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -85,25 +89,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER', 'MANAGER', 'ADMIN'],
       subMenu: [
         {
-          name: 'Daftar Produk',
+          name: 'Products',
           path: '/dashboard/products',
+          roles: ['OWNER', 'MANAGER', 'ADMIN'],
         },
         {
-          name: 'Kategori',
+          name: 'Categories',
           path: '/dashboard/categories',
-        },
-        {
-          name: 'Transfer Antar Cabang',
-          path: '/dashboard/stock/transfers',
-        },
-        {
-          name: 'Stok Opname',
-          path: '/dashboard/stock/opname',
+          roles: ['OWNER', 'MANAGER', 'ADMIN'],
         },
       ],
     },
     {
-      name: 'Penjualan',
+      name: 'Sales',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -112,40 +110,40 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER', 'MANAGER'],
       subMenu: [
         {
-          name: 'Transaksi',
+          name: 'Transactions',
           path: '/dashboard/transactions',
         },
         {
-          name: 'Retur',
+          name: 'Returns',
           path: '/dashboard/returns',
         },
-        {
-          name: 'Laporan',
-          path: '/dashboard/reports',
-        },
       ],
     },
     {
-      name: 'Permintaan',
+      name: 'Reports & Analytics',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
-      roles: ['OWNER', 'MANAGER', 'ADMIN'],
+      roles: ['OWNER', 'MANAGER'],
       subMenu: [
         {
-          name: 'Permintaan Produk',
-          path: '/dashboard/orders',
+          name: 'Sales Reports',
+          path: '/dashboard/reports/sales',
         },
         {
-          name: 'Approval Transfer',
-          path: '/dashboard/approvals',
+          name: 'Inventory Reports',
+          path: '/dashboard/reports/inventory',
+        },
+        {
+          name: 'Marketing Performance',
+          path: '/dashboard/reports/marketing',
         },
       ],
     },
     {
-      name: 'Cabang',
+      name: 'Branches',
       path: '/dashboard/branches',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,18 +153,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER'],
     },
     {
-      name: 'Pengguna',
-      path: '/dashboard/users',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ),
-      roles: ['OWNER'],
-    },
-    {
-      name: 'Pengaturan',
-      path: '/dashboard/settings',
+      name: 'Settings',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -174,6 +161,33 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </svg>
       ),
       roles: ['OWNER', 'MANAGER'],
+      subMenu: [
+        {
+          name: 'General',
+          path: '/dashboard/settings/general',
+          roles: ['OWNER', 'MANAGER'],
+        },
+        {
+          name: 'User Management',
+          path: '/dashboard/settings/users',
+          roles: ['OWNER'],
+        },
+        {
+          name: 'Printer',
+          path: '/dashboard/settings/printer',
+          roles: ['OWNER', 'MANAGER'],
+        },
+        {
+          name: 'Barcode',
+          path: '/dashboard/settings/barcode',
+          roles: ['OWNER', 'MANAGER'],
+        },
+        {
+          name: 'Backup Data',
+          path: '/dashboard/settings/backup',
+          roles: ['OWNER'],
+        },
+      ],
     },
   ];
   
@@ -200,7 +214,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Sidebar */}
         <aside
           className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl ${
-            sidebarOpen ? 'w-60' : 'w-16 -translate-x-full md:translate-x-0'
+            sidebarOpen ? 'w-72' : 'w-16 -translate-x-full md:translate-x-0'
           }`}
         >
           <div className="h-full flex flex-col overflow-hidden">
@@ -272,16 +286,18 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   
                   // Determine which menu state to use
                   const getMenuState = (name: string) => {
-                    if (name === 'Produk') return productMenuOpen;
-                    if (name === 'Penjualan') return salesMenuOpen;
-                    if (name === 'Permintaan') return ordersMenuOpen;
+                    if (name === 'Inventory Management') return inventoryMenuOpen;
+                    if (name === 'Sales') return salesMenuOpen;
+                    if (name === 'Reports & Analytics') return reportsMenuOpen;
+                    if (name === 'Settings') return settingsMenuOpen;
                     return false;
                   };
                   
                   const getToggleFunction = (name: string) => {
-                    if (name === 'Produk') return () => setProductMenuOpen(!productMenuOpen);
-                    if (name === 'Penjualan') return () => setSalesMenuOpen(!salesMenuOpen);
-                    if (name === 'Permintaan') return () => setOrdersMenuOpen(!ordersMenuOpen);
+                    if (name === 'Inventory Management') return () => setInventoryMenuOpen(!inventoryMenuOpen);
+                    if (name === 'Sales') return () => setSalesMenuOpen(!salesMenuOpen);
+                    if (name === 'Reports & Analytics') return () => setReportsMenuOpen(!reportsMenuOpen);
+                    if (name === 'Settings') return () => setSettingsMenuOpen(!settingsMenuOpen);
                     return () => {};
                   };
                   
@@ -295,9 +311,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                             getToggleFunction(item.name)();
                           } else {
                             setSidebarOpen(true);
-                            if (item.name === 'Produk') setProductMenuOpen(true);
-                            if (item.name === 'Penjualan') setSalesMenuOpen(true);
-                            if (item.name === 'Permintaan') setOrdersMenuOpen(true);
+                            if (item.name === 'Inventory Management') setInventoryMenuOpen(true);
+                            if (item.name === 'Sales') setSalesMenuOpen(true);
+                            if (item.name === 'Reports & Analytics') setReportsMenuOpen(true);
+                            if (item.name === 'Settings') setSettingsMenuOpen(true);
                           }
                         }}
                         className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-lg font-medium transition-all duration-150 ${
@@ -327,22 +344,30 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                       {sidebarOpen && (
                         <div className={`overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96 mt-1' : 'max-h-0'}`}>
                           <div className="space-y-0.5 ml-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
-                            {item.subMenu.map((subItem: any) => {
-                              const isSubActive = pathname === subItem.path || (pathname.startsWith(subItem.path + '/') && subItem.path !== '/dashboard/products');
-                              return (
-                                <a
-                                  key={subItem.path}
-                                  href={subItem.path}
-                                  className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    isSubActive
-                                      ? 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
-                                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
-                                  }`}
-                                >
-                                  {subItem.name}
-                                </a>
-                              );
-                            })}
+                            {item.subMenu
+                              .filter((subItem: any) => {
+                                // Filter submenu by role if roles defined
+                                if (subItem.roles && user?.role) {
+                                  return subItem.roles.includes(user.role);
+                                }
+                                return true;
+                              })
+                              .map((subItem: any) => {
+                                const isSubActive = pathname === subItem.path || (pathname.startsWith(subItem.path + '/') && subItem.path !== '/dashboard/products');
+                                return (
+                                  <a
+                                    key={subItem.path}
+                                    href={subItem.path}
+                                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                      isSubActive
+                                        ? 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
+                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
+                                    }`}
+                                  >
+                                    {subItem.name}
+                                  </a>
+                                );
+                              })}
                           </div>
                         </div>
                       )}
@@ -375,7 +400,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Main Content */}
         <div className="transition-all duration-300">
           {/* Header - STICKY dengan margin sesuai sidebar */}
-          <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-30 ${sidebarOpen ? 'md:ml-60' : 'md:ml-16'}`}>
+          <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-30 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>
             <div className="px-4 md:px-6 py-3 md:py-4">
               {/* Mobile: Hamburger + Title + User Dropdown */}
               <div className="flex items-center justify-between md:hidden">
@@ -390,12 +415,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   </button>
                   <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                     {pathname === '/dashboard' ? 'Dashboard' :
-                     pathname.includes('/products') ? 'Produk' :
-                     pathname.includes('/transactions') ? 'Transaksi' :
-                     pathname.includes('/reports') ? 'Laporan' :
-                     pathname.includes('/users') ? 'Users' :
+                     pathname.includes('/products') ? 'Products' :
+                     pathname.includes('/stock-movement') ? 'Stock Movement' :
+                     pathname.includes('/transactions') ? 'Transactions' :
+                     pathname.includes('/returns') ? 'Returns' :
+                     pathname.includes('/reports') ? 'Reports & Analytics' :
+                     pathname.includes('/branches') ? 'Branches' :
                      pathname.includes('/settings') ? 'Settings' :
-                     pathname.includes('/categories') ? 'Kategori' : 'Dashboard'}
+                     pathname.includes('/categories') ? 'Categories' : 'Dashboard'}
                   </h1>
                 </div>
                 
@@ -483,12 +510,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {pathname === '/dashboard' ? 'Dashboard' :
-                     pathname.includes('/products') ? 'Kelola Produk' :
-                     pathname.includes('/transactions') ? 'Transaksi' :
-                     pathname.includes('/reports') ? 'Laporan' :
-                     pathname.includes('/users') ? 'Manajemen Users' :
-                     pathname.includes('/settings') ? 'Pengaturan' :
-                     pathname.includes('/categories') ? 'Kategori Produk' : 'Dashboard'}
+                     pathname.includes('/products') ? 'Products Management' :
+                     pathname.includes('/stock-movement') ? 'Stock Movement' :
+                     pathname.includes('/transactions') ? 'Transactions' :
+                     pathname.includes('/returns') ? 'Returns' :
+                     pathname.includes('/reports') ? 'Reports & Analytics' :
+                     pathname.includes('/branches') ? 'Branches Management' :
+                     pathname.includes('/settings') ? 'Settings' :
+                     pathname.includes('/categories') ? 'Categories' : 'Dashboard'}
                   </h1>
                   {user && pathname === '/dashboard' && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -599,7 +628,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </header>
 
           {/* Page Content dengan margin sesuai sidebar */}
-          <main className={`p-6 min-h-screen transition-all duration-300 ${sidebarOpen ? 'md:ml-60' : 'md:ml-16'}`}>{children}</main>
+          <main className={`p-6 min-h-screen transition-all duration-300 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>{children}</main>
         </div>
       </div>
     </ProtectedRoute>

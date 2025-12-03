@@ -35,6 +35,8 @@ api.interceptors.response.use(
   }
 );
 
+// Export both default and named export for flexibility
+export { api };
 export default api;
 
 // Auth API
@@ -76,13 +78,35 @@ export const productsAPI = {
   updateStock: (variantId: string, cabangId: string, data: { quantity: number; price?: number; reason?: string; notes?: string }) =>
     api.put(`/products/stock/${variantId}/${cabangId}`, data),
   
-  getStockAdjustments: (variantId: string, cabangId: string, params?: { limit?: number }) =>
-    api.get(`/products/stock/${variantId}/${cabangId}/adjustments`, { params }),
-  
-  getAllAdjustments: (params?: { cabangId?: string; startDate?: string; endDate?: string; reason?: string; limit?: number }) =>
-    api.get('/products/adjustments/all', { params }),
-  
   getLowStockAlerts: () => api.get('/products/alerts/low-stock'),
+  
+  searchBySKU: (sku: string) => api.get(`/products/search/sku/${sku}`),
+  
+  // Import/Export (CSV only - single file with 2 sections)
+  downloadTemplate: () => 
+    api.get('/products/template', { responseType: 'blob' }),
+  
+  importProducts: (formData: FormData) => {
+    const importApi = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    // Add token
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        importApi.defaults.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    
+    return importApi.post('/products/import', formData);
+  },
+  
+  exportProducts: () => 
+    api.get('/products/export', { responseType: 'blob' }),
 };
 
 // Transactions API
@@ -173,4 +197,95 @@ export const settingsAPI = {
   
   updateSettings: (data: { [key: string]: string | number }) =>
     api.put('/settings', data),
+};
+
+// Returns API
+export const returnsAPI = {
+  getReturns: (params?: {
+    status?: string;
+    cabangId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) => api.get('/returns', { params }),
+  
+  getReturn: (id: string) => api.get(`/returns/${id}`),
+  
+  getStats: (params?: { cabangId?: string }) =>
+    api.get('/returns/stats', { params }),
+  
+  createReturn: (data: {
+    transactionId: string;
+    cabangId: string;
+    reason: string;
+    notes?: string;
+    items: Array<{
+      productVariantId: string;
+      quantity: number;
+      price: number;
+    }>;
+    refundMethod?: string;
+  }) => api.post('/returns', data),
+  
+  approveReturn: (id: string, data: { approvedBy: string; notes?: string }) =>
+    api.patch(`/returns/${id}/approve`, data),
+  
+  rejectReturn: (id: string, data: { rejectedBy: string; rejectionNotes: string }) =>
+    api.patch(`/returns/${id}/reject`, data),
+  
+  deleteReturn: (id: string) => api.delete(`/returns/${id}`),
+};
+
+// Orders API
+export const ordersAPI = {
+  getOrders: (params?: {
+    status?: string;
+    cabangId?: string;
+  }) => api.get('/orders', { params }),
+  
+  getOrder: (id: string) => api.get(`/orders/${id}`),
+  
+  createOrder: (data: {
+    productName: string;
+    productType?: string;
+    categoryId?: string;
+    categoryName?: string;
+    price?: number;
+    quantity?: number;
+    notes?: string;
+  }) => api.post('/orders', data),
+  
+  approveOrder: (id: string, data: { productId?: string; variantId?: string }) =>
+    api.put(`/orders/${id}/approve`, data),
+  
+  rejectOrder: (id: string, data: { rejectionReason: string }) =>
+    api.put(`/orders/${id}/reject`, data),
+  
+  deleteOrder: (id: string) => api.delete(`/orders/${id}`),
+  
+  getStats: () => api.get('/orders/stats/summary'),
+};
+
+// Stock Transfers API
+export const stockTransfersAPI = {
+  getTransfers: (params?: {
+    cabangId?: string;
+    variantId?: string;
+    status?: string;
+  }) => api.get('/stock-transfers', { params }),
+  
+  getTransfer: (id: string) => api.get(`/stock-transfers/${id}`),
+  
+  createTransfer: (data: {
+    variantId: string;
+    fromCabangId: string;
+    toCabangId: string;
+    quantity: number;
+    notes?: string;
+  }) => api.post('/stock-transfers', data),
+  
+  getStats: (params?: { cabangId?: string }) =>
+    api.get('/stock-transfers/stats/summary', { params }),
 };

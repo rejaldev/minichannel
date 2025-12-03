@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'OWNER' | 'MANAGER' | 'KASIR';
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'KASIR';
   cabangId: string;
   isActive: boolean;
   cabang?: {

@@ -77,14 +77,16 @@ export default function DashboardPage() {
           setTimeStats(timeStatsRes.data);
         }
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        // Error handled - dashboard shows empty state
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // ^ Intentional: Only fetch once on mount. getAuth() is stable and user doesn't change during session.
+  }, []);
 
   if (loading) {
     return (
@@ -96,8 +98,46 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Screen Options Button */}
+      <div className="flex justify-end">
+        <div className="relative">
+          <button
+            onClick={() => setShowScreenOptions(!showScreenOptions)}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+          >
+            <Eye className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Opsi Layar</span>
+            {showScreenOptions ? (
+              <ChevronUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+
+          {/* Screen Options Dropdown */}
+          {showScreenOptions && (
+            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Tampilkan Widget</h3>
+              <div className="space-y-2">
+                {Object.entries(widgetLabels).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded">
+                    <input
+                      type="checkbox"
+                      checked={widgetVisibility[key as keyof typeof widgetVisibility]}
+                      onChange={() => toggleWidget(key as keyof typeof widgetVisibility)}
+                      className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Transaksi */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
@@ -157,44 +197,6 @@ export default function DashboardPage() {
               <Package className="w-8 h-8 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Screen Options Button */}
-      <div className="flex justify-end">
-        <div className="relative">
-          <button
-            onClick={() => setShowScreenOptions(!showScreenOptions)}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
-          >
-            <Eye className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Opsi Layar</span>
-            {showScreenOptions ? (
-              <ChevronUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            )}
-          </button>
-
-          {/* Screen Options Dropdown */}
-          {showScreenOptions && (
-            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 p-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Tampilkan Widget</h3>
-              <div className="space-y-2">
-                {Object.entries(widgetLabels).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded">
-                    <input
-                      type="checkbox"
-                      checked={widgetVisibility[key as keyof typeof widgetVisibility]}
-                      onChange={() => toggleWidget(key as keyof typeof widgetVisibility)}
-                      className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

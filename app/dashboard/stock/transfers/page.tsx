@@ -7,7 +7,7 @@ export default function TransfersPage() {
   return (
     <ProtectedRoute>
       <UnderConstruction 
-        title="Transfer Antar Cabang"
+        title="Transfer Stock"
         description="Fitur transfer stok antar cabang sedang dalam pengembangan. Anda akan dapat mentransfer produk antar lokasi dengan mudah."
       />
     </ProtectedRoute>

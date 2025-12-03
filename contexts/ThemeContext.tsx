@@ -31,17 +31,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
-    console.log('🌓 Toggling theme from', theme, 'to', newTheme);
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
-      console.log('✅ Added dark class to <html>');
     } else {
       document.documentElement.classList.remove('dark');
-      console.log('✅ Removed dark class from <html>');
     }
-    console.log('📋 Current classes on <html>:', document.documentElement.className);
   };
 
   // Prevent flash of wrong theme

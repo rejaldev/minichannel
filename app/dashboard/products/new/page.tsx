@@ -57,9 +57,7 @@ export default function NewProductPage() {
   const fetchCabangs = async () => {
     try {
       const res = await cabangAPI.getCabangs();
-      console.log('🔍 Fetched cabangs:', res.data);
       const activeCabangs = res.data.filter((c: any) => c.isActive);
-      console.log('✅ Active cabangs:', activeCabangs);
       setCabangs(activeCabangs);
       // Initialize single product stocks with active cabangs
       const initialStocks = activeCabangs.map((c: any) => ({
@@ -68,7 +66,6 @@ export default function NewProductPage() {
         quantity: 0,
         price: 0
       }));
-      console.log('📦 Single product stocks initialized:', initialStocks);
       setSingleProductStocks(initialStocks);
     } catch (error) {
       console.error('Error fetching cabangs:', error);
@@ -147,7 +144,6 @@ export default function NewProductPage() {
   };
 
   const handleGeneratedVariants = (generated: Array<{ variantName: string; variantValue: string; sku: string; price: string; stock: string }>) => {
-    console.log('🔧 Generate variants with cabangs:', cabangs);
     if (cabangs.length === 0) {
       alert('⚠️ Belum ada cabang! Tunggu sebentar atau refresh halaman.');
       return;
@@ -161,10 +157,9 @@ export default function NewProductPage() {
         cabangId: c.id,
         cabangName: c.name,
         quantity: parseInt(v.stock) || 0,
-        price: parseFloat(v.price) || 0
+        price: parseFloat(v.price) || 0  // Price per cabang from builder
       }))
     }));
-    console.log('✅ Converted variants:', converted);
     setVariants(converted);
     setShowDynamicBuilder(false);
     alert(`✓ ${generated.length} varian berhasil di-generate!`);
@@ -209,7 +204,6 @@ export default function NewProductPage() {
         }
         
         payload.sku = formData.sku;
-        payload.price = singleProductStocks[0]?.price || 0; // Use first cabang price as default
         payload.stocks = singleProductStocks;
       } else {
         // Validate variants have at least one cabang with price
@@ -228,7 +222,6 @@ export default function NewProductPage() {
             variantName: v.variantName,
             variantValue: v.variantValue,
             sku: v.sku,
-            price: v.stocks[0]?.price || 0, // Use first cabang price as default
             stocks: v.stocks
           }));
       }
@@ -412,9 +405,7 @@ export default function NewProductPage() {
                     {singleProductStocks.length === 0 && (
                       <div className="text-sm text-red-500">⚠️ Tidak ada cabang aktif! Tambahkan cabang di Settings → Cabang</div>
                     )}
-                    {singleProductStocks.map((stock, idx) => {
-                      console.log(`🎨 Rendering cabang ${idx}:`, stock);
-                      return (
+                    {singleProductStocks.map((stock, idx) => (
                       <div key={stock.cabangId} className="grid grid-cols-3 gap-2 items-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
                         <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {stock.cabangName}
@@ -439,8 +430,7 @@ export default function NewProductPage() {
                           placeholder="0"
                         />
                       </div>
-                      );
-                    })}
+                    ))}
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                     Minimal 1 cabang harus punya harga untuk bisa menyimpan produk
@@ -500,11 +490,14 @@ export default function NewProductPage() {
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-xs">Rp</span>
                     <input
-                      type="number"
-                      value={bulkApply.price}
-                      onChange={(e) => setBulkApply({ ...bulkApply, price: e.target.value })}
-                      placeholder="50000"
-                      min="0"
+                      type="text"
+                      inputMode="numeric"
+                      value={bulkApply.price ? Number(bulkApply.price).toLocaleString('id-ID') : ''}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setBulkApply({ ...bulkApply, price: val });
+                      }}
+                      placeholder="50.000"
                       className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -527,20 +520,20 @@ export default function NewProductPage() {
           {/* Variant Cards */}
           <div className="space-y-4">
             {variants.map((variant, variantIndex) => (
-              <div key={variantIndex} className="p-4 md:p-5 border border-gray-200 rounded-lg bg-white hover:border-slate-400 transition-colors">
+              <div key={variantIndex} className="p-4 md:p-5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:border-slate-400 dark:hover:border-slate-600 transition-colors">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex items-center justify-center w-7 h-7 bg-slate-600 text-white rounded-md font-semibold text-sm">
+                    <div className="flex items-center justify-center w-7 h-7 bg-slate-600 dark:bg-slate-700 text-white rounded-md font-semibold text-sm">
                       {variantIndex + 1}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
                         {variant.variantName && variant.variantValue 
                           ? `${variant.variantName}: ${variant.variantValue}` 
                           : `Varian #${variantIndex + 1}`}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">{variant.sku || 'SKU belum diisi'}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{variant.sku || 'SKU belum diisi'}</p>
                     </div>
                   </div>
                   <button
@@ -615,30 +608,30 @@ export default function NewProductPage() {
                                 Rp
                               </span>
                               <input
-                                type="number"
-                                value={stock.price || ''}
+                                type="text"
+                                inputMode="numeric"
+                                value={stock.price ? Number(stock.price).toLocaleString('id-ID') : ''}
                                 onChange={(e) => {
-                                  const val = e.target.value.replace(/^0+(?=\d)/, '');
+                                  const val = e.target.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
                                   handleStockChange(variantIndex, stockIndex, 'price', val);
                                 }}
                                 onBlur={(e) => {
-                                  const num = parseFloat(e.target.value) || 0;
+                                  const num = parseFloat(e.target.value.replace(/\./g, '')) || 0;
                                   handleStockChange(variantIndex, stockIndex, 'price', String(num));
                                 }}
                                 className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
-                                placeholder="50000"
-                                min="0"
-                                step="any"
+                                placeholder="50.000"
                               />
                             </div>
                           </div>
                           <div>
                             <label className="block text-xs text-gray-600 mb-1">Stok</label>
                             <input
-                              type="number"
+                              type="text"
+                              inputMode="numeric"
                               value={stock.quantity || ''}
                               onChange={(e) => {
-                                const val = e.target.value.replace(/^0+/, '') || '0';
+                                const val = e.target.value.replace(/[^0-9]/g, '').replace(/^0+/, '') || '0';
                                 handleStockChange(variantIndex, stockIndex, 'quantity', val);
                               }}
                               onBlur={(e) => {
@@ -647,7 +640,6 @@ export default function NewProductPage() {
                               }}
                               className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm text-center font-semibold focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
                               placeholder="0"
-                              min="0"
                             />
                           </div>
                         </div>

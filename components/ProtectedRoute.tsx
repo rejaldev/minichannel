@@ -2,19 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, hasRole } from '@/lib/auth';
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  allowedRoles?: string[];
+}
+
+export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/login');
+    } else if (allowedRoles && !hasRole(allowedRoles)) {
+      router.push('/access-denied');
     } else {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, allowedRoles]);
 
   if (isLoading) {
     return (
