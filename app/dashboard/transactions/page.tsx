@@ -146,6 +146,9 @@ export default function TransactionsPage() {
                       No. Invoice
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Cabang
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Tanggal
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -171,6 +174,11 @@ export default function TransactionsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-mono font-medium text-gray-900 dark:text-white">
                           {transaction.transactionNo}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                          {transaction.cabang?.name || '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -244,6 +252,9 @@ export default function TransactionsPage() {
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">No. Invoice</p>
                     <p className="text-sm font-mono font-bold text-gray-900 dark:text-white">
                       {transaction.transactionNo}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {transaction.cabang?.name || '-'}
                     </p>
                   </div>
                   <span
@@ -334,6 +345,12 @@ export default function TransactionsPage() {
                   <p className="text-xs md:text-sm text-gray-600">No. Invoice</p>
                   <p className="text-sm md:text-base font-mono font-semibold text-gray-900">
                     {selectedTransaction.transactionNo}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs md:text-sm text-gray-600">Cabang</p>
+                  <p className="text-sm md:text-base font-semibold text-gray-900">
+                    {selectedTransaction.cabang?.name || '-'}
                   </p>
                 </div>
                 <div>

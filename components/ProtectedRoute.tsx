@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { isAuthenticated, hasRole } from '@/lib/auth';
+import { useRouter, usePathname } from 'next/navigation';
+import { isAuthenticated, hasRole, getAuth } from '@/lib/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,17 +11,28 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/login');
-    } else if (allowedRoles && !hasRole(allowedRoles)) {
-      router.push('/access-denied');
     } else {
-      setIsLoading(false);
+      const { user } = getAuth();
+      
+      // KASIR can only access /pos - redirect to /pos for any other page
+      if (user?.role === 'KASIR' && !pathname.startsWith('/pos')) {
+        router.push('/pos');
+        return;
+      }
+      
+      if (allowedRoles && !hasRole(allowedRoles)) {
+        router.push('/access-denied');
+      } else {
+        setIsLoading(false);
+      }
     }
-  }, [router, allowedRoles]);
+  }, [router, allowedRoles, pathname]);
 
   if (isLoading) {
     return (

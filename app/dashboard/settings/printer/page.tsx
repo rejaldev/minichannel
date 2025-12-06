@@ -416,7 +416,7 @@ export default function PrinterSettingsPage() {
                     </div>
                     <div className="text-center my-0.5">--------------------------------</div>
                     <div className="flex justify-between font-bold">
-                      <span>TOTAL</span>
+                      <span>GRAND TOTAL</span>
                       <span>Rp 50.000</span>
                     </div>
                     <div className="flex justify-between">

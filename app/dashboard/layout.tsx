@@ -20,6 +20,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
+  const [marketplaceMenuOpen, setMarketplaceMenuOpen] = useState(false);
   const [inventoryMenuOpen, setInventoryMenuOpen] = useState(false);
   const [salesMenuOpen, setSalesMenuOpen] = useState(false);
   const [reportsMenuOpen, setReportsMenuOpen] = useState(false);
@@ -49,6 +50,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     setUser(authUser);
     
     // Auto open menus based on current page
+    if (pathname.startsWith('/dashboard/marketplace')) {
+      setMarketplaceMenuOpen(true);
+    }
     if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories')) {
       setInventoryMenuOpen(true);
     }
@@ -80,6 +84,32 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER', 'MANAGER', 'ADMIN', 'KASIR'],
     },
     {
+      name: 'Marketplace',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+        </svg>
+      ),
+      roles: ['OWNER', 'MANAGER'],
+      subMenu: [
+        {
+          name: 'Orders',
+          path: '/dashboard/marketplace/orders',
+          roles: ['OWNER', 'MANAGER'],
+        },
+        {
+          name: 'Listing',
+          path: '/dashboard/marketplace/listing',
+          roles: ['OWNER', 'MANAGER'],
+        },
+        {
+          name: 'Promo',
+          path: '/dashboard/marketplace/promo',
+          roles: ['OWNER', 'MANAGER'],
+        },
+      ],
+    },
+    {
       name: 'Inventory Management',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,6 +127,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           name: 'Categories',
           path: '/dashboard/categories',
           roles: ['OWNER', 'MANAGER', 'ADMIN'],
+        },
+        {
+          name: 'Stock Opname',
+          path: '/dashboard/stock-opname',
+          roles: ['OWNER', 'MANAGER', 'ADMIN'],
+        },
+        {
+          name: 'Stock Transfers',
+          path: '/dashboard/stock-transfers',
+          roles: ['OWNER', 'MANAGER'],
         },
       ],
     },
@@ -286,6 +326,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   
                   // Determine which menu state to use
                   const getMenuState = (name: string) => {
+                    if (name === 'Marketplace') return marketplaceMenuOpen;
                     if (name === 'Inventory Management') return inventoryMenuOpen;
                     if (name === 'Sales') return salesMenuOpen;
                     if (name === 'Reports & Analytics') return reportsMenuOpen;
@@ -294,6 +335,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   };
                   
                   const getToggleFunction = (name: string) => {
+                    if (name === 'Marketplace') return () => setMarketplaceMenuOpen(!marketplaceMenuOpen);
                     if (name === 'Inventory Management') return () => setInventoryMenuOpen(!inventoryMenuOpen);
                     if (name === 'Sales') return () => setSalesMenuOpen(!salesMenuOpen);
                     if (name === 'Reports & Analytics') return () => setReportsMenuOpen(!reportsMenuOpen);
@@ -426,7 +468,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   </h1>
                 </div>
                 
-                {/* User Dropdown - Mobile */}
+                <div className="flex items-center gap-2">
+                {/* User Dropdown - Mobile (NO POS BUTTON - POS is desktop only) */}
                 {user && (
                   <div className="relative">
                     <button
@@ -502,6 +545,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     )}
                   </div>
                 )}
+                </div>
               </div>
               
               {/* Desktop: Full navbar with page title, greeting, and date */}
@@ -526,8 +570,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   )}
                 </div>
                 
-                {/* Right: Date + User Dropdown */}
+                {/* Right: POS Button + Date + User Dropdown */}
                 <div className="flex items-center gap-4">
+                  {/* POS Button */}
+                  <a
+                    href="/pos"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Buka POS
+                  </a>
+                  
                   {/* Date */}
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-lg">
                     <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">

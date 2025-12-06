@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api';
-import { setAuth } from '@/lib/auth';
+import { setAuth, clearAuth, isAuthenticated } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +11,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Clear any existing auth data when login page loads
+  useEffect(() => {
+    clearAuth();
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -21,18 +26,15 @@ export default function LoginPage() {
       const response = await authAPI.login(email, password);
       const { token, user } = response.data;
       
-      // KASIR accounts should use desktop app, not web dashboard
-      if (user.role === 'KASIR') {
-        setError('Akun KASIR hanya bisa login melalui aplikasi desktop POS. Silakan gunakan aplikasi AnekaBuana Store Desktop.');
-        setLoading(false);
-        return;
-      }
-      
       // Save to localStorage
       setAuth(token, user);
       
-      // Redirect to dashboard (web is for OWNER/MANAGER only)
-      router.push('/dashboard');
+      // KASIR hanya bisa akses POS, role lain ke dashboard
+      if (user.role === 'KASIR') {
+        router.push('/pos');
+      } else {
+        router.push('/dashboard');
+      }
       
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login gagal. Silakan coba lagi.');

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsAPI, cabangAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
+import { useRealtimeRefresh } from '@/hooks/useSocket';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -52,6 +53,14 @@ export default function ProductsPage() {
   const [importResult, setImportResult] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
 
+  // Realtime refresh callback
+  const handleRealtimeRefresh = useCallback(() => {
+    fetchDataSilent();
+  }, []);
+
+  // WebSocket for realtime updates
+  const { connected: socketConnected } = useRealtimeRefresh(handleRealtimeRefresh);
+
   useEffect(() => {
     fetchData();
   }, [selectedCategory, search]);
@@ -76,6 +85,27 @@ export default function ProductsPage() {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Silent fetch for realtime updates (no loading state)
+  const fetchDataSilent = async () => {
+    try {
+      const [productsRes, categoriesRes, cabangsRes] = await Promise.all([
+        productsAPI.getProducts({
+          categoryId: selectedCategory || undefined,
+          search: search || undefined,
+          isActive: true,
+        }),
+        productsAPI.getCategories(),
+        cabangAPI.getCabangs(),
+      ]);
+
+      setProducts(productsRes.data);
+      setCategories(categoriesRes.data);
+      setCabangs(cabangsRes.data.filter((c: any) => c.isActive));
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
   };
 

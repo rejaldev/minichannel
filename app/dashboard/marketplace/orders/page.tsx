@@ -1,6 +1,6 @@
 'use client';
 
-export default function StockOpnamePage() {
+export default function MarketplaceOrdersPage() {
   return (
     <div className="px-4 md:px-6">
       {/* Breadcrumb */}
@@ -10,24 +10,24 @@ export default function StockOpnamePage() {
         </a>
         <span>›</span>
         <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Inventory Management
+          Marketplace
         </a>
         <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Stock Opname</span>
+        <span className="font-semibold text-gray-900 dark:text-white">Orders</span>
       </nav>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-              <svg className="w-5 h-5 md:w-6 md:h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Stock Opname</h2>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Pesanan Marketplace</h2>
               <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                Penghitungan dan audit stok secara sistematis
+                Kelola pesanan dari berbagai marketplace dalam satu dashboard
               </p>
             </div>
           </div>
@@ -35,16 +35,16 @@ export default function StockOpnamePage() {
         <div className="p-4 md:p-6 lg:p-8">
           {/* Coming Soon */}
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full mb-4">
-              <svg className="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full mb-4">
+              <svg className="w-10 h-10 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Coming Soon
             </h3>
             <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-              Fitur stock opname untuk penghitungan fisik dan audit stok sedang dalam pengembangan.
+              Fitur integrasi pesanan dari Tokopedia, Shopee, Lazada, dan marketplace lainnya sedang dalam pengembangan.
             </p>
             
             {/* Preview of what's coming */}
@@ -55,39 +55,39 @@ export default function StockOpnamePage() {
                 </h4>
                 <div className="space-y-3 text-left">
                   <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Create Opname Session</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Buat sesi opname baru per cabang atau kategori produk</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Multi-Platform Orders</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Sinkronisasi pesanan dari Tokopedia, Shopee, Lazada</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Barcode Scanning</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Input jumlah stok dengan scan barcode cepat</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Order Management</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Proses pesanan, update status, cetak label pengiriman</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Discrepancy Report</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Deteksi selisih stok sistem vs fisik otomatis</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Auto Stock Sync</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Sinkronisasi stok otomatis setelah pesanan masuk</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Stock Adjustment</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Adjust stok dengan approval workflow</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Shipping Integration</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Integrasi dengan kurir JNE, J&T, SiCepat, dll</p>
                     </div>
                   </div>
                 </div>
