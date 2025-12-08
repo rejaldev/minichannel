@@ -186,6 +186,19 @@ export async function connectQZ(): Promise<void> {
       });
       
       await window.qz.websocket.connect();
+      
+      // Wait until websocket is truly active (max 3 seconds)
+      let attempts = 0;
+      const maxAttempts = 30;
+      while (!window.qz.websocket.isActive() && attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 100));
+        attempts++;
+      }
+      
+      if (!window.qz.websocket.isActive()) {
+        throw new Error('QZ Tray connection timeout');
+      }
+      
       isConnected = true;
       resolve();
     } catch (error: any) {
@@ -302,7 +315,20 @@ export async function printReceipt(options: PrintReceiptOptions): Promise<void> 
     footerText2 = 'Selamat Berbelanja',
   } = options;
   
+  // Ensure connection is active before printing
   await connectQZ();
+  
+  // Double check connection is truly active
+  if (!window.qz.websocket.isActive()) {
+    // Try reconnecting once
+    qzConnection = null;
+    isConnected = false;
+    await connectQZ();
+  }
+  
+  if (!window.qz.websocket.isActive()) {
+    throw new Error('QZ Tray tidak terhubung. Silakan refresh halaman dan coba lagi.');
+  }
   
   const config = window.qz.configs.create(printerName);
   const charWidth = paperWidth === 58 ? 32 : 48;
