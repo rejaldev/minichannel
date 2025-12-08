@@ -20,19 +20,22 @@ import {
 import { connectQZ, getPrinters, printReceipt, isQZAvailable, PrintReceiptOptions } from '@/lib/qz-print';
 import TransactionHistory from '@/components/TransactionHistory';
 
-// Detect mobile device
-function isMobileDevice(): boolean {
+// Detect if device is phone (not tablet or desktop)
+// Tablet (768px+) is allowed, only block small phones
+function isPhoneDevice(): boolean {
   if (typeof window === 'undefined') return false;
   
   const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
   
-  // Check for mobile keywords in user agent
-  const mobileKeywords = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
+  // Check for phone-specific keywords (exclude iPad/tablet)
+  const isPhone = /iPhone|iPod|Android.*Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const isTablet = /iPad|Android(?!.*Mobile)|Tablet/i.test(userAgent);
   
-  // Also check screen width as fallback
+  // Screen width: < 768 = phone, >= 768 = tablet/desktop allowed
   const isSmallScreen = window.innerWidth < 768;
   
-  return mobileKeywords.test(userAgent) || isSmallScreen;
+  // Block only phones (small screen AND not tablet)
+  return (isPhone || isSmallScreen) && !isTablet;
 }
 
 interface CartItem {
@@ -151,11 +154,11 @@ export default function POSPage() {
     }
   }, [router]);
 
-  // Check if mobile device - block access
+  // Check if phone device - block access (tablet allowed)
   useEffect(() => {
-    const checkMobile = isMobileDevice();
-    setIsMobile(checkMobile);
-    if (checkMobile) {
+    const checkPhone = isPhoneDevice();
+    setIsMobile(checkPhone);
+    if (checkPhone) {
       setLoading(false);
     }
   }, []);
@@ -754,7 +757,7 @@ export default function POSPage() {
     }
   };
 
-  // Block mobile users
+  // Block phone users (tablet allowed)
   if (isMobile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
@@ -768,7 +771,7 @@ export default function POSPage() {
             Akses Tidak Diizinkan
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            POS hanya dapat diakses melalui <span className="font-semibold">Desktop/Laptop</span>. 
+            POS hanya dapat diakses melalui <span className="font-semibold">Desktop, Laptop, atau Tablet</span>. 
             Silakan gunakan perangkat dengan layar lebih besar untuk mengakses fitur kasir.
           </p>
           {user?.role === 'KASIR' ? (
