@@ -10,13 +10,13 @@ export default function PrinterSettingsPage() {
     autoPrintEnabled: true,
     printerName: '',
     paperWidth: 58, // Fixed 58mm thermal printer
-    // Receipt Header Customization
+    // Receipt Header Customization - default kosong seperti local
     storeName: 'ANEKABUANA STORE',
-    branchName: 'Cabang Pusat',
-    address: 'Jl. Contoh No. 123',
-    phone: '021-12345678',
+    branchName: '',
+    address: '',
+    phone: '',
     footerText1: 'Terima kasih atas kunjungan Anda',
-    footerText2: 'Barang yang sudah dibeli tidak dapat dikembalikan',
+    footerText2: '',
   });
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
@@ -60,11 +60,11 @@ export default function PrinterSettingsPage() {
             printerName: data.printerName || '',
             paperWidth: 58, // Fixed 58mm
             storeName: data.storeName || 'ANEKABUANA STORE',
-            branchName: data.branchName || 'Cabang Pusat',
-            address: data.address || 'Jl. Contoh No. 123',
-            phone: data.phone || '021-12345678',
+            branchName: data.branchName || '',
+            address: data.address || '',
+            phone: data.phone || '',
             footerText1: data.footerText1 || 'Terima kasih atas kunjungan Anda',
-            footerText2: data.footerText2 || 'Barang yang sudah dibeli tidak dapat dikembalikan',
+            footerText2: data.footerText2 || '',
           });
         }
       } catch (error) {
@@ -369,24 +369,24 @@ export default function PrinterSettingsPage() {
             </label>
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 p-4 md:p-6">
               <div className="mx-auto bg-white shadow-lg rounded-lg overflow-hidden max-w-[220px]">
-                {/* Receipt Content - Thermal printer style */}
+                {/* Receipt Content - Thermal printer style - sama dengan local */}
                 <div className="p-3 font-mono text-[11px] text-black leading-tight">
                   {/* Header - Center aligned */}
                   <div className="text-center mb-1">
                     <div className="font-bold text-base tracking-wide">{settings.storeName || 'ANEKABUANA STORE'}</div>
-                    <div>{settings.branchName || 'Cabang Pusat'}</div>
-                    <div>{settings.address || 'Jl. Contoh No. 123'}</div>
-                    <div>Telp: {settings.phone || '021-12345678'}</div>
+                    {settings.branchName && <div>{settings.branchName}</div>}
+                    {settings.address && <div>{settings.address}</div>}
+                    {settings.phone && <div>Telp: {settings.phone}</div>}
                   </div>
                   
                   {/* Separator */}
                   <div className="text-center my-1">--------------------------------</div>
                   
-                  {/* Transaction Info - Left aligned with table layout */}
+                  {/* Transaction Info - Left aligned, format sederhana */}
                   <div className="space-y-0">
-                    <div className="flex"><span className="w-[52px]">Nomor</span><span>: INV-1764665436375</span></div>
-                    <div className="flex"><span className="w-[52px]">Tanggal</span><span>: {new Date().toLocaleDateString('id-ID')}, {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></div>
-                    <div className="flex"><span className="w-[52px]">Kasir</span><span>: Owner Toko</span></div>
+                    <div>Nomor   : INV-20251208-3908</div>
+                    <div>Tanggal : {new Date().toLocaleDateString('id-ID')}, {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div>Kasir   : Owner Toko</div>
                   </div>
                   
                   {/* Separator */}
@@ -395,10 +395,10 @@ export default function PrinterSettingsPage() {
                   {/* Items */}
                   <div className="space-y-1">
                     <div>
-                      <div>Produk Sample (Default: Standar)</div>
+                      <div>Baju Seragam SD</div>
                       <div className="flex justify-between">
-                        <span>2 x Rp 25.000</span>
-                        <span>Rp 50.000</span>
+                        <span>3 x Rp 1.000.000</span>
+                        <span>Rp 3.000.000</span>
                       </div>
                     </div>
                   </div>
@@ -406,28 +406,20 @@ export default function PrinterSettingsPage() {
                   {/* Separator */}
                   <div className="text-center my-1">--------------------------------</div>
                   
-                  {/* Total Section with Discount Example */}
+                  {/* Total Section */}
                   <div className="space-y-0">
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span>Rp 55.000</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Diskon</span>
-                      <span>-Rp 5.000</span>
+                      <span>Rp 3.000.000</span>
                     </div>
                     <div className="text-center my-0.5">--------------------------------</div>
                     <div className="flex justify-between font-bold">
                       <span>GRAND TOTAL</span>
-                      <span>Rp 50.000</span>
+                      <span>Rp 3.000.000</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Bayar (CASH)</span>
-                      <span>Rp 100.000</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Kembali</span>
-                      <span>Rp 50.000</span>
+                      <span>Rp 3.000.000</span>
                     </div>
                   </div>
                   
@@ -436,9 +428,13 @@ export default function PrinterSettingsPage() {
                   
                   {/* Footer - Center aligned */}
                   <div className="text-center">
-                    <div>{settings.footerText1 || 'Terima Kasih Atas Kunjungan Anda'}</div>
-                    <div className="h-2"></div>
-                    <div>{settings.footerText2 || 'Barang yang sudah dibeli tidak dapat ditukar/dikembalikan'}</div>
+                    {settings.footerText1 && <div>{settings.footerText1}</div>}
+                    {settings.footerText2 && (
+                      <>
+                        <div className="h-2"></div>
+                        <div>{settings.footerText2}</div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -447,7 +443,7 @@ export default function PrinterSettingsPage() {
                   Preview ukuran kertas: <span className="font-semibold">58mm</span> (Thermal Printer)
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  💡 Preview ini sesuai dengan output thermal printer di Desktop App
+                  💡 Preview ini sesuai dengan output thermal printer
                 </p>
               </div>
             </div>

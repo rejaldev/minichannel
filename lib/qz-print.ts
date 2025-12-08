@@ -361,7 +361,26 @@ export async function printReceipt(options: PrintReceiptOptions): Promise<void> 
     });
   };
   
-  // Build ESC/POS commands
+  // Word wrap function for long text
+  const wrapText = (text: string, maxWidth: number): string[] => {
+    if (text.length <= maxWidth) return [text];
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      if (currentLine.length + word.length + 1 <= maxWidth) {
+        currentLine += (currentLine ? ' ' : '') + word;
+      } else {
+        if (currentLine) lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  };
+  
+  // Build ESC/POS commands - Layout sama dengan local
   const data = [
     '\x1B\x40', // Initialize printer
     '\x1B\x61\x01', // Center align
@@ -370,13 +389,14 @@ export async function printReceipt(options: PrintReceiptOptions): Promise<void> 
     '\x1B\x21\x00', // Normal text
   ];
   
-  if (branchName) {
+  // Only show branch/address/phone if explicitly provided and not empty
+  if (branchName && branchName.trim() !== '') {
     data.push(branchName + '\n');
   }
-  if (address) {
+  if (address && address.trim() !== '') {
     data.push(address + '\n');
   }
-  if (phone) {
+  if (phone && phone.trim() !== '') {
     data.push('Telp: ' + phone + '\n');
   }
   
@@ -385,20 +405,17 @@ export async function printReceipt(options: PrintReceiptOptions): Promise<void> 
     line() + '\n',
   );
   
-  // Transaction info - table layout with fixed label width
-  const labelWidth = paperWidth === 58 ? 8 : 10;
-  const padLabel = (label: string) => label.padEnd(labelWidth);
-  
-  data.push(padLabel('Nomor') + ': ' + transactionNo + '\n');
-  data.push(padLabel('Tanggal') + ': ' + formatDate(date) + '\n');
+  // Transaction info - simplified format like local
+  data.push('Nomor   : ' + transactionNo + '\n');
+  data.push('Tanggal : ' + formatDate(date) + '\n');
   if (cashierName) {
-    data.push(padLabel('Kasir') + ': ' + cashierName + '\n');
+    data.push('Kasir   : ' + cashierName + '\n');
   }
   
   if (customerName) {
-    data.push(padLabel('Pelanggan') + ': ' + customerName + '\n');
+    data.push('Pelanggan: ' + customerName + '\n');
     if (customerPhone) {
-      data.push(padLabel('Telp') + ': ' + customerPhone + '\n');
+      data.push('Telp    : ' + customerPhone + '\n');
     }
   }
   
@@ -464,16 +481,28 @@ export async function printReceipt(options: PrintReceiptOptions): Promise<void> 
     }
   }
   
-  // Footer
+  // Footer - wrap long text
   data.push(
     line() + '\n',
     '\x1B\x61\x01', // Center
-    footerText1 + '\n',
-    '\n',
   );
-  if (footerText2) {
-    data.push(footerText2 + '\n');
+  
+  // Wrap footer text if too long
+  if (footerText1 && footerText1.trim() !== '') {
+    const footer1Lines = wrapText(footerText1, charWidth);
+    for (const footerLine of footer1Lines) {
+      data.push(center(footerLine) + '\n');
+    }
   }
+  
+  if (footerText2 && footerText2.trim() !== '') {
+    data.push('\n'); // Space between footer lines
+    const footer2Lines = wrapText(footerText2, charWidth);
+    for (const footerLine of footer2Lines) {
+      data.push(center(footerLine) + '\n');
+    }
+  }
+  
   data.push(
     '\n\n\n',
     '\x1D\x56\x00', // Cut paper
