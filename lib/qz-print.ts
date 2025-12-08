@@ -297,7 +297,7 @@ export async function printReceipt(options: PrintReceiptOptions): Promise<void> 
     customerName,
     customerPhone,
     date,
-    paperWidth = 80,
+    paperWidth = 58,
     footerText1 = 'Terima Kasih',
     footerText2 = 'Selamat Berbelanja',
   } = options;
