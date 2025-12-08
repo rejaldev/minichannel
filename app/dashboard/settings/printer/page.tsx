@@ -45,8 +45,9 @@ export default function PrinterSettingsPage() {
     
     const loadSettings = async () => {
       setLoadingData(true);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://anekabuana-api.ziqrishahab.com/api';
       try {
-        const response = await fetch(`http://localhost:5000/api/settings/printer?cabangId=${selectedCabangId}`, {
+        const response = await fetch(`${API_URL}/settings/printer?cabangId=${selectedCabangId}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
@@ -85,9 +86,10 @@ export default function PrinterSettingsPage() {
 
     setLoading(true);
     setMessage('');
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://anekabuana-api.ziqrishahab.com/api';
     
     try {
-      const response = await fetch('http://localhost:5000/api/settings/printer', {
+      const response = await fetch(`${API_URL}/settings/printer`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
