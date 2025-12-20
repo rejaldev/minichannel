@@ -2,20 +2,7 @@
 
 export default function StockOpnamePage() {
   return (
-    <div className="px-4 md:px-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Home
-        </a>
-        <span>›</span>
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Inventory Management
-        </a>
-        <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Stock Opname</span>
-      </nav>
-
+    <div>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">

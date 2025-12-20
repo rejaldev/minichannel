@@ -212,7 +212,7 @@ export default function ProductDetailPage() {
                     <tr key={`${variant.id}-${stock.id}`} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
                         <div className="text-xs md:text-sm font-medium text-gray-900 dark:text-white">
-                          {variant.variantName}: {variant.variantValue}
+                          {variant.variantValue}
                         </div>
                       </td>
                       <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">

@@ -18,6 +18,10 @@ export default function NewProductPage() {
     productType: 'SINGLE' as 'SINGLE' | 'VARIANT',
     sku: '',
   });
+  const [variantTypes, setVariantTypes] = useState({
+    type1: '',
+    type2: ''
+  });
   const [singleProductStocks, setSingleProductStocks] = useState<Array<{ 
     cabangId: string; 
     cabangName: string; 
@@ -73,8 +77,10 @@ export default function NewProductPage() {
   };
 
   const addVariant = () => {
+    // Auto-generate variantName from defined types
+    const types = [variantTypes.type1, variantTypes.type2].filter(t => t).join(' | ');
     setVariants([...variants, { 
-      variantName: '', 
+      variantName: types || 'Default', 
       variantValue: '', 
       sku: '', 
       stocks: cabangs.map(c => ({ cabangId: c.id, cabangName: c.name, quantity: 0, price: 0 }))
@@ -458,10 +464,87 @@ export default function NewProductPage() {
                   ✕ Tutup Generator
                 </button>
               </div>
-            ) : variants.length > 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          {/* Bulk Apply Section */}
-            <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
+            ) : (
+              <>
+                {/* Variant Type Definition */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-5 mb-4">
+                  <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    Definisi Tipe Varian
+                  </h3>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mb-3">
+                    Tentukan tipe varian produk ini terlebih dahulu (contoh: Warna, Ukuran, Model)
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
+                        Type 1 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={variantTypes.type1}
+                        onChange={(e) => {
+                          const newType1 = e.target.value;
+                          setVariantTypes({ ...variantTypes, type1: newType1 });
+                          // Auto-update all variants' variantName
+                          const newTypes = [newType1, variantTypes.type2].filter(t => t).join(' | ');
+                          setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
+                        }}
+                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        placeholder="Contoh: Warna"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
+                        Type 2 <span className="text-gray-400">(opsional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={variantTypes.type2}
+                        onChange={(e) => {
+                          const newType2 = e.target.value;
+                          setVariantTypes({ ...variantTypes, type2: newType2 });
+                          // Auto-update all variants' variantName
+                          const newTypes = [variantTypes.type1, newType2].filter(t => t).join(' | ');
+                          setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
+                        }}
+                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        placeholder="Contoh: Ukuran"
+                      />
+                    </div>
+                  </div>
+                  {!variantTypes.type1 && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-2 flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      Isi minimal Type 1 sebelum menambah varian
+                    </p>
+                  )}
+                </div>
+
+                {/* Add Variant Button */}
+                {variantTypes.type1 && (
+                  <button
+                    type="button"
+                    onClick={addVariant}
+                    className="w-full py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 font-medium text-sm transition-all flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Tambah Varian
+                  </button>
+                )}
+              </>
+            )}
+
+            {variants.length > 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mt-4">
+                {/* Bulk Apply Section */}
+                <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
               <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Terapkan ke Semua Varian</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
@@ -517,8 +600,8 @@ export default function NewProductPage() {
               </p>
             </div>
           
-          {/* Variant Cards */}
-          <div className="space-y-4">
+                {/* Variant Cards */}
+                <div className="space-y-4">
             {variants.map((variant, variantIndex) => (
               <div key={variantIndex} className="p-4 md:p-5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:border-slate-400 dark:hover:border-slate-600 transition-colors">
                 {/* Header */}
@@ -529,8 +612,8 @@ export default function NewProductPage() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {variant.variantName && variant.variantValue 
-                          ? `${variant.variantName}: ${variant.variantValue}` 
+                        {variant.variantValue 
+                          ? variant.variantValue 
                           : `Varian #${variantIndex + 1}`}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{variant.sku || 'SKU belum diisi'}</p>
@@ -547,32 +630,45 @@ export default function NewProductPage() {
 
                 {/* Variant Details */}
                 <div className="space-y-3">
+                  {/* Value Inputs */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Nama Varian
-                      </label>
-                      <input
-                        type="text"
-                        value={variant.variantName}
-                        onChange={(e) => updateVariant(variantIndex, 'variantName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
-                        placeholder="Contoh: Nomor, Size"
-                      />
-                    </div>
+                    {variantTypes.type1 && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                          {variantTypes.type1} <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={variant.variantValue.split(' | ')[0] || ''}
+                          onChange={(e) => {
+                            const values = variant.variantValue.split(' | ');
+                            values[0] = e.target.value;
+                            updateVariant(variantIndex, 'variantValue', values.filter(v => v).join(' | '));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder={`Contoh: ${variantTypes.type1 === 'Warna' ? 'Merah' : variantTypes.type1 === 'Ukuran' ? '25' : 'Value'}`}
+                        />
+                      </div>
+                    )}
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Value
-                      </label>
-                      <input
-                        type="text"
-                        value={variant.variantValue}
-                        onChange={(e) => updateVariant(variantIndex, 'variantValue', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500"
-                        placeholder="Contoh: 13, M, XL"
-                      />
-                    </div>
+                    {variantTypes.type2 && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                          {variantTypes.type2}
+                        </label>
+                        <input
+                          type="text"
+                          value={variant.variantValue.split(' | ')[1] || ''}
+                          onChange={(e) => {
+                            const values = variant.variantValue.split(' | ');
+                            values[1] = e.target.value;
+                            updateVariant(variantIndex, 'variantValue', values.filter(v => v).join(' | '));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder={`Contoh: ${variantTypes.type2 === 'Ukuran' ? '25' : variantTypes.type2 === 'Model' ? '2024' : 'Value'}`}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -649,26 +745,26 @@ export default function NewProductPage() {
                 </div>
               </div>
             ))}
-          </div>
+                </div>
           
-          <div className="mt-4 flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={() => setShowDynamicBuilder(true)}
-              className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center justify-center gap-2"
-            >
-              Generate Ulang
-            </button>
-            <button
-              type="button"
-              onClick={addVariant}
-              className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center gap-1"
-            >
-              <span className="text-lg leading-none">+</span>
-              Tambah 1 Varian
-            </button>
-          </div>
-        </div>
+                <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowDynamicBuilder(true)}
+                    className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center justify-center gap-2"
+                  >
+                    Generate Ulang
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addVariant}
+                    className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center gap-1"
+                  >
+                    <span className="text-lg leading-none">+</span>
+                    Tambah 1 Varian
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
                 <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

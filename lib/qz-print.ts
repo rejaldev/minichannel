@@ -484,54 +484,32 @@ export async function printReceipt(options: PrintReceiptOptions): Promise<void> 
   // Footer - wrap long text
   data.push(
     line() + '\n',
-    '\x1B\x61\x01', // Center
+    '\x1B\x61\x01', // Center alignment
   );
   
-  // Wrap footer text if too long
+  // Wrap footer text if too long - use printer's center alignment
   if (footerText1 && footerText1.trim() !== '') {
-    const footer1Lines = wrapText(footerText1, charWidth);
+    const footer1Lines = wrapText(footerText1, charWidth - 2); // Leave margin
     for (const footerLine of footer1Lines) {
-      data.push(center(footerLine) + '\n');
+      data.push(footerLine.trim() + '\n'); // Let printer handle centering
     }
   }
   
   if (footerText2 && footerText2.trim() !== '') {
     data.push('\n'); // Space between footer lines
-    const footer2Lines = wrapText(footerText2, charWidth);
+    const footer2Lines = wrapText(footerText2, charWidth - 2); // Leave margin
     for (const footerLine of footer2Lines) {
-      data.push(center(footerLine) + '\n');
+      data.push(footerLine.trim() + '\n'); // Let printer handle centering
     }
   }
+  
+  // Reset to left alignment
+  data.push('\x1B\x61\x00');
   
   data.push(
     '\n\n\n',
     '\x1D\x56\x00', // Cut paper
   );
-  
-  await window.qz.print(config, [{ type: 'raw', format: 'plain', data: data.join('') }]);
-}
-
-/**
- * Print test page
- */
-export async function printTest(printerName: string): Promise<void> {
-  await connectQZ();
-  
-  const config = window.qz.configs.create(printerName);
-  const data = [
-    '\x1B\x40', // Initialize
-    '\x1B\x61\x01', // Center
-    '\x1B\x21\x30', // Double height+width
-    'TEST PRINT\n',
-    '\x1B\x21\x00', // Normal
-    '\n',
-    'QZ Tray Connected!\n',
-    'Printer: ' + printerName + '\n',
-    '\n',
-    new Date().toLocaleString('id-ID') + '\n',
-    '\n\n\n',
-    '\x1D\x56\x00', // Cut
-  ];
   
   await window.qz.print(config, [{ type: 'raw', format: 'plain', data: data.join('') }]);
 }
@@ -560,3 +538,5 @@ export async function isQZAvailable(): Promise<boolean> {
     return false;
   }
 }
+
+

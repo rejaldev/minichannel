@@ -1,0 +1,7 @@
+2025-12-13 14:57:21:  ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+2025-12-13 14:57:21:  We detected multiple lockfiles and selected the directory of D:\Dataku\Programer\live\minichannel\package-lock.json as the root directory.
+2025-12-13 14:57:21:  To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+2025-12-13 14:57:21:    See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+2025-12-13 14:57:21:  Detected additional lockfiles: 
+2025-12-13 14:57:21:    * D:\Dataku\Programer\live\minichannel\frontend\package-lock.json
+2025-12-13 14:57:21: 

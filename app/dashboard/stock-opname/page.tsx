@@ -1,12 +1,101 @@
-'use client'
-
-import UnderConstruction from '@/components/UnderConstruction'
+'use client';
 
 export default function StockOpnamePage() {
   return (
-    <UnderConstruction 
-      title="Stock Opname"
-      description="Fitur stock opname untuk audit dan penyesuaian stok fisik vs sistem sedang dalam pengembangan. Anda akan dapat melakukan penghitungan stok secara berkala."
-    />
-  )
+    <div className="px-4 md:px-6">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+          Home
+        </a>
+        <span>›</span>
+        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
+          Inventory Management
+        </a>
+        <span>›</span>
+        <span className="font-semibold text-gray-900 dark:text-white">Stock Opname</span>
+      </nav>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Stock Opname</h2>
+              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                Penghitungan dan audit stok secara sistematis
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-4 md:p-6 lg:p-8">
+          {/* Coming Soon */}
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full mb-4">
+              <svg className="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Coming Soon
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+              Fitur stock opname untuk penghitungan fisik dan audit stok sedang dalam pengembangan.
+            </p>
+            
+            {/* Preview of what's coming */}
+            <div className="mt-8 max-w-2xl mx-auto">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 p-6">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 text-left">
+                  Fitur yang akan datang:
+                </h4>
+                <div className="space-y-3 text-left">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Create Opname Session</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Buat sesi opname baru per cabang atau kategori produk</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Barcode Scanning</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Input jumlah stok dengan scan barcode cepat</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Discrepancy Report</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Deteksi selisih stok sistem vs fisik otomatis</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Stock Adjustment</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Adjust stok dengan approval workflow</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

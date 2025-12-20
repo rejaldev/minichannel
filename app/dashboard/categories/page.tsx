@@ -46,15 +46,16 @@ export default function CategoriesPage() {
     e.preventDefault();
     try {
       if (editingCategory) {
-        // Update - belum ada API endpoint
-        alert('Fitur edit kategori akan segera hadir!');
+        // Update
+        await productsAPI.updateCategory(editingCategory.id, formData);
+        alert('Kategori berhasil diupdate!');
       } else {
         // Create
         await productsAPI.createCategory(formData);
         alert('Kategori berhasil ditambahkan!');
-        fetchCategories();
-        handleCloseModal();
       }
+      fetchCategories();
+      handleCloseModal();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Gagal menyimpan kategori');
     }
@@ -64,8 +65,9 @@ export default function CategoriesPage() {
     if (!confirm(`Yakin ingin menghapus kategori "${name}"?`)) return;
     
     try {
-      // Delete - belum ada API endpoint
-      alert('Fitur hapus kategori akan segera hadir!');
+      await productsAPI.deleteCategory(id);
+      alert('Kategori berhasil dihapus!');
+      fetchCategories();
     } catch (error: any) {
       alert(error.response?.data?.error || 'Gagal menghapus kategori');
     }

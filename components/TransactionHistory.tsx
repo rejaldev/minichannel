@@ -118,7 +118,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
   const getVariantInfo = (item: Transaction['items'][0]) => {
     if (item.variantInfo) return item.variantInfo;
     if (item.productVariant) {
-      return `${item.productVariant.variantName}: ${item.productVariant.variantValue}`;
+      return item.productVariant.variantValue;
     }
     return '';
   };

@@ -218,11 +218,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           roles: ['OWNER', 'MANAGER'],
         },
         {
-          name: 'Barcode',
-          path: '/dashboard/settings/barcode',
-          roles: ['OWNER', 'MANAGER'],
-        },
-        {
           name: 'Backup Data',
           path: '/dashboard/settings/backup',
           roles: ['OWNER'],

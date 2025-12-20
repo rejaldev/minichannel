@@ -20,6 +20,10 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [cabangs, setCabangs] = useState<any[]>([]);
   const [variants, setVariants] = useState<any[]>([]);
+  const [variantTypes, setVariantTypes] = useState({
+    type1: '',
+    type2: ''
+  });
   const [bulkApply, setBulkApply] = useState({
     sku: '',
     price: '',
@@ -65,6 +69,15 @@ export default function EditProductPage() {
       setVariants(variantsData);
       setCategories(categoriesRes.data);
       setCabangs(cabangsRes.data);
+      
+      // Extract variant types from first variant
+      if (variantsData.length > 0 && variantsData[0].variantName) {
+        const types = variantsData[0].variantName.split(' | ');
+        setVariantTypes({
+          type1: types[0] || '',
+          type2: types[1] || ''
+        });
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       alert('Gagal memuat data produk');
@@ -75,10 +88,12 @@ export default function EditProductPage() {
   };
 
   const handleAddVariant = () => {
+    // Auto-generate variantName from defined types
+    const types = [variantTypes.type1, variantTypes.type2].filter(t => t).join(' | ');
     setVariants([
       ...variants,
       {
-        variantName: '',
+        variantName: types || 'Default',
         variantValue: '',
         sku: '',
         stocks: cabangs.map((cabang) => ({
@@ -455,16 +470,73 @@ export default function EditProductPage() {
 
         {/* Variants - Only show for VARIANT type */}
         {productType === 'VARIANT' && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <>
+          {/* Variant Type Definition */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-5 mb-4">
+            <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Definisi Tipe Varian
+            </h3>
+            <p className="text-xs text-blue-700 dark:text-blue-400 mb-3">
+              Tipe varian untuk produk ini (contoh: Warna, Ukuran, Model)
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
+                  Type 1 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={variantTypes.type1}
+                  onChange={(e) => {
+                    const newType1 = e.target.value;
+                    setVariantTypes({ ...variantTypes, type1: newType1 });
+                    // Auto-update all variants' variantName
+                    const newTypes = [newType1, variantTypes.type2].filter(t => t).join(' | ');
+                    setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
+                  }}
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="Contoh: Warna"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
+                  Type 2 <span className="text-gray-400">(opsional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={variantTypes.type2}
+                  onChange={(e) => {
+                    const newType2 = e.target.value;
+                    setVariantTypes({ ...variantTypes, type2: newType2 });
+                    // Auto-update all variants' variantName
+                    const newTypes = [variantTypes.type1, newType2].filter(t => t).join(' | ');
+                    setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
+                  }}
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  placeholder="Contoh: Ukuran"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Varian Produk</h2>
-            <button
-              type="button"
-              onClick={handleAddVariant}
-              className="px-4 py-2 bg-slate-600 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 text-sm font-medium"
-            >
-              + Tambah Varian
-            </button>
+            {variantTypes.type1 && (
+              <button
+                type="button"
+                onClick={handleAddVariant}
+                className="px-4 py-2 bg-slate-600 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 text-sm font-medium flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Tambah Varian
+              </button>
+            )}
           </div>
 
           {/* Bulk Apply Form - Always visible */}
@@ -539,8 +611,8 @@ export default function EditProductPage() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {variant.variantName && variant.variantValue 
-                        ? `${variant.variantName}: ${variant.variantValue}` 
+                      {variant.variantValue 
+                        ? variant.variantValue 
                         : `Varian #${variantIndex + 1}`}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{variant.sku || 'SKU belum diisi'}</p>
@@ -557,32 +629,45 @@ export default function EditProductPage() {
 
               {/* Variant Details */}
               <div className="space-y-3">
+                {/* Value Inputs */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      Nama Varian
-                    </label>
-                    <input
-                      type="text"
-                      value={variant.variantName}
-                      onChange={(e) => handleVariantChange(variantIndex, 'variantName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="Contoh: Nomor, Size"
-                    />
-                  </div>
+                  {variantTypes.type1 && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        {variantTypes.type1} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={variant.variantValue.split(' | ')[0] || ''}
+                        onChange={(e) => {
+                          const values = variant.variantValue.split(' | ');
+                          values[0] = e.target.value;
+                          handleVariantChange(variantIndex, 'variantValue', values.filter(v => v).join(' | '));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder={`Contoh: ${variantTypes.type1 === 'Warna' ? 'Merah' : variantTypes.type1 === 'Ukuran' ? '25' : 'Value'}`}
+                      />
+                    </div>
+                  )}
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      Value
-                    </label>
-                    <input
-                      type="text"
-                      value={variant.variantValue}
-                      onChange={(e) => handleVariantChange(variantIndex, 'variantValue', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="Contoh: 13, M, XL"
-                    />
-                  </div>
+                  {variantTypes.type2 && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        {variantTypes.type2}
+                      </label>
+                      <input
+                        type="text"
+                        value={variant.variantValue.split(' | ')[1] || ''}
+                        onChange={(e) => {
+                          const values = variant.variantValue.split(' | ');
+                          values[1] = e.target.value;
+                          handleVariantChange(variantIndex, 'variantValue', values.filter(v => v).join(' | '));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder={`Contoh: ${variantTypes.type2 === 'Ukuran' ? '25' : variantTypes.type2 === 'Model' ? '2024' : 'Value'}`}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -660,12 +745,18 @@ export default function EditProductPage() {
             </div>
           ))}
 
-          {variants.length === 0 && (
-            <p className="text-center text-gray-500 py-8">
+          {variants.length === 0 && variantTypes.type1 && (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
               Belum ada varian. Klik tombol "Tambah Varian" untuk menambahkan.
             </p>
           )}
+          {variants.length === 0 && !variantTypes.type1 && (
+            <p className="text-center text-orange-600 dark:text-orange-400 py-8">
+              Isi Type 1 terlebih dahulu untuk menambahkan varian.
+            </p>
+          )}
         </div>
+        </>
         )}
 
         {/* Submit */}

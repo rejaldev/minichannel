@@ -1112,7 +1112,7 @@ export default function ProductsPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
                               <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                {variant.variantName}: <span className="font-bold text-purple-700 dark:text-purple-400">{variant.variantValue}</span>
+                                <span className="font-bold text-purple-700 dark:text-purple-400">{variant.variantValue}</span>
                               </span>
                               <span className="text-xs text-gray-500 dark:text-gray-400">
                                 (SKU: {variant.sku})

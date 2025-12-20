@@ -238,15 +238,47 @@ export default function POSPage() {
   useEffect(() => {
     if (isMobile) return; // Don't run if mobile
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if typing in search input
+      const isSearchFocused = document.activeElement === searchInputRef.current;
+      const isCashInputFocused = document.activeElement === cashInputRef.current;
+      
+      // ESC - Close modals & focus search
       if (e.key === 'Escape') {
         e.preventDefault();
         if (showSuccess) setShowSuccess(false);
         searchInputRef.current?.focus();
+        return;
+      }
+
+      // Numpad & Number keys - Auto-focus cash input when cart has items
+      // Only trigger if search is empty (not actively searching) OR focus is not on search
+      const searchValue = searchInputRef.current?.value || '';
+      const shouldTriggerNumpad = cart.length > 0 && 
+                                   (!isSearchFocused || searchValue === '') && 
+                                   !isCashInputFocused;
+      
+      if (shouldTriggerNumpad) {
+        const numpadKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ','];
+        if (numpadKeys.includes(e.key)) {
+          e.preventDefault();
+          cashInputRef.current?.focus();
+          // Append the pressed key
+          const currentVal = cashInputRef.current?.value || '';
+          const newVal = currentVal + (e.key === ',' ? '.' : e.key);
+          setCashReceived(parseFloat(newVal.replace(/\./g, '')) || 0);
+        }
+      }
+
+      // Enter/NumpadEnter - Process payment if cash input is focused
+      if ((e.key === 'Enter' || e.key === 'NumpadEnter') && isCashInputFocused && cart.length > 0) {
+        e.preventDefault();
+        const processBtn = document.querySelector('[data-process-payment]') as HTMLButtonElement;
+        processBtn?.click();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSuccess]);
+  }, [showSuccess, cart.length]);
 
   // Fetch branches for Owner/Manager
   useEffect(() => {
@@ -456,6 +488,35 @@ export default function POSPage() {
     return { color: 'text-green-600 dark:text-green-400', text: `${available} pcs`, available };
   };
 
+  // Format variant display more naturally
+  const formatVariantDisplay = (variantName: string, variantValue: string) => {
+    // Remove pipe separator and clean up
+    const cleanValue = variantValue.replace(/\s*\|\s*/g, ' ').trim();
+    
+    // Common patterns to improve readability
+    const lowerValue = cleanValue.toLowerCase();
+    
+    // If it's just a number or size-like value, display as is
+    if (/^\d+$/.test(cleanValue)) {
+      return cleanValue; // Just "11", "6", etc
+    }
+    
+    // If format is "Word Number" (e.g., "SD 6", "Panjang 11"), display as is
+    if (/^[a-zA-Z]+\s+\d+$/.test(cleanValue)) {
+      return cleanValue; // "SD 6", "Panjang 11"
+    }
+    
+    // If it contains the variant name in the value, remove redundancy
+    // e.g., "Ukuran | M" -> "M", "Size | XL" -> "XL"
+    const nameLower = variantName.toLowerCase();
+    if (lowerValue.startsWith(nameLower)) {
+      return cleanValue.substring(variantName.length).trim();
+    }
+    
+    // Default: return cleaned value
+    return cleanValue;
+  };
+
   const addToCart = (product: any, variant: any) => {
     const effectiveCabangId = getEffectiveCabangId();
     const stock = variant.stocks?.find((s: any) => s.cabangId === effectiveCabangId);
@@ -473,7 +534,7 @@ export default function POSPage() {
       setCart(cart.map((item) => item.productVariantId === variant.id ? { ...item, quantity: item.quantity + 1 } : item));
     } else {
       // Hide default variant info for SINGLE products
-      let variantInfo = `${variant.variantName}: ${variant.variantValue}`;
+      let variantInfo = variant.variantValue;
       if (product.productType === 'SINGLE' || variantInfo.toLowerCase().includes('default') || variantInfo.toLowerCase().includes('standar')) {
         variantInfo = '';
       }
@@ -1081,12 +1142,45 @@ export default function POSPage() {
             </div>
 
             <div className="space-y-3 overflow-y-auto flex-1 min-h-0">
-              {products.map((product) => (
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+                  <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">Memuat produk...</p>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-8">
+                  <svg className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">
+                    {search ? `Tidak ada hasil untuk "${search}"` : 'Tidak ada produk'}
+                  </p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
+                    {search ? 'Coba kata kunci lain' : 'Tambahkan produk terlebih dahulu'}
+                  </p>
+                </div>
+              ) : (
+                products.map((product) => (
                 <div key={product.id} className="border-2 border-gray-100 dark:border-gray-700 rounded-xl p-5 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white">{product.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{product.category?.name}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                          {product.category?.name}
+                        </span>
+                        {product.productType === 'VARIANT' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
+                            {product.variants?.length || 0} varian
+                          </span>
+                        )}
+                      </div>
+                      {/* Show description when searching */}
+                      {search && product.description && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                          {product.description}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -1100,17 +1194,28 @@ export default function POSPage() {
                       const isOut = stockInfo.available <= 0;
 
                       return (
-                        <button
-                          onClick={() => addToCart(product, v)}
-                          disabled={isOut}
-                          className={`w-full p-3 rounded-xl border-2 text-sm font-medium transition ${
-                            isOut ? 'bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 cursor-not-allowed'
-                              : 'bg-gradient-to-br from-white to-blue-50 dark:from-gray-700 dark:to-blue-900/20 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md'
-                          }`}
-                        >
-                          <div className="text-sm font-bold text-gray-900 dark:text-white">Rp {(stock?.price || 0).toLocaleString('id-ID')}</div>
-                          <div className={`text-xs mt-1.5 font-semibold ${stockInfo.color}`}>Stock: {stockInfo.text}</div>
-                        </button>
+                        <div>
+                          {/* Show SKU when searching */}
+                          {search && v.sku && (
+                            <div className="mb-2 text-xs text-gray-500 dark:text-gray-400 font-mono flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                              </svg>
+                              SKU: {v.sku}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => addToCart(product, v)}
+                            disabled={isOut}
+                            className={`w-full p-3 rounded-xl border-2 text-sm font-medium transition ${
+                              isOut ? 'bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 cursor-not-allowed'
+                                : 'bg-gradient-to-br from-white to-blue-50 dark:from-gray-700 dark:to-blue-900/20 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md'
+                            }`}
+                          >
+                            <div className="text-sm font-bold text-gray-900 dark:text-white">Rp {(stock?.price || 0).toLocaleString('id-ID')}</div>
+                            <div className={`text-xs mt-1.5 font-semibold ${stockInfo.color}`}>Stock: {stockInfo.text}</div>
+                          </button>
+                        </div>
                       );
                     })()
                   ) : (
@@ -1122,25 +1227,36 @@ export default function POSPage() {
                         const isOut = stockInfo.available <= 0;
 
                         return (
-                          <button
-                            key={v.id}
-                            onClick={() => addToCart(product, v)}
-                            disabled={isOut}
-                            className={`p-3 rounded-lg border-2 text-sm font-medium transition ${
-                              isOut ? 'bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 cursor-not-allowed'
-                                : 'bg-gradient-to-br from-white to-blue-50 dark:from-gray-700 dark:to-blue-900/20 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md'
-                            }`}
-                          >
-                            <div className="font-bold text-gray-900 dark:text-white">{v.variantName}: {v.variantValue}</div>
-                            <div className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-400">Rp {(stock?.price || 0).toLocaleString('id-ID')}</div>
-                            <div className={`mt-1 text-xs font-semibold ${stockInfo.color}`}>Stock: {stockInfo.text}</div>
-                          </button>
+                          <div key={v.id} className="relative">
+                            {/* Show SKU on hover tooltip when searching */}
+                            {search && v.sku && (
+                              <div className="absolute -top-1 -right-1 z-10 group">
+                                <div className="bg-gray-800 dark:bg-gray-700 text-white text-[10px] px-1.5 py-0.5 rounded font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                  {v.sku}
+                                </div>
+                              </div>
+                            )}
+                            <button
+                              onClick={() => addToCart(product, v)}
+                              disabled={isOut}
+                              className={`w-full p-3 rounded-lg border-2 text-sm font-medium transition ${
+                                isOut ? 'bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400 cursor-not-allowed'
+                                  : 'bg-gradient-to-br from-white to-blue-50 dark:from-gray-700 dark:to-blue-900/20 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md'
+                              }`}
+                            >
+                              <div className="font-bold text-gray-900 dark:text-white truncate" title={v.variantValue}>
+                                {formatVariantDisplay(v.variantName, v.variantValue)}
+                              </div>
+                              <div className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-400">Rp {(stock?.price || 0).toLocaleString('id-ID')}</div>
+                              <div className={`mt-1 text-xs font-semibold ${stockInfo.color}`}>Stock: {stockInfo.text}</div>
+                            </button>
+                          </div>
                         );
                       })}
                     </div>
                   )}
                 </div>
-              ))}
+              )))}
             </div>
           </div>
         </div>
@@ -1298,7 +1414,12 @@ export default function POSPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 Hold
               </button>
-              <button onClick={handleCheckout} disabled={cart.length === 0 || processing} className="flex-[2] py-2.5 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition">
+              <button 
+                onClick={handleCheckout} 
+                disabled={cart.length === 0 || processing} 
+                data-process-payment
+                className="flex-[2] py-2.5 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+              >
                 {processing ? 'Memproses...' : 'Bayar'}
               </button>
             </div>

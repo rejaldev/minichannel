@@ -90,6 +90,18 @@ export default function UsersPage() {
     setShowModal(true);
   };
 
+  const handleDelete = async (user: any) => {
+    if (!confirm(`Yakin ingin menghapus user ${user.name}?`)) return;
+    
+    try {
+      await authAPI.deleteUser(user.id);
+      alert('User berhasil dihapus!');
+      fetchUsers();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Gagal menghapus user');
+    }
+  };
+
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingUser(null);
@@ -198,12 +210,20 @@ export default function UsersPage() {
                     {new Date(user.createdAt).toLocaleDateString('id-ID')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user)}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200"
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -226,12 +246,20 @@ export default function UsersPage() {
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
               </div>
-              <button
-                onClick={() => handleEdit(user)}
-                className="px-3 py-1.5 text-xs font-semibold bg-slate-600 text-white rounded-lg hover:bg-slate-700"
-              >
-                Edit
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleEdit(user)}
+                  className="px-3 py-1.5 text-xs font-semibold bg-slate-600 text-white rounded-lg hover:bg-slate-700"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(user)}
+                  className="px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Hapus
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-3">

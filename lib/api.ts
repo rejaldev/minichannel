@@ -52,6 +52,8 @@ export const authAPI = {
   updateUser: (id: string, data: { name: string; role: string; cabangId: string; password?: string; isActive?: boolean }) =>
     api.put(`/auth/users/${id}`, data),
   
+  deleteUser: (id: string) => api.delete(`/auth/users/${id}`),
+  
   getUsers: () => api.get('/auth/users'),
 };
 
@@ -72,6 +74,11 @@ export const productsAPI = {
   
   createCategory: (data: { name: string; description?: string }) =>
     api.post('/products/categories', data),
+  
+  updateCategory: (id: string, data: { name: string; description?: string }) =>
+    api.put(`/products/categories/${id}`, data),
+  
+  deleteCategory: (id: string) => api.delete(`/products/categories/${id}`),
   
   getStock: (variantId: string) => api.get(`/products/stock/${variantId}`),
   
@@ -187,6 +194,8 @@ export const cabangAPI = {
   
   updateCabang: (id: string, data: { name?: string; address?: string; phone?: string; isActive?: boolean }) =>
     api.put(`/cabang/${id}`, data),
+  
+  deleteCabang: (id: string) => api.delete(`/cabang/${id}`),
 };
 
 // Settings API
@@ -288,4 +297,36 @@ export const stockTransfersAPI = {
   
   getStats: (params?: { cabangId?: string }) =>
     api.get('/stock-transfers/stats/summary', { params }),
+};
+
+// Backup & Export API
+export const backupAPI = {
+  // Manual backup
+  createBackup: () => api.post('/backup/database'),
+  
+  // Auto backup toggle
+  getAutoBackupStatus: () => api.get('/backup/auto-status'),
+  toggleAutoBackup: (enabled: boolean) => 
+    api.post('/backup/auto-backup', { enabled }),
+  
+  // Last backup info
+  getLastBackup: () => api.get('/backup/last-backup'),
+  
+  // Export functions
+  exportTransactions: () => 
+    api.get('/backup/export/transactions', { responseType: 'blob' }),
+  
+  exportProducts: () => 
+    api.get('/backup/export/products', { responseType: 'blob' }),
+  
+  exportReport: (startDate?: string, endDate?: string) => {
+    let url = '/backup/export/report';
+    const params: any = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    return api.get(url, { params });
+  },
+  
+  // Reset settings
+  resetSettings: () => api.post('/backup/reset-settings'),
 };
