@@ -3,14 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsAPI, cabangAPI } from '@/lib/api';
-import DynamicVariantBuilder from '@/components/DynamicVariantBuilder';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [cabangs, setCabangs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showDynamicBuilder, setShowDynamicBuilder] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -20,8 +18,10 @@ export default function NewProductPage() {
   });
   const [variantTypes, setVariantTypes] = useState({
     type1: '',
-    type2: ''
+    type2: '',
+    type3: ''
   });
+  const [attributeCount, setAttributeCount] = useState<1 | 2 | 3>(1);
   const [singleProductStocks, setSingleProductStocks] = useState<Array<{ 
     cabangId: string; 
     cabangName: string; 
@@ -32,6 +32,11 @@ export default function NewProductPage() {
     variantName: string; 
     variantValue: string; 
     sku: string; 
+    weight?: number;
+    length?: number;
+    width?: number;
+    height?: number;
+    imageUrl?: string;
     stocks: Array<{ cabangId: string; cabangName: string; quantity: number; price: number }>;
   }>>([]);
   const [bulkApply, setBulkApply] = useState({
@@ -42,6 +47,13 @@ export default function NewProductPage() {
   const [singleBulkApply, setSingleBulkApply] = useState({
     price: '',
     stock: ''
+  });
+  const [singleMarketplaceInfo, setSingleMarketplaceInfo] = useState({
+    weight: '',
+    length: '',
+    width: '',
+    height: '',
+    imageUrl: ''
   });
 
   useEffect(() => {
@@ -77,12 +89,20 @@ export default function NewProductPage() {
   };
 
   const addVariant = () => {
-    // Auto-generate variantName from defined types
-    const types = [variantTypes.type1, variantTypes.type2].filter(t => t).join(' | ');
+    // Auto-generate variantName from defined types based on attributeCount
+    const typesArray = [variantTypes.type1];
+    if (attributeCount >= 2) typesArray.push(variantTypes.type2);
+    if (attributeCount >= 3) typesArray.push(variantTypes.type3);
+    const types = typesArray.filter(t => t).join(' | ');
     setVariants([...variants, { 
       variantName: types || 'Default', 
       variantValue: '', 
-      sku: '', 
+      sku: '',
+      weight: undefined,
+      length: undefined,
+      width: undefined,
+      height: undefined,
+      imageUrl: undefined,
       stocks: cabangs.map(c => ({ cabangId: c.id, cabangName: c.name, quantity: 0, price: 0 }))
     }]);
   };
@@ -91,7 +111,7 @@ export default function NewProductPage() {
     setVariants(variants.filter((_, i) => i !== index));
   };
 
-  const updateVariant = (index: number, field: string, value: string) => {
+  const updateVariant = (index: number, field: string, value: any) => {
     const newVariants = [...variants];
     newVariants[index] = { ...newVariants[index], [field]: value };
     setVariants(newVariants);
@@ -167,7 +187,6 @@ export default function NewProductPage() {
       }))
     }));
     setVariants(converted);
-    setShowDynamicBuilder(false);
     alert(`✓ ${generated.length} varian berhasil di-generate!`);
   };
 
@@ -211,6 +230,12 @@ export default function NewProductPage() {
         
         payload.sku = formData.sku;
         payload.stocks = singleProductStocks;
+        // Add marketplace info for single product
+        payload.weight = singleMarketplaceInfo.weight ? parseInt(singleMarketplaceInfo.weight) : null;
+        payload.length = singleMarketplaceInfo.length ? parseInt(singleMarketplaceInfo.length) : null;
+        payload.width = singleMarketplaceInfo.width ? parseInt(singleMarketplaceInfo.width) : null;
+        payload.height = singleMarketplaceInfo.height ? parseInt(singleMarketplaceInfo.height) : null;
+        payload.imageUrl = singleMarketplaceInfo.imageUrl || null;
       } else {
         // Validate variants have at least one cabang with price
         for (const variant of variants) {
@@ -228,6 +253,11 @@ export default function NewProductPage() {
             variantName: v.variantName,
             variantValue: v.variantValue,
             sku: v.sku,
+            weight: v.weight || null,
+            length: v.length || null,
+            width: v.width || null,
+            height: v.height || null,
+            imageUrl: v.imageUrl || null,
             stocks: v.stocks
           }));
       }
@@ -442,6 +472,84 @@ export default function NewProductPage() {
                     Minimal 1 cabang harus punya harga untuk bisa menyimpan produk
                   </p>
                 </div>
+
+                {/* Marketplace Info for Single Product */}
+                <details className="group border border-gray-200 dark:border-gray-600 rounded-lg">
+                  <summary className="px-4 py-3 bg-gray-50 dark:bg-gray-700 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2 rounded-lg">
+                    <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    Info Marketplace (Opsional)
+                  </summary>
+                  <div className="p-4 space-y-4 bg-white dark:bg-gray-800">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                        URL Gambar
+                      </label>
+                      <input
+                        type="url"
+                        value={singleMarketplaceInfo.imageUrl}
+                        onChange={(e) => setSingleMarketplaceInfo({ ...singleMarketplaceInfo, imageUrl: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                          Berat (gram)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={singleMarketplaceInfo.weight}
+                          onChange={(e) => setSingleMarketplaceInfo({ ...singleMarketplaceInfo, weight: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                          Panjang (cm)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={singleMarketplaceInfo.length}
+                          onChange={(e) => setSingleMarketplaceInfo({ ...singleMarketplaceInfo, length: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="10"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                          Lebar (cm)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={singleMarketplaceInfo.width}
+                          onChange={(e) => setSingleMarketplaceInfo({ ...singleMarketplaceInfo, width: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                          Tinggi (cm)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={singleMarketplaceInfo.height}
+                          onChange={(e) => setSingleMarketplaceInfo({ ...singleMarketplaceInfo, height: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="3"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </details>
               </div>
             )}
           </div>
@@ -450,37 +558,47 @@ export default function NewProductPage() {
         {/* Variants - Only show for VARIANT product type */}
         {formData.productType === 'VARIANT' && (
           <>
-            {/* Dynamic Variant Builder */}
-            {showDynamicBuilder ? (
-              <div className="space-y-4">
-                <DynamicVariantBuilder 
-                  onGenerate={handleGeneratedVariants}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowDynamicBuilder(false)}
-                  className="w-full py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
-                >
-                  ✕ Tutup Generator
-                </button>
-              </div>
-            ) : (
-              <>
                 {/* Variant Type Definition */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-5 mb-4">
-                  <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Definisi Tipe Varian
-                  </h3>
-                  <p className="text-xs text-blue-700 dark:text-blue-400 mb-3">
-                    Tentukan tipe varian produk ini terlebih dahulu (contoh: Warna, Ukuran, Model)
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      Definisi Tipe Varian
+                    </h3>
+                    <div className="flex items-center gap-1">
+                      {attributeCount > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAttributeCount((prev) => Math.max(1, prev - 1) as 1 | 2 | 3);
+                            if (attributeCount === 3) setVariantTypes(v => ({ ...v, type3: '' }));
+                            if (attributeCount === 2) setVariantTypes(v => ({ ...v, type2: '' }));
+                          }}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition text-lg font-bold"
+                          title="Kurangi tipe"
+                        >
+                          −
+                        </button>
+                      )}
+                      {attributeCount < 3 && (
+                        <button
+                          type="button"
+                          onClick={() => setAttributeCount((prev) => Math.min(3, prev + 1) as 1 | 2 | 3)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-300 dark:hover:bg-blue-700 transition text-lg font-bold"
+                          title="Tambah tipe"
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={`grid gap-3 ${attributeCount === 1 ? 'grid-cols-1' : attributeCount === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
                     <div>
                       <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
-                        Type 1 <span className="text-red-500">*</span>
+                        Tipe 1 <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -488,33 +606,71 @@ export default function NewProductPage() {
                         onChange={(e) => {
                           const newType1 = e.target.value;
                           setVariantTypes({ ...variantTypes, type1: newType1 });
-                          // Auto-update all variants' variantName
-                          const newTypes = [newType1, variantTypes.type2].filter(t => t).join(' | ');
+                          // Auto-update all variants' variantName based on attribute count
+                          const typesArray = [newType1];
+                          if (attributeCount >= 2) typesArray.push(variantTypes.type2);
+                          if (attributeCount >= 3) typesArray.push(variantTypes.type3);
+                          const newTypes = typesArray.filter(t => t).join(' | ');
                           setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
                         }}
                         className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         placeholder="Contoh: Warna"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
-                        Type 2 <span className="text-gray-400">(opsional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={variantTypes.type2}
-                        onChange={(e) => {
-                          const newType2 = e.target.value;
-                          setVariantTypes({ ...variantTypes, type2: newType2 });
-                          // Auto-update all variants' variantName
-                          const newTypes = [variantTypes.type1, newType2].filter(t => t).join(' | ');
-                          setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
-                        }}
-                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                        placeholder="Contoh: Ukuran"
-                      />
-                    </div>
+                    {attributeCount >= 2 && (
+                      <div>
+                        <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
+                          Tipe 2
+                        </label>
+                        <input
+                          type="text"
+                          value={variantTypes.type2}
+                          onChange={(e) => {
+                            const newType2 = e.target.value;
+                            setVariantTypes({ ...variantTypes, type2: newType2 });
+                            // Auto-update all variants' variantName
+                            const typesArray = [variantTypes.type1, newType2];
+                            if (attributeCount >= 3) typesArray.push(variantTypes.type3);
+                            const newTypes = typesArray.filter(t => t).join(' | ');
+                            setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
+                          }}
+                          className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          placeholder="Contoh: Ukuran"
+                        />
+                      </div>
+                    )}
+                    {attributeCount >= 3 && (
+                      <div>
+                        <label className="block text-xs font-medium text-blue-900 dark:text-blue-300 mb-1.5">
+                          Tipe 3
+                        </label>
+                        <input
+                          type="text"
+                          value={variantTypes.type3}
+                          onChange={(e) => {
+                            const newType3 = e.target.value;
+                            setVariantTypes({ ...variantTypes, type3: newType3 });
+                            // Auto-update all variants' variantName
+                            const typesArray = [variantTypes.type1, variantTypes.type2, newType3];
+                            const newTypes = typesArray.filter(t => t).join(' | ');
+                            setVariants(variants.map(v => ({ ...v, variantName: newTypes || 'Default' })));
+                          }}
+                          className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          placeholder="Contoh: Model"
+                        />
+                      </div>
+                    )}
                   </div>
+                  
+                  {attributeCount < 3 && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-3 flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Klik + untuk menambah tipe varian (maks. 3)
+                    </p>
+                  )}
+                  
                   {!variantTypes.type1 && (
                     <p className="text-xs text-orange-600 dark:text-orange-400 mt-2 flex items-center gap-1">
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -538,10 +694,8 @@ export default function NewProductPage() {
                     Tambah Varian
                   </button>
                 )}
-              </>
-            )}
 
-            {variants.length > 0 ? (
+            {variants.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mt-4">
                 {/* Bulk Apply Section */}
                 <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg">
@@ -631,7 +785,7 @@ export default function NewProductPage() {
                 {/* Variant Details */}
                 <div className="space-y-3">
                   {/* Value Inputs */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className={`grid grid-cols-1 gap-3 ${attributeCount === 1 ? 'md:grid-cols-1' : attributeCount === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
                     {variantTypes.type1 && (
                       <div>
                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -643,7 +797,9 @@ export default function NewProductPage() {
                           onChange={(e) => {
                             const values = variant.variantValue.split(' | ');
                             values[0] = e.target.value;
-                            updateVariant(variantIndex, 'variantValue', values.filter(v => v).join(' | '));
+                            // Preserve values based on attributeCount
+                            const newValues = values.slice(0, attributeCount).filter(v => v);
+                            updateVariant(variantIndex, 'variantValue', newValues.join(' | '));
                           }}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder={`Contoh: ${variantTypes.type1 === 'Warna' ? 'Merah' : variantTypes.type1 === 'Ukuran' ? '25' : 'Value'}`}
@@ -651,7 +807,7 @@ export default function NewProductPage() {
                       </div>
                     )}
 
-                    {variantTypes.type2 && (
+                    {attributeCount >= 2 && variantTypes.type2 && (
                       <div>
                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                           {variantTypes.type2}
@@ -661,11 +817,34 @@ export default function NewProductPage() {
                           value={variant.variantValue.split(' | ')[1] || ''}
                           onChange={(e) => {
                             const values = variant.variantValue.split(' | ');
+                            while (values.length < 2) values.push('');
                             values[1] = e.target.value;
-                            updateVariant(variantIndex, 'variantValue', values.filter(v => v).join(' | '));
+                            const newValues = values.slice(0, attributeCount).filter(v => v);
+                            updateVariant(variantIndex, 'variantValue', newValues.join(' | '));
                           }}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           placeholder={`Contoh: ${variantTypes.type2 === 'Ukuran' ? '25' : variantTypes.type2 === 'Model' ? '2024' : 'Value'}`}
+                        />
+                      </div>
+                    )}
+
+                    {attributeCount >= 3 && variantTypes.type3 && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                          {variantTypes.type3}
+                        </label>
+                        <input
+                          type="text"
+                          value={variant.variantValue.split(' | ')[2] || ''}
+                          onChange={(e) => {
+                            const values = variant.variantValue.split(' | ');
+                            while (values.length < 3) values.push('');
+                            values[2] = e.target.value;
+                            const newValues = values.slice(0, attributeCount).filter(v => v);
+                            updateVariant(variantIndex, 'variantValue', newValues.join(' | '));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-1 focus:ring-slate-500 focus:border-slate-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder={`Contoh: ${variantTypes.type3 === 'Model' ? '2024' : 'Value'}`}
                         />
                       </div>
                     )}
@@ -683,6 +862,84 @@ export default function NewProductPage() {
                       placeholder="VAR-009"
                     />
                   </div>
+
+                  {/* Marketplace Info - Collapsible */}
+                  <details className="group border border-gray-200 dark:border-gray-600 rounded-md">
+                    <summary className="px-3 py-2 bg-gray-50 dark:bg-gray-700 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2 rounded-md">
+                      <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      Info Marketplace (Opsional)
+                    </summary>
+                    <div className="p-3 space-y-3 bg-white dark:bg-gray-800">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          URL Gambar
+                        </label>
+                        <input
+                          type="url"
+                          value={variant.imageUrl || ''}
+                          onChange={(e) => updateVariant(variantIndex, 'imageUrl', e.target.value)}
+                          className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="https://example.com/image.jpg"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                            Berat (gram)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={variant.weight || ''}
+                            onChange={(e) => updateVariant(variantIndex, 'weight', parseInt(e.target.value) || 0)}
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="100"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                            Panjang (cm)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={variant.length || ''}
+                            onChange={(e) => updateVariant(variantIndex, 'length', parseInt(e.target.value) || 0)}
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="10"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                            Lebar (cm)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={variant.width || ''}
+                            onChange={(e) => updateVariant(variantIndex, 'width', parseInt(e.target.value) || 0)}
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                            Tinggi (cm)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={variant.height || ''}
+                            onChange={(e) => updateVariant(variantIndex, 'height', parseInt(e.target.value) || 0)}
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="3"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </details>
 
                   {/* Harga & Stock per Cabang Section */}
                   <div className="mt-3 pt-3 border-t border-gray-100">
@@ -747,37 +1004,16 @@ export default function NewProductPage() {
             ))}
                 </div>
           
-                <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowDynamicBuilder(true)}
-                    className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center justify-center gap-2"
-                  >
-                    Generate Ulang
-                  </button>
+                <div className="mt-4">
                   <button
                     type="button"
                     onClick={addVariant}
-                    className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center gap-1"
+                    className="w-full px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition flex items-center justify-center gap-1"
                   >
                     <span className="text-lg leading-none">+</span>
-                    Tambah 1 Varian
+                    Tambah Varian
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Belum Ada Varian</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowDynamicBuilder(true)}
-                  className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 text-sm font-medium transition-all shadow-sm flex items-center justify-center gap-2 mx-auto"
-                >
-                  Buka Generator
-                </button>
               </div>
             )}
           </>
