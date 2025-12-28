@@ -484,6 +484,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-4">
                   <div className={`p-3.5 rounded-xl ${
                     pathname === '/dashboard' ? 'bg-purple-100 dark:bg-purple-900/30' :
+                    pathname.includes('/reports') ? 'bg-teal-100 dark:bg-teal-900/30' :
                     pathname.includes('/stock') && !pathname.includes('/stock-transfers') && !pathname.includes('/stock-opname') ? 'bg-emerald-100 dark:bg-emerald-900/30' :
                     pathname.includes('/stock-opname') ? 'bg-orange-100 dark:bg-orange-900/30' :
                     pathname.includes('/stock-transfers') ? 'bg-cyan-100 dark:bg-cyan-900/30' :
@@ -491,21 +492,20 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     pathname.includes('/categories') ? 'bg-amber-100 dark:bg-amber-900/30' :
                     pathname.includes('/transactions') ? 'bg-indigo-100 dark:bg-indigo-900/30' :
                     pathname.includes('/returns') ? 'bg-rose-100 dark:bg-rose-900/30' :
-                    pathname.includes('/reports') ? 'bg-teal-100 dark:bg-teal-900/30' :
                     pathname.includes('/branches') ? 'bg-sky-100 dark:bg-sky-900/30' :
                     pathname.includes('/marketplace') ? 'bg-pink-100 dark:bg-pink-900/30' :
                     pathname.includes('/settings') ? 'bg-slate-100 dark:bg-slate-900/30' :
                     'bg-gray-100 dark:bg-gray-900/30'
                   }`}>
                     {pathname === '/dashboard' && <LayoutDashboard className="w-8 h-8 text-purple-600 dark:text-purple-400" />}
-                    {pathname.includes('/stock') && !pathname.includes('/stock-transfers') && !pathname.includes('/stock-opname') && <Package className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />}
+                    {pathname.includes('/reports') && <BarChart3 className="w-8 h-8 text-teal-600 dark:text-teal-400" />}
+                    {pathname.includes('/stock') && !pathname.includes('/stock-transfers') && !pathname.includes('/stock-opname') && !pathname.includes('/reports') && <Package className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />}
                     {pathname.includes('/stock-opname') && <ClipboardList className="w-8 h-8 text-orange-600 dark:text-orange-400" />}
                     {pathname.includes('/stock-transfers') && <ArrowLeftRight className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />}
                     {pathname.includes('/products') && <Package className="w-8 h-8 text-blue-600 dark:text-blue-400" />}
                     {pathname.includes('/categories') && <Tags className="w-8 h-8 text-amber-600 dark:text-amber-400" />}
                     {pathname.includes('/transactions') && <Receipt className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />}
                     {pathname.includes('/returns') && <RotateCcw className="w-8 h-8 text-rose-600 dark:text-rose-400" />}
-                    {pathname.includes('/reports') && <BarChart3 className="w-8 h-8 text-teal-600 dark:text-teal-400" />}
                     {pathname.includes('/branches') && <Building2 className="w-8 h-8 text-sky-600 dark:text-sky-400" />}
                     {pathname.includes('/marketplace') && <Store className="w-8 h-8 text-pink-600 dark:text-pink-400" />}
                     {pathname.includes('/settings') && <Settings className="w-8 h-8 text-slate-600 dark:text-slate-400" />}
