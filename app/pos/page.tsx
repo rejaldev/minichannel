@@ -346,7 +346,7 @@ export default function POSPage() {
             autoPrintEnabled: data.autoPrintEnabled ?? true,
             printerName: data.printerName || '',
             paperWidth: data.paperWidth || 58,
-            storeName: data.storeName || 'ANEKABUANA STORE',
+            storeName: data.storeName || 'MINICHANNEL',
             branchName: data.branchName || '',
             address: data.address || '',
             phone: data.phone || '',

@@ -96,7 +96,7 @@ export default function AccessDenied() {
               Cara Akses Desktop App:
             </h3>
             <ol className="text-xs text-blue-800 dark:text-blue-300 space-y-1 list-decimal list-inside">
-              <li>Download aplikasi desktop AnekaBuana Store</li>
+              <li>Download aplikasi desktop MiniChannel</li>
               <li>Install dan jalankan aplikasi di komputer kasir</li>
               <li>Login dengan akun KASIR Anda</li>
               <li>Gunakan fitur POS untuk transaksi penjualan</li>

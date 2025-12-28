@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AnekaBuana Store - Inventory System",
+  title: "MiniChannel - Inventory System",
   description: "Point of Sale and Inventory Management System",
 };
 

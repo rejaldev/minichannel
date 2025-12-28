@@ -237,7 +237,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                       </svg>
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-gray-900 dark:text-white">AnekaBuana Store</h2>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-white">MiniChannel</h2>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Inventory System</p>
 
                     </div>

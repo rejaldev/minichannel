@@ -11,7 +11,7 @@ export default function PrinterSettingsPage() {
     printerName: '',
     paperWidth: 58, // Fixed 58mm thermal printer
     // Receipt Header Customization - default kosong seperti local
-    storeName: 'ANEKABUANA STORE',
+    storeName: 'MINICHANNEL',
     branchName: '',
     address: '',
     phone: '',
@@ -59,7 +59,7 @@ export default function PrinterSettingsPage() {
             autoPrintEnabled: data.autoPrintEnabled ?? true,
             printerName: data.printerName || '',
             paperWidth: 58, // Fixed 58mm
-            storeName: data.storeName || 'ANEKABUANA STORE',
+            storeName: data.storeName || 'MINICHANNEL',
             branchName: data.branchName || '',
             address: data.address || '',
             phone: data.phone || '',
@@ -259,7 +259,7 @@ export default function PrinterSettingsPage() {
                     type="text"
                     value={settings.storeName}
                     onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
-                    placeholder="ANEKABUANA STORE"
+                    placeholder="MINICHANNEL"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -354,7 +354,7 @@ export default function PrinterSettingsPage() {
                 <div className="p-3 font-mono text-[11px] text-black leading-tight">
                   {/* Header - Center aligned */}
                   <div className="text-center mb-1">
-                    <div className="font-bold text-base tracking-wide">{settings.storeName || 'ANEKABUANA STORE'}</div>
+                    <div className="font-bold text-base tracking-wide">{settings.storeName || 'MINICHANNEL'}</div>
                     {settings.branchName && <div>{settings.branchName}</div>}
                     {settings.address && <div>{settings.address}</div>}
                     {settings.phone && <div>Telp: {settings.phone}</div>}
