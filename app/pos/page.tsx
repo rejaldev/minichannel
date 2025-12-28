@@ -94,8 +94,6 @@ export default function POSPage() {
   const [showDiscount, setShowDiscount] = useState(false);
   const [heldTransactions, setHeldTransactions] = useState<HeldTransaction[]>([]);
   const [showHoldModal, setShowHoldModal] = useState(false);
-  const [lowStockThreshold, setLowStockThreshold] = useState(10);
-  const [criticalStockThreshold, setCriticalStockThreshold] = useState(5);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
@@ -381,8 +379,6 @@ export default function POSPage() {
   const fetchSettings = async () => {
     try {
       const res = await settingsAPI.getSettings();
-      setLowStockThreshold(parseInt(res.data.lowStockThreshold) || 10);
-      setCriticalStockThreshold(parseInt(res.data.criticalStockThreshold) || 5);
       setAdminWhatsApp(res.data.adminWhatsApp || '6282112406540');
     } catch (e) { console.error(e); }
   };
@@ -483,8 +479,6 @@ export default function POSPage() {
   const getStockInfo = (quantity: number, inCart: number = 0) => {
     const available = quantity - inCart;
     if (available <= 0) return { color: 'text-gray-400', text: 'Habis', available };
-    if (available < criticalStockThreshold) return { color: 'text-red-600 dark:text-red-400', text: `${available} pcs`, available };
-    if (available < lowStockThreshold) return { color: 'text-yellow-600 dark:text-yellow-400', text: `${available} pcs`, available };
     return { color: 'text-green-600 dark:text-green-400', text: `${available} pcs`, available };
   };
 

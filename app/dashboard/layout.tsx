@@ -83,7 +83,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           pathname === sub.path || pathname.startsWith(sub.path + '/')
         );
         if (isActive) {
-          setOpenMenus(prev => ({ ...prev, [item.name]: true }));
+          // Hanya expand menu yang aktif, tutup yang lain
+          setOpenMenus({ [item.name]: true });
         }
       }
     });
@@ -103,7 +104,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   };
 
   const toggleMenu = (menuName: string) => {
-    setOpenMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
+    setOpenMenus(prev => {
+      // Jika menu yang diklik sudah open, tutup
+      if (prev[menuName]) {
+        return { [menuName]: false };
+      }
+      // Jika menu yang diklik belum open, buka dan tutup semua yang lain
+      return { [menuName]: true };
+    });
   };
 
   // Menu structure with parent-submenu
@@ -115,22 +123,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER', 'MANAGER', 'ADMIN'],
     },
     {
-      name: 'Approval',
-      icon: <Clock className="w-5 h-5" />,
-      roles: ['OWNER', 'MANAGER'],
-      subMenu: [
-        { name: 'Pending Returns', path: '/dashboard/approvals/returns', roles: ['OWNER', 'MANAGER'] },
-        { name: 'Pending Transfers', path: '/dashboard/approvals/transfers', roles: ['OWNER', 'MANAGER'] },
-      ],
-    },
-    {
       name: 'Penjualan',
       icon: <ShoppingCart className="w-5 h-5" />,
       roles: ['OWNER', 'MANAGER', 'ADMIN'],
       subMenu: [
-        { name: 'Orders', path: '/dashboard/orders', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
-        { name: 'Returns & Refunds', path: '/dashboard/returns', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
         { name: 'Transactions', path: '/dashboard/transactions', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+        { name: 'Returns & Refunds', path: '/dashboard/returns', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
       ],
     },
     {
@@ -148,8 +146,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       roles: ['OWNER', 'MANAGER', 'ADMIN'],
       subMenu: [
         { name: 'Overview', path: '/dashboard/stock', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
-        { name: 'Stock Opname', path: '/dashboard/stock/opname', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
-        { name: 'Transfer Stock', path: '/dashboard/stock/transfers', roles: ['OWNER', 'MANAGER'] },
+        { name: 'Stock Opname', path: '/dashboard/stock-opname', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+        { name: 'Transfer Stock', path: '/dashboard/stock-transfers', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
       ],
     },
     {
@@ -241,6 +239,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                     <div>
                       <h2 className="text-lg font-bold text-gray-900 dark:text-white">AnekaBuana Store</h2>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Inventory System</p>
+
                     </div>
                   </div>
                   <button
@@ -283,7 +282,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                             toggleMenu(item.name);
                           } else {
                             setSidebarOpen(true);
-                            setOpenMenus(prev => ({ ...prev, [item.name]: true }));
+                            // Buka menu ini, tutup yang lain
+                            setOpenMenus({ [item.name]: true });
                           }
                         }}
                         className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-3' : 'justify-center px-2'} py-2.5 rounded-lg font-medium text-sm transition-all duration-150 ${
@@ -358,7 +358,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {/* Header - STICKY dengan margin sesuai sidebar */}
           <header className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 sticky top-0 z-30 ${sidebarOpen ? 'md:ml-72' : 'md:ml-16'}`}>
             <div className="px-4 md:px-6 py-3 md:py-4">
-              {/* Mobile: Hamburger + Title + User Dropdown */}
+              {/* Mobile: Hamburger + Page Title + User Dropdown */}
               <div className="flex items-center justify-between md:hidden">
                 <div className="flex items-center gap-3">
                   <button
@@ -369,16 +369,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                   </button>
-                  <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                  <h1 className="text-base font-bold text-gray-900 dark:text-white truncate max-w-[150px]">
                     {pathname === '/dashboard' ? 'Dashboard' :
-                     pathname.includes('/products') ? 'Products' :
-                     pathname.includes('/stock-movement') ? 'Stock Movement' :
-                     pathname.includes('/transactions') ? 'Transactions' :
-                     pathname.includes('/returns') ? 'Returns' :
-                     pathname.includes('/reports') ? 'Reports & Analytics' :
-                     pathname.includes('/branches') ? 'Branches' :
-                     pathname.includes('/settings') ? 'Settings' :
-                     pathname.includes('/categories') ? 'Categories' : 'Dashboard'}
+                     pathname === '/dashboard/stock' ? 'Stock Overview' :
+                     pathname === '/dashboard/stock-opname' ? 'Stock Opname' :
+                     pathname === '/dashboard/stock-transfers' ? 'Transfer Stock' :
+                     pathname.includes('/products') ? 'Produk' :
+                     pathname.includes('/categories') ? 'Kategori' :
+                     pathname.includes('/transactions') ? 'Transaksi' :
+                     pathname.includes('/returns') ? 'Retur' :
+                     pathname.includes('/reports') ? 'Reports' :
+                     pathname.includes('/branches') ? 'Cabang' :
+                     pathname.includes('/marketplace') ? 'Marketplace' :
+                     pathname.includes('/settings') ? 'Settings' : 'Dashboard'}
                   </h1>
                 </div>
                 
@@ -475,32 +478,81 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
               
-              {/* Desktop: Full navbar with page title, greeting, and date */}
+              {/* Desktop: Navbar with Page Title + POS Button + User Dropdown */}
               <div className="hidden md:flex items-center justify-between">
-                {/* Left: Page title + greeting */}
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {pathname === '/dashboard' ? 'Dashboard' :
-                     pathname === '/dashboard/stock' ? 'Stock Overview' :
-                     pathname === '/dashboard/stock/opname' ? 'Stock Opname' :
-                     pathname === '/dashboard/stock/transfers' ? 'Transfer Stock' :
-                     pathname.includes('/products') ? 'Products Management' :
-                     pathname.includes('/stock-movement') ? 'Stock Movement' :
-                     pathname.includes('/transactions') ? 'Transactions' :
-                     pathname.includes('/returns') ? 'Returns' :
-                     pathname.includes('/reports') ? 'Reports & Analytics' :
-                     pathname.includes('/branches') ? 'Branches Management' :
-                     pathname.includes('/settings') ? 'Settings' :
-                     pathname.includes('/categories') ? 'Categories' :
-                     pathname.includes('/marketplace') ? 'Marketplace Integration' :
-                     pathname.includes('/orders') ? 'Orders Management' :
-                     pathname.includes('/approvals') ? 'Approval Management' : 'Dashboard'}
-                  </h1>
-                  {user && pathname === '/dashboard' && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Selamat datang kembali, <span className="font-semibold">{user.name}</span>
+                {/* Left: Page Icon + Title + Description */}
+                <div className="flex items-center gap-4">
+                  <div className={`p-3.5 rounded-xl ${
+                    pathname === '/dashboard' ? 'bg-purple-100 dark:bg-purple-900/30' :
+                    pathname.includes('/stock') && !pathname.includes('/stock-transfers') && !pathname.includes('/stock-opname') ? 'bg-emerald-100 dark:bg-emerald-900/30' :
+                    pathname.includes('/stock-opname') ? 'bg-orange-100 dark:bg-orange-900/30' :
+                    pathname.includes('/stock-transfers') ? 'bg-cyan-100 dark:bg-cyan-900/30' :
+                    pathname.includes('/products') ? 'bg-blue-100 dark:bg-blue-900/30' :
+                    pathname.includes('/categories') ? 'bg-amber-100 dark:bg-amber-900/30' :
+                    pathname.includes('/transactions') ? 'bg-indigo-100 dark:bg-indigo-900/30' :
+                    pathname.includes('/returns') ? 'bg-rose-100 dark:bg-rose-900/30' :
+                    pathname.includes('/reports') ? 'bg-teal-100 dark:bg-teal-900/30' :
+                    pathname.includes('/branches') ? 'bg-sky-100 dark:bg-sky-900/30' :
+                    pathname.includes('/marketplace') ? 'bg-pink-100 dark:bg-pink-900/30' :
+                    pathname.includes('/settings') ? 'bg-slate-100 dark:bg-slate-900/30' :
+                    'bg-gray-100 dark:bg-gray-900/30'
+                  }`}>
+                    {pathname === '/dashboard' && <LayoutDashboard className="w-8 h-8 text-purple-600 dark:text-purple-400" />}
+                    {pathname.includes('/stock') && !pathname.includes('/stock-transfers') && !pathname.includes('/stock-opname') && <Package className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />}
+                    {pathname.includes('/stock-opname') && <ClipboardList className="w-8 h-8 text-orange-600 dark:text-orange-400" />}
+                    {pathname.includes('/stock-transfers') && <ArrowLeftRight className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />}
+                    {pathname.includes('/products') && <Package className="w-8 h-8 text-blue-600 dark:text-blue-400" />}
+                    {pathname.includes('/categories') && <Tags className="w-8 h-8 text-amber-600 dark:text-amber-400" />}
+                    {pathname.includes('/transactions') && <Receipt className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />}
+                    {pathname.includes('/returns') && <RotateCcw className="w-8 h-8 text-rose-600 dark:text-rose-400" />}
+                    {pathname.includes('/reports') && <BarChart3 className="w-8 h-8 text-teal-600 dark:text-teal-400" />}
+                    {pathname.includes('/branches') && <Building2 className="w-8 h-8 text-sky-600 dark:text-sky-400" />}
+                    {pathname.includes('/marketplace') && <Store className="w-8 h-8 text-pink-600 dark:text-pink-400" />}
+                    {pathname.includes('/settings') && <Settings className="w-8 h-8 text-slate-600 dark:text-slate-400" />}
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {pathname === '/dashboard' ? 'Dashboard' :
+                       pathname === '/dashboard/stock' ? 'Stock Overview' :
+                       pathname === '/dashboard/stock-opname' ? 'Stock Opname' :
+                       pathname === '/dashboard/stock-transfers' ? 'Transfer Stock' :
+                       pathname.includes('/products/new') ? 'Tambah Produk' :
+                       pathname.includes('/products') && pathname.includes('/edit') ? 'Edit Produk' :
+                       pathname.includes('/products') ? 'Kelola Produk' :
+                       pathname.includes('/categories') ? 'Kategori Produk' :
+                       pathname.includes('/transactions') ? 'Riwayat Transaksi' :
+                       pathname.includes('/returns') ? 'Retur & Refund' :
+                       pathname.includes('/reports/sales') ? 'Sales Report' :
+                       pathname.includes('/reports/stock') ? 'Stock Report' :
+                       pathname.includes('/reports') ? 'Reports' :
+                       pathname.includes('/branches') ? 'Kelola Cabang' :
+                       pathname.includes('/marketplace') ? 'Marketplace Integration' :
+                       pathname.includes('/settings/general') ? 'General Settings' :
+                       pathname.includes('/settings/users') ? 'User Management' :
+                       pathname.includes('/settings/printer') ? 'Printer Settings' :
+                       pathname.includes('/settings/backup') ? 'Backup & Restore' :
+                       pathname.includes('/settings') ? 'Settings' : 'Dashboard'}
+                    </h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {pathname === '/dashboard' ? (user ? `Selamat datang, ${user.name}` : 'Ringkasan bisnis') :
+                       pathname === '/dashboard/stock' ? 'Kelola stok dan peringatan' :
+                       pathname === '/dashboard/stock-opname' ? 'Validasi stok fisik' :
+                       pathname === '/dashboard/stock-transfers' ? 'Transfer antar cabang' :
+                       pathname.includes('/products') ? 'Kelola produk & varian' :
+                       pathname.includes('/categories') ? 'Kelompokkan produk' :
+                       pathname.includes('/transactions') ? 'Lihat semua transaksi' :
+                       pathname.includes('/returns') ? 'Kelola permintaan retur' :
+                       pathname.includes('/reports/sales') ? 'Analisis penjualan' :
+                       pathname.includes('/reports/stock') ? 'Laporan inventori' :
+                       pathname.includes('/reports') ? 'Analisis & laporan' :
+                       pathname.includes('/branches') ? 'Kelola cabang toko' :
+                       pathname.includes('/marketplace') ? 'Integrasi marketplace' :
+                       pathname.includes('/settings/users') ? 'Kelola akun pengguna' :
+                       pathname.includes('/settings/printer') ? 'Konfigurasi printer' :
+                       pathname.includes('/settings/backup') ? 'Backup & restore data' :
+                       pathname.includes('/settings') ? 'Pengaturan aplikasi' : ''}
                     </p>
-                  )}
+                  </div>
                 </div>
                 
                 {/* Right: POS Button + User Dropdown */}

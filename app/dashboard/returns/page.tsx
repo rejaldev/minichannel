@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { returnsAPI } from '@/lib/api'
 import { getAuth } from '@/lib/auth'
+import { RotateCcw, RefreshCw } from 'lucide-react'
 
 interface ReturnItem {
   id: string
@@ -199,14 +200,22 @@ export default function ReturnsPage() {
 
   return (
     <ProtectedRoute allowedRoles={['OWNER', 'MANAGER']}>
-      <div className="p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Retur & Refund
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Kelola permintaan retur dari kasir
-          </p>
+      <div className="px-4 md:px-6 pb-6 space-y-6">
+        {/* Breadcrumb + Action */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
+            <span>›</span>
+            <span className="text-gray-900 dark:text-white font-medium">Retur</span>
+          </nav>
+          
+          <button
+            onClick={() => { fetchReturns(); fetchStats(); }}
+            className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         </div>
 
         {/* Statistics Cards */}

@@ -138,36 +138,17 @@ export default function PrinterSettingsPage() {
   }
 
   return (
-    <div className="px-4 md:px-6">
+    <div className="px-4 md:px-6 space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Home
-        </a>
+      <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
         <span>›</span>
-        <a href="/dashboard/settings" className="hover:text-gray-900 dark:hover:text-white transition">
-          Settings
-        </a>
+        <a href="/dashboard/settings" className="hover:text-gray-900 dark:hover:text-white transition">Settings</a>
         <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Printer</span>
+        <span className="text-gray-900 dark:text-white font-medium">Printer</span>
       </nav>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-              <svg className="w-5 h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Printer Settings</h2>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                Konfigurasi printer thermal untuk Desktop POS
-              </p>
-            </div>
-          </div>
-        </div>
         <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8">
           {/* Cabang Selector */}
           <div>

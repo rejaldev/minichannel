@@ -4,37 +4,17 @@ import { useState, useEffect } from 'react';
 
 export default function GeneralSettingsPage() {
   return (
-    <div className="px-4 md:px-6">
+    <div className="px-4 md:px-6 space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Home
-        </a>
+      <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
         <span>›</span>
-        <a href="/dashboard/settings" className="hover:text-gray-900 dark:hover:text-white transition">
-          Settings
-        </a>
+        <a href="/dashboard/settings" className="hover:text-gray-900 dark:hover:text-white transition">Settings</a>
         <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">General</span>
+        <span className="text-gray-900 dark:text-white font-medium">General</span>
       </nav>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-slate-100 dark:bg-slate-900 rounded-xl">
-              <svg className="w-5 h-5 md:w-6 md:h-6 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">General Settings</h2>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                Pengaturan umum aplikasi dan preferensi sistem
-              </p>
-            </div>
-          </div>
-        </div>
         <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8">
           {/* Theme Settings */}
           <div>

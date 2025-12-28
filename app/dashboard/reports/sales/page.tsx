@@ -1,101 +1,518 @@
 'use client';
 
-export default function SalesReportPage() {
-  return (
-    <div className="px-4 md:px-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Home
-        </a>
-        <span>›</span>
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Reports & Analytics
-        </a>
-        <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Sales Report</span>
-      </nav>
+import { useEffect, useState, useMemo } from 'react';
+import { transactionsAPI, cabangAPI, channelsAPI } from '@/lib/api';
+import { 
+  TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, 
+  Calendar, RefreshCw, Store, CreditCard, Wallet, Building2, 
+  BarChart3, PieChart, ArrowUpRight, ShoppingBag
+} from 'lucide-react';
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-              <svg className="w-5 h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Sales Report</h2>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                Analisis penjualan, revenue, dan performa produk
+interface SummaryData {
+  totalTransactions: number;
+  totalRevenue: number;
+  paymentMethodBreakdown: Array<{
+    paymentMethod: string;
+    _count: { id: number };
+    _sum: { total: number };
+  }>;
+}
+
+interface TrendData {
+  date: string;
+  total: number;
+  count: number;
+}
+
+interface TopProduct {
+  productVariantId: string;
+  productName: string;
+  variantName: string;
+  variantValue: string;
+  category: string;
+  totalQuantity: number;
+  totalRevenue: number;
+  transactionCount: number;
+}
+
+interface BranchPerformance {
+  cabangId: string;
+  cabangName: string;
+  totalTransactions: number;
+  totalRevenue: number;
+}
+
+interface Channel {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  color: string | null;
+}
+
+const PAYMENT_ICONS: Record<string, any> = {
+  CASH: Wallet,
+  DEBIT: CreditCard,
+  TRANSFER: Building2,
+  QRIS: DollarSign,
+};
+
+const PAYMENT_COLORS: Record<string, string> = {
+  CASH: 'bg-green-500',
+  DEBIT: 'bg-blue-500',
+  TRANSFER: 'bg-purple-500',
+  QRIS: 'bg-orange-500',
+};
+
+export default function SalesReportPage() {
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [trend, setTrend] = useState<TrendData[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [branchPerformance, setBranchPerformance] = useState<BranchPerformance[]>([]);
+  const [cabangs, setCabangs] = useState<any[]>([]);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  
+  // Filters
+  const [selectedCabang, setSelectedCabang] = useState('');
+  const [selectedChannel, setSelectedChannel] = useState('');
+  const [dateRange, setDateRange] = useState('7');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [showCustomDate, setShowCustomDate] = useState(false);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    fetchReportData();
+  }, [selectedCabang, selectedChannel, dateRange, startDate, endDate]);
+
+  const fetchInitialData = async () => {
+    try {
+      const [cabangRes, channelRes] = await Promise.all([
+        cabangAPI.getCabangs(),
+        channelsAPI.getChannels()
+      ]);
+      setCabangs(cabangRes.data);
+      setChannels(channelRes.data);
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
+    }
+  };
+
+  const fetchReportData = async () => {
+    setLoading(true);
+    try {
+      const params: any = {};
+      if (selectedCabang) params.cabangId = selectedCabang;
+      
+      if (showCustomDate && startDate && endDate) {
+        params.startDate = startDate;
+        params.endDate = endDate;
+      } else {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - parseInt(dateRange));
+        params.startDate = start.toISOString().split('T')[0];
+        params.endDate = end.toISOString().split('T')[0];
+      }
+
+      const [summaryRes, trendRes, topProductsRes, branchRes] = await Promise.all([
+        transactionsAPI.getSummary(params),
+        transactionsAPI.getSalesTrend({ ...params, days: dateRange }),
+        transactionsAPI.getTopProducts({ ...params, limit: 10 }),
+        transactionsAPI.getBranchPerformance(params)
+      ]);
+
+      setSummary(summaryRes.data);
+      setTrend(trendRes.data.trend || []);
+      setTopProducts(topProductsRes.data.topProducts || []);
+      setBranchPerformance(branchRes.data.branches || []);
+    } catch (error) {
+      console.error('Error fetching report data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stats = useMemo(() => {
+    if (!summary) return null;
+    
+    const avgTransaction = summary.totalTransactions > 0 
+      ? summary.totalRevenue / summary.totalTransactions 
+      : 0;
+    
+    const midPoint = Math.floor(trend.length / 2);
+    const firstHalf = trend.slice(0, midPoint).reduce((sum, t) => sum + t.total, 0);
+    const secondHalf = trend.slice(midPoint).reduce((sum, t) => sum + t.total, 0);
+    const trendPercentage = firstHalf > 0 ? ((secondHalf - firstHalf) / firstHalf) * 100 : 0;
+
+    return {
+      avgTransaction,
+      trendPercentage,
+      totalItems: topProducts.reduce((sum, p) => sum + p.totalQuantity, 0)
+    };
+  }, [summary, trend, topProducts]);
+
+  const maxTrendValue = useMemo(() => Math.max(...trend.map(t => t.total), 1), [trend]);
+  const totalPayments = useMemo(() => 
+    summary?.paymentMethodBreakdown.reduce((sum, p) => sum + p._count.id, 0) || 1, 
+    [summary]
+  );
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+  };
+
+  return (
+    <div className="px-4 md:px-6 pb-6 space-y-6">
+      {/* Breadcrumb + Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
+          <span>›</span>
+          <span className="text-gray-900 dark:text-white font-medium">Sales Report</span>
+        </nav>
+        
+        <button
+          onClick={fetchReportData}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <select
+              value={showCustomDate ? 'custom' : dateRange}
+              onChange={(e) => {
+                if (e.target.value === 'custom') {
+                  setShowCustomDate(true);
+                } else {
+                  setShowCustomDate(false);
+                  setDateRange(e.target.value);
+                }
+              }}
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="7">7 Hari Terakhir</option>
+              <option value="14">14 Hari Terakhir</option>
+              <option value="30">30 Hari Terakhir</option>
+              <option value="90">3 Bulan Terakhir</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+
+          {showCustomDate && (
+            <>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <span className="text-gray-400">-</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </>
+          )}
+
+          <select
+            value={selectedCabang}
+            onChange={(e) => setSelectedCabang(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">Semua Cabang</option>
+            {cabangs.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={selectedChannel}
+            onChange={(e) => setSelectedChannel(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">Semua Channel</option>
+            {channels.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      ) : (
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                {stats && stats.trendPercentage !== 0 && (
+                  <span className={`flex items-center text-xs font-medium ${stats.trendPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {stats.trendPercentage >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
+                    {Math.abs(stats.trendPercentage).toFixed(1)}%
+                  </span>
+                )}
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {formatCurrency(summary?.totalRevenue || 0)}
               </p>
+              <p className="text-sm text-gray-500 mt-1">Total Revenue</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <ShoppingCart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {(summary?.totalTransactions || 0).toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">Total Transaksi</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <ArrowUpRight className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {formatCurrency(stats?.avgTransaction || 0)}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">Rata-rata/Transaksi</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                  <Package className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {(stats?.totalItems || 0).toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">Items Terjual</p>
             </div>
           </div>
-        </div>
-        <div className="p-4 md:p-6 lg:p-8">
-          {/* Coming Soon */}
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
-              <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* Sales Trend Chart */}
+            <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+                Trend Penjualan
+              </h3>
+              <div className="h-64">
+                {trend.length > 0 ? (
+                  <div className="flex items-end justify-between h-full gap-1 px-2">
+                    {trend.map((item, index) => (
+                      <div key={index} className="flex-1 flex flex-col items-center gap-1">
+                        <div 
+                          className="w-full bg-blue-500 dark:bg-blue-600 rounded-t-sm hover:bg-blue-600 dark:hover:bg-blue-500 transition cursor-pointer group relative"
+                          style={{ height: `${Math.max((item.total / maxTrendValue) * 100, 2)}%` }}
+                        >
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
+                            {formatCurrency(item.total)}
+                            <br />
+                            <span className="text-gray-300">{item.count} transaksi</span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate w-full text-center">
+                          {formatDate(item.date)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    Tidak ada data
+                  </div>
+                )}
+              </div>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Coming Soon
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-              Fitur laporan penjualan dengan analytics mendalam sedang dalam pengembangan.
-            </p>
-            
-            {/* Preview of what's coming */}
-            <div className="mt-8 max-w-2xl mx-auto">
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 p-6">
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 text-left">
-                  Fitur yang akan datang:
-                </h4>
-                <div className="space-y-3 text-left">
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Daily Sales Summary</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Ringkasan penjualan harian dengan grafik trend</p>
+
+            {/* Payment Methods */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-purple-600" />
+                Metode Pembayaran
+              </h3>
+              <div className="space-y-3">
+                {summary?.paymentMethodBreakdown.map((item) => {
+                  const Icon = PAYMENT_ICONS[item.paymentMethod] || Wallet;
+                  const percentage = ((item._count.id / totalPayments) * 100).toFixed(1);
+                  return (
+                    <div key={item.paymentMethod} className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${PAYMENT_COLORS[item.paymentMethod] || 'bg-gray-500'} bg-opacity-20`}>
+                        <Icon className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {item.paymentMethod}
+                          </span>
+                          <span className="text-sm text-gray-500">{percentage}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${PAYMENT_COLORS[item.paymentMethod] || 'bg-gray-500'} rounded-full transition-all`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {item._count.id} transaksi • {formatCurrency(item._sum.total || 0)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Top Products Analysis</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Produk terlaris dan underperforming products</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Revenue by Branch</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Perbandingan revenue antar cabang</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Export to PDF/Excel</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Download laporan dalam berbagai format</p>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
+                {(!summary?.paymentMethodBreakdown || summary.paymentMethodBreakdown.length === 0) && (
+                  <p className="text-center text-gray-400 py-4">Tidak ada data</p>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      </div>
+
+          {/* Bottom Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Products */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-orange-600" />
+                Produk Terlaris
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                      <th className="text-left py-2 font-medium">#</th>
+                      <th className="text-left py-2 font-medium">Produk</th>
+                      <th className="text-right py-2 font-medium">Qty</th>
+                      <th className="text-right py-2 font-medium">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {topProducts.slice(0, 5).map((product, index) => (
+                      <tr key={product.productVariantId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="py-2.5">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
+                            ${index === 0 ? 'bg-yellow-100 text-yellow-700' : 
+                              index === 1 ? 'bg-gray-100 text-gray-600' : 
+                              index === 2 ? 'bg-orange-100 text-orange-700' : 
+                              'bg-gray-50 text-gray-500'}`}
+                          >
+                            {index + 1}
+                          </span>
+                        </td>
+                        <td className="py-2.5">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white truncate max-w-[200px]">
+                              {product.productName}
+                            </p>
+                            {product.variantValue !== '-' && (
+                              <p className="text-xs text-gray-500">{product.variantValue}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-2.5 text-right font-medium text-gray-900 dark:text-white">
+                          {product.totalQuantity.toLocaleString()}
+                        </td>
+                        <td className="py-2.5 text-right text-gray-600 dark:text-gray-300">
+                          {formatCurrency(product.totalRevenue)}
+                        </td>
+                      </tr>
+                    ))}
+                    {topProducts.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-gray-400">
+                          Tidak ada data
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Branch Performance */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Store className="w-5 h-5 text-green-600" />
+                Performa Cabang
+              </h3>
+              <div className="space-y-3">
+                {branchPerformance.map((branch, index) => {
+                  const maxRevenue = Math.max(...branchPerformance.map(b => b.totalRevenue), 1);
+                  const percentage = (branch.totalRevenue / maxRevenue) * 100;
+                  return (
+                    <div key={branch.cabangId} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold
+                            ${index === 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}
+                          >
+                            {index + 1}
+                          </span>
+                          <span className="font-medium text-gray-900 dark:text-white">{branch.cabangName}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {formatCurrency(branch.totalRevenue)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500 rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-500 w-20 text-right">
+                          {branch.totalTransactions} trx
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {branchPerformance.length === 0 && (
+                  <p className="text-center text-gray-400 py-4">Tidak ada data</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

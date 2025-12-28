@@ -4,28 +4,15 @@ import { Store, CheckCircle2 } from 'lucide-react'
 
 export default function MarketplacePage() {
   return (
-    <div className="px-4 md:px-6">
+    <div className="px-4 md:px-6 space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Home</a>
+      <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
         <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Marketplace</span>
+        <span className="text-gray-900 dark:text-white font-medium">Marketplace</span>
       </nav>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        {/* Header */}
-        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-              <Store className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Marketplace Integration</h2>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">Integrasi dengan Tokopedia, Shopee, Lazada, dan lainnya</p>
-            </div>
-          </div>
-        </div>
-        
         {/* Content */}
         <div className="p-4 md:p-6 lg:p-8">
           <div className="text-center py-12">

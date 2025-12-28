@@ -138,6 +138,9 @@ export const transactionsAPI = {
     startDate?: string;
     endDate?: string;
     paymentMethod?: string;
+    channelId?: string;
+    status?: string;
+    search?: string;
   }) => api.get('/transactions', { params }),
   
   getTransaction: (id: string) => api.get(`/transactions/${id}`),
@@ -173,6 +176,56 @@ export const transactionsAPI = {
   
   cancelTransaction: (id: string, reason: string) =>
     api.put(`/transactions/${id}/cancel`, { reason }),
+};
+
+// Sales Channels API
+export const channelsAPI = {
+  getChannels: (params?: { includeInactive?: boolean }) =>
+    api.get('/channels', { params }),
+  
+  getChannel: (id: string) => api.get(`/channels/${id}`),
+  
+  createChannel: (data: {
+    code: string;
+    name: string;
+    type?: 'POS' | 'MARKETPLACE' | 'WEBSITE' | 'SOCIAL' | 'OTHER';
+    icon?: string;
+    color?: string;
+    apiConfig?: Record<string, any>;
+    fieldMapping?: Record<string, any>;
+  }) => api.post('/channels', data),
+  
+  updateChannel: (id: string, data: {
+    name?: string;
+    type?: string;
+    icon?: string;
+    color?: string;
+    isActive?: boolean;
+    apiConfig?: Record<string, any>;
+    fieldMapping?: Record<string, any>;
+  }) => api.put(`/channels/${id}`, data),
+  
+  deleteChannel: (id: string) => api.delete(`/channels/${id}`),
+  
+  // Channel Stock Allocation
+  getChannelStocks: (channelId: string, params?: { productId?: string; search?: string }) =>
+    api.get(`/channels/${channelId}/stocks`, { params }),
+  
+  allocateStock: (channelId: string, data: { variantId: string; allocatedQty: number }) =>
+    api.post(`/channels/${channelId}/stocks`, data),
+  
+  updateChannelStock: (channelId: string, variantId: string, data: {
+    allocatedQty?: number;
+    reservedQty?: number;
+    isActive?: boolean;
+  }) => api.put(`/channels/${channelId}/stocks/${variantId}`, data),
+  
+  bulkAllocateStocks: (channelId: string, allocations: Array<{ variantId: string; allocatedQty: number }>) =>
+    api.post(`/channels/${channelId}/stocks/bulk`, { allocations }),
+  
+  // Stats
+  getChannelStats: (params?: { startDate?: string; endDate?: string }) =>
+    api.get('/channels/stats/summary', { params }),
 };
 
 // Categories API
@@ -247,36 +300,6 @@ export const returnsAPI = {
   deleteReturn: (id: string) => api.delete(`/returns/${id}`),
 };
 
-// Orders API
-export const ordersAPI = {
-  getOrders: (params?: {
-    status?: string;
-    cabangId?: string;
-  }) => api.get('/orders', { params }),
-  
-  getOrder: (id: string) => api.get(`/orders/${id}`),
-  
-  createOrder: (data: {
-    productName: string;
-    productType?: string;
-    categoryId?: string;
-    categoryName?: string;
-    price?: number;
-    quantity?: number;
-    notes?: string;
-  }) => api.post('/orders', data),
-  
-  approveOrder: (id: string, data: { productId?: string; variantId?: string }) =>
-    api.put(`/orders/${id}/approve`, data),
-  
-  rejectOrder: (id: string, data: { rejectionReason: string }) =>
-    api.put(`/orders/${id}/reject`, data),
-  
-  deleteOrder: (id: string) => api.delete(`/orders/${id}`),
-  
-  getStats: () => api.get('/orders/stats/summary'),
-};
-
 // Stock Transfers API
 export const stockTransfersAPI = {
   getTransfers: (params?: {
@@ -294,6 +317,11 @@ export const stockTransfersAPI = {
     quantity: number;
     notes?: string;
   }) => api.post('/stock-transfers', data),
+  
+  approveTransfer: (id: string) => api.patch(`/stock-transfers/${id}/approve`),
+  
+  rejectTransfer: (id: string, reason?: string) => 
+    api.patch(`/stock-transfers/${id}/reject`, { reason }),
   
   getStats: (params?: { cabangId?: string }) =>
     api.get('/stock-transfers/stats/summary', { params }),

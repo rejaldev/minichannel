@@ -87,43 +87,24 @@ export default function BackupDataPage() {
   };
 
   return (
-    <div className="px-4 md:px-6">
+    <div className="px-4 md:px-6 space-y-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">
-          Home
-        </a>
+      <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
         <span>›</span>
-        <a href="/dashboard/settings" className="hover:text-gray-900 dark:hover:text-white transition">
-          Settings
-        </a>
+        <a href="/dashboard/settings" className="hover:text-gray-900 dark:hover:text-white transition">Settings</a>
         <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Backup Data</span>
+        <span className="text-gray-900 dark:text-white font-medium">Backup</span>
       </nav>
 
       {/* Message Alert */}
       {message && (
-        <div className={`mb-4 p-4 rounded-lg ${message.startsWith('✅') ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'}`}>
+        <div className={`p-4 rounded-lg ${message.startsWith('✅') ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'}`}>
           {message}
         </div>
       )}
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-              <svg className="w-5 h-5 md:w-6 md:h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Backup & Data</h2>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                Kelola backup database dan export data sistem
-              </p>
-            </div>
-          </div>
-        </div>
         <div className="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8">
           {/* Auto Backup */}
           <div className="p-5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">

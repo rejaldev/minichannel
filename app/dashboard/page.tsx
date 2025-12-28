@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { transactionsAPI, productsAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Package, AlertTriangle, Clock, Calendar, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Package, AlertTriangle, Clock, Calendar, ChevronDown, ChevronUp, Eye, EyeOff, LayoutDashboard } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
@@ -97,7 +97,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 md:px-6">
       {/* Screen Options Button */}
       <div className="flex justify-end">
         <div className="relative">

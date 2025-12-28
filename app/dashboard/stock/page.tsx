@@ -20,6 +20,7 @@ import {
   Eye,
   Edit3,
   ArrowRightLeft,
+  ArrowDownUp,
   Bell,
   History,
   CheckCircle,
@@ -153,7 +154,20 @@ export default function StockOverviewPage() {
   const [submitting, setSubmitting] = useState(false);
   const cabangDropdownRef = useRef<HTMLDivElement>(null);
   const actionMenuRef = useRef<HTMLDivElement>(null);
-  const LOW_STOCK_THRESHOLD = 5;
+
+  // Stock In Modal
+  const [showStockInModal, setShowStockInModal] = useState(false);
+  const [stockInItems, setStockInItems] = useState<Array<{
+    sku: string;
+    productId: string;
+    variantId: string;
+    productName: string;
+    variantName: string;
+    quantity: number;
+    cabangId: string;
+    skuError?: string;
+  }>>([]);
+  const [stockInLoading, setStockInLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -253,7 +267,7 @@ export default function StockOverviewPage() {
 
   const visibleCabangs = useMemo(() => cabangs.filter(c => selectedCabangs.has(c.id)), [cabangs, selectedCabangs]);
 
-  // Helper: check if variant has alert and is below threshold
+  // Helper: check if variant has alert and is below threshold for specific cabang
   const getAlertStatus = useCallback((variantId: string, cabangId: string, currentQty: number) => {
     const key = `${variantId}-${cabangId}`;
     const alert = stockAlerts.get(key);
@@ -264,6 +278,20 @@ export default function StockOverviewPage() {
     }
     return { hasAlert: true, isLow: false, minStock: alert.minStock };
   }, [stockAlerts]);
+
+  // Helper: check if variant has any low stock alert (across any cabang)
+  const isVariantLowStock = useCallback((variant: Variant) => {
+    return variant.stocks.some(stock => {
+      const key = `${variant.id}-${stock.cabang.id}`;
+      const alert = stockAlerts.get(key);
+      return alert?.isActive && stock.quantity < alert.minStock;
+    });
+  }, [stockAlerts]);
+
+  // Helper: check if product has any variant with low stock alert
+  const isProductLowStock = useCallback((product: Product) => {
+    return product.variants.some(variant => isVariantLowStock(variant));
+  }, [isVariantLowStock]);
 
   // Helper: get stock summary for a product per cabang
   const getProductStockByCabang = useCallback((product: Product, cabangId: string) => {
@@ -312,29 +340,27 @@ export default function StockOverviewPage() {
     }
 
     if (showLowStockOnly) {
-      const totalStock = getProductTotalStock(product);
-      if (totalStock > LOW_STOCK_THRESHOLD) return false;
+      // Only show products that have variants with active low stock alerts
+      if (!isProductLowStock(product)) return false;
     }
 
     return true;
-  }), [products, searchTerm, showLowStockOnly, getProductTotalStock]);
+  }), [products, searchTerm, showLowStockOnly, isProductLowStock]);
 
   // Summary calculations - memoized
   const { totalProducts, totalVariants, totalStockUnits, lowStockCount, outOfStockCount } = useMemo(() => {
     const totalProducts = filteredProducts.length;
     const totalVariants = filteredProducts.reduce((sum, p) => sum + p.variants.length, 0);
     const totalStockUnits = filteredProducts.reduce((sum, p) => sum + getProductTotalStock(p), 0);
+    // Count variants that have active alerts and are below threshold
     const lowStockCount = filteredProducts.reduce((count, p) => {
-      return count + p.variants.filter(v => {
-        const total = getVariantTotalStock(v);
-        return total <= LOW_STOCK_THRESHOLD && total > 0;
-      }).length;
+      return count + p.variants.filter(v => isVariantLowStock(v)).length;
     }, 0);
     const outOfStockCount = filteredProducts.reduce((count, p) => {
       return count + p.variants.filter(v => getVariantTotalStock(v) === 0).length;
     }, 0);
     return { totalProducts, totalVariants, totalStockUnits, lowStockCount, outOfStockCount };
-  }, [filteredProducts, getProductTotalStock, getVariantTotalStock]);
+  }, [filteredProducts, getProductTotalStock, getVariantTotalStock, isVariantLowStock]);
 
   // Action handlers
   const handleViewDetail = (productId: string, sku?: string) => {
@@ -370,6 +396,133 @@ export default function StockOverviewPage() {
       cabangId,
       currentStock: stock?.quantity || 0
     }));
+  };
+
+  // Stock In Handlers
+  const handleOpenStockInModal = () => {
+    setShowStockInModal(true);
+    setStockInItems([{
+      sku: '',
+      productId: '',
+      variantId: '',
+      productName: '',
+      variantName: '',
+      quantity: 0,
+      cabangId: cabangs[0]?.id || ''
+    }]);
+  };
+
+  const handleAddStockInItem = () => {
+    setStockInItems([...stockInItems, {
+      sku: '',
+      productId: '',
+      variantId: '',
+      productName: '',
+      variantName: '',
+      quantity: 0,
+      cabangId: cabangs[0]?.id || ''
+    }]);
+  };
+
+  const handleRemoveStockInItem = (index: number) => {
+    setStockInItems(stockInItems.filter((_, i) => i !== index));
+  };
+
+  const handleStockInItemChange = async (index: number, field: string, value: any) => {
+    const newItems = [...stockInItems];
+    
+    if (field === 'sku') {
+      newItems[index] = {
+        ...newItems[index],
+        sku: value,
+        productId: '',
+        variantId: '',
+        productName: '',
+        variantName: '',
+        skuError: undefined
+      };
+      
+      // Search by SKU jika ada input
+      if (value.trim()) {
+        try {
+          const response = await productsAPI.searchBySKU(value.trim());
+          const apiData = response.data;
+          if (apiData?.success && apiData.data) {
+            const { product, variant } = apiData.data;
+            newItems[index] = {
+              ...newItems[index],
+              sku: variant.sku,
+              productId: product.id,
+              productName: product.name,
+              variantId: variant.id,
+              variantName: variant.variantType ? `${variant.variantType}: ${variant.value}` : 'Default',
+              skuError: undefined
+            };
+          }
+        } catch (error: any) {
+          const errorMsg = error?.response?.data?.error || 'SKU tidak ditemukan';
+          newItems[index] = {
+            ...newItems[index],
+            skuError: errorMsg
+          };
+        }
+      }
+    } else {
+      newItems[index] = {
+        ...newItems[index],
+        [field]: value
+      };
+    }
+    
+    setStockInItems(newItems);
+  };
+
+  const handleSubmitStockIn = async () => {
+    const invalidItems = stockInItems.filter(item => 
+      !item.sku || !item.variantId || !item.cabangId || item.quantity <= 0
+    );
+    
+    if (invalidItems.length > 0) {
+      alert('Pastikan semua item sudah diisi: SKU valid, cabang terpilih, dan quantity > 0');
+      return;
+    }
+
+    setStockInLoading(true);
+    
+    try {
+      const results = await Promise.allSettled(
+        stockInItems.map(async (item) => {
+          const stockRes = await productsAPI.getStock(item.variantId);
+          const currentStock = stockRes.data.find((s: any) => s.cabangId === item.cabangId);
+          const currentQty = currentStock?.quantity || 0;
+          const newQty = currentQty + item.quantity;
+          
+          return productsAPI.updateStock(item.variantId, item.cabangId, {
+            quantity: newQty,
+            reason: 'STOCK_OPNAME',
+            notes: `Stock In: +${item.quantity} (dari ${currentQty} menjadi ${newQty})`
+          });
+        })
+      );
+
+      const failed = results.filter(r => r.status === 'rejected');
+      const success = results.filter(r => r.status === 'fulfilled');
+
+      if (failed.length > 0) {
+        alert(`Berhasil: ${success.length} item, Gagal: ${failed.length} item`);
+      } else {
+        alert(`✓ Berhasil menambahkan stok untuk ${success.length} item`);
+      }
+
+      await fetchData();
+      setShowStockInModal(false);
+      setStockInItems([]);
+    } catch (error) {
+      console.error('Error stock in:', error);
+      alert('Gagal menambahkan stok');
+    } finally {
+      setStockInLoading(false);
+    }
   };
 
   const handleSubmitAdjustment = async () => {
@@ -660,7 +813,34 @@ export default function StockOverviewPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 md:px-6">
+      {/* Breadcrumb + Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
+          <span>›</span>
+          <span className="text-gray-900 dark:text-white font-medium">Stock Overview</span>
+        </nav>
+        
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleOpenStockInModal}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl font-medium"
+          >
+            <ArrowDownUp className="w-4 h-4" />
+            Stock In
+          </button>
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
@@ -920,7 +1100,7 @@ export default function StockOverviewPage() {
               ) : (
                 filteredProducts.map((product, index) => {
                   const totalStock = getProductTotalStock(product);
-                  const isLowStock = totalStock <= LOW_STOCK_THRESHOLD && totalStock > 0;
+                  const isLowStock = isProductLowStock(product);
                   const isOutOfStock = totalStock === 0;
                   const variantCount = product.variants.length;
                   const isExpanded = expandedProducts.has(product.id);
@@ -985,11 +1165,15 @@ export default function StockOverviewPage() {
                         </td>
                         {visibleCabangs.map(cabang => {
                           const qty = getProductStockByCabang(product, cabang.id);
-                          const cabangLow = qty <= LOW_STOCK_THRESHOLD && qty > 0;
+                          // Check if any variant in this product has alert for this cabang
+                          const hasCabangAlert = product.variants.some(v => {
+                            const alertStatus = getAlertStatus(v.id, cabang.id, getVariantStockByCabang(v, cabang.id));
+                            return alertStatus?.isLow;
+                          });
                           const cabangOut = qty === 0;
                           return (
                             <td key={cabang.id} className="px-3 py-2.5 text-center border-l border-gray-100 dark:border-gray-700">
-                              <span className={`text-sm font-medium ${cabangOut ? 'text-red-500' : cabangLow ? 'text-yellow-600' : 'text-gray-600 dark:text-gray-300'}`}>
+                              <span className={`text-sm font-medium ${cabangOut ? 'text-red-500' : hasCabangAlert ? 'text-yellow-600' : 'text-gray-600 dark:text-gray-300'}`}>
                                 {qty.toLocaleString()}
                               </span>
                             </td>
@@ -1071,7 +1255,7 @@ export default function StockOverviewPage() {
                       {/* Variant Sub-rows */}
                       {!isSingle && isExpanded && product.variants.map((variant, vIndex) => {
                         const variantTotal = getVariantTotalStock(variant);
-                        const variantLow = variantTotal <= LOW_STOCK_THRESHOLD && variantTotal > 0;
+                        const variantLow = isVariantLowStock(variant);
                         const variantOut = variantTotal === 0;
 
                         return (
@@ -1105,14 +1289,13 @@ export default function StockOverviewPage() {
                             {visibleCabangs.map(cabang => {
                               const qty = getVariantStockByCabang(variant, cabang.id);
                               const alertStatus = getAlertStatus(variant.id, cabang.id, qty);
-                              const cabangLow = qty <= LOW_STOCK_THRESHOLD && qty > 0;
                               const cabangOut = qty === 0;
                               const isAlertLow = alertStatus?.isLow;
                               
                               return (
                                 <td key={cabang.id} className="px-3 py-2 text-center border-l border-gray-100 dark:border-gray-700">
                                   <div className="flex flex-col items-center gap-0.5">
-                                    <span className={`text-sm ${cabangOut ? 'text-red-500' : isAlertLow ? 'text-orange-600 dark:text-orange-400 font-semibold' : cabangLow ? 'text-yellow-600' : 'text-gray-600 dark:text-gray-300'}`}>
+                                    <span className={`text-sm ${cabangOut ? 'text-red-500' : isAlertLow ? 'text-orange-600 dark:text-orange-400 font-semibold' : 'text-gray-600 dark:text-gray-300'}`}>
                                       {qty.toLocaleString()}
                                     </span>
                                     {alertStatus?.hasAlert && (
@@ -1728,6 +1911,181 @@ export default function StockOverviewPage() {
                 <Check className="w-4 h-4" />
                 Simpan Alert
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stock In Modal */}
+      {showStockInModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 md:p-6 z-10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <ArrowDownUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Stock In - Barang Masuk</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Tambah stok produk ke gudang</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowStockInModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 md:p-6">
+              {/* Items List */}
+              <div className="space-y-4 mb-4">
+                {stockInItems.map((item, index) => (
+                  <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="inline-flex items-center justify-center w-6 h-6 bg-green-600 text-white text-xs font-bold rounded-full">
+                        {index + 1}
+                      </span>
+                      {stockInItems.length > 1 && (
+                        <button
+                          onClick={() => handleRemoveStockInItem(index)}
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* SKU Input - Primary Field */}
+                    <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border-2 border-green-200 dark:border-green-800">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <span className="inline-flex items-center gap-2">
+                          <Search className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          <span className="text-green-700 dark:text-green-300 font-semibold">Input SKU / Scan Barcode</span>
+                          <span className="text-red-500">*</span>
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={item.sku}
+                        onChange={(e) => handleStockInItemChange(index, 'sku', e.target.value)}
+                        placeholder="Ketik atau scan SKU barcode disini..."
+                        className={`w-full px-4 py-3 border-2 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 text-sm font-mono tracking-wider placeholder:font-sans placeholder:tracking-normal ${
+                          item.skuError
+                            ? 'border-red-300 dark:border-red-700 focus:ring-red-500 focus:border-red-500'
+                            : 'border-green-300 dark:border-green-700 focus:ring-green-500 focus:border-green-500'
+                        }`}
+                        autoFocus={index === stockInItems.length - 1}
+                      />
+                      {item.skuError ? (
+                        <p className="mt-2 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          {item.skuError}
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          Produk dan varian akan otomatis terdeteksi setelah input SKU
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Auto-filled Product Info Display */}
+                    {item.productName && (
+                      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">{item.productName}</p>
+                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">{item.variantName}</p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-mono">SKU: {item.sku}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Quantity */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Jumlah <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={item.quantity ? item.quantity.toLocaleString('id-ID') : ''}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            handleStockInItemChange(index, 'quantity', parseInt(value) || 0);
+                          }}
+                          placeholder="0"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                        />
+                      </div>
+
+                      {/* Cabang Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Cabang Tujuan <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={item.cabangId}
+                          onChange={(e) => handleStockInItemChange(index, 'cabangId', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                        >
+                          <option value="">-- Pilih Cabang --</option>
+                          {cabangs.map(cabang => (
+                            <option key={cabang.id} value={cabang.id}>
+                              {cabang.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Item Button */}
+              <button
+                onClick={handleAddStockInItem}
+                className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10 transition-all font-medium text-sm"
+              >
+                <span className="inline-flex items-center">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Tambah Item
+                </span>
+              </button>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setShowStockInModal(false)}
+                  disabled={stockInLoading}
+                  className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSubmitStockIn}
+                  disabled={stockInLoading || stockInItems.length === 0}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all disabled:opacity-50 disabled:transform-none"
+                >
+                  {stockInLoading ? (
+                    <span className="flex items-center justify-center">
+                      <RefreshCw className="animate-spin h-5 w-5 mr-2" />
+                      Menyimpan...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <Check className="w-5 h-5 mr-2" />
+                      Simpan Stock In
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

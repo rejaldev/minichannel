@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { productsAPI, cabangAPI } from '@/lib/api';
 import { getAuth } from '@/lib/auth';
 import { useRealtimeRefresh } from '@/hooks/useSocket';
+import { Package, Plus } from 'lucide-react';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -38,20 +39,6 @@ export default function ProductsPage() {
   const [newStockQty, setNewStockQty] = useState('');
   const [adjustmentReason, setAdjustmentReason] = useState('');
   const [savingStock, setSavingStock] = useState(false);
-
-  // Stock In Modal
-  const [showStockInModal, setShowStockInModal] = useState(false);
-  const [stockInItems, setStockInItems] = useState<Array<{
-    sku: string;
-    productId: string;
-    variantId: string;
-    productName: string;
-    variantName: string;
-    quantity: number;
-    cabangId: string;
-    skuError?: string;
-  }>>([]);
-  const [stockInLoading, setStockInLoading] = useState(false);
 
   // Import/Export state
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -255,138 +242,6 @@ export default function ProductsPage() {
     setAdjustmentReason('');
   };
 
-  const handleOpenStockInModal = () => {
-    setShowStockInModal(true);
-    setStockInItems([{
-      sku: '',
-      productId: '',
-      variantId: '',
-      productName: '',
-      variantName: '',
-      quantity: 0,
-      cabangId: cabangs[0]?.id || ''
-    }]);
-  };
-
-  const handleAddStockInItem = () => {
-    setStockInItems([...stockInItems, {
-      sku: '',
-      productId: '',
-      variantId: '',
-      productName: '',
-      variantName: '',
-      quantity: 0,
-      cabangId: cabangs[0]?.id || ''
-    }]);
-  };
-
-  const handleRemoveStockInItem = (index: number) => {
-    setStockInItems(stockInItems.filter((_, i) => i !== index));
-  };
-
-  const handleStockInItemChange = async (index: number, field: string, value: any) => {
-    const newItems = [...stockInItems];
-    
-    if (field === 'sku') {
-      newItems[index] = {
-        ...newItems[index],
-        sku: value,
-        productId: '',
-        variantId: '',
-        productName: '',
-        variantName: '',
-        skuError: undefined
-      };
-      
-      // Search by SKU jika ada input
-      if (value.trim()) {
-        try {
-          const response = await productsAPI.searchBySKU(value.trim());
-          // Axios returns data in response.data
-          const apiData = response.data;
-          if (apiData?.success && apiData.data) {
-            const { product, variant } = apiData.data;
-            newItems[index] = {
-              ...newItems[index],
-              sku: variant.sku,
-              productId: product.id,
-              productName: product.name,
-              variantId: variant.id,
-              variantName: variant.variantType ? `${variant.variantType}: ${variant.value}` : 'Default',
-              skuError: undefined
-            };
-          }
-        } catch (error: any) {
-          // Show user-friendly error message
-          const errorMsg = error?.response?.data?.error || 'SKU tidak ditemukan';
-          newItems[index] = {
-            ...newItems[index],
-            skuError: errorMsg
-          };
-        }
-      }
-    } else {
-      newItems[index] = {
-        ...newItems[index],
-        [field]: value
-      };
-    }
-    
-    setStockInItems(newItems);
-  };
-
-  const handleSubmitStockIn = async () => {
-    // Validate - check SKU and required fields
-    const invalidItems = stockInItems.filter(item => 
-      !item.sku || !item.variantId || !item.cabangId || item.quantity <= 0
-    );
-    
-    if (invalidItems.length > 0) {
-      alert('Pastikan semua item sudah diisi: SKU valid, cabang terpilih, dan quantity > 0');
-      return;
-    }
-
-    setStockInLoading(true);
-    
-    try {
-      // Submit each item
-      const results = await Promise.allSettled(
-        stockInItems.map(async (item) => {
-          // Get current stock first
-          const stockRes = await productsAPI.getStock(item.variantId);
-          const currentStock = stockRes.data.find((s: any) => s.cabangId === item.cabangId);
-          const currentQty = currentStock?.quantity || 0;
-          const newQty = currentQty + item.quantity;
-          
-          return productsAPI.updateStock(item.variantId, item.cabangId, {
-            quantity: newQty,
-            reason: 'STOCK_OPNAME',
-            notes: `Stock In: +${item.quantity} (dari ${currentQty} menjadi ${newQty})`
-          });
-        })
-      );
-
-      const failed = results.filter(r => r.status === 'rejected');
-      const success = results.filter(r => r.status === 'fulfilled');
-
-      if (failed.length > 0) {
-        alert(`Berhasil: ${success.length} item, Gagal: ${failed.length} item`);
-      } else {
-        alert(`✓ Berhasil menambahkan stok untuk ${success.length} item`);
-      }
-
-      // Refresh data and close modal
-      await fetchData();
-      setShowStockInModal(false);
-      setStockInItems([]);
-    } catch (error) {
-      console.error('Error stock in:', error);
-      alert('Gagal menambahkan stok');
-    } finally {
-      setStockInLoading(false);
-    }
-  };
-
   // Import/Export Functions
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -516,34 +371,22 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="px-4 md:px-6">
+    <div className="px-4 md:px-6 space-y-6">
       {/* Breadcrumb + Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-          <button onClick={() => router.push('/dashboard')} className="hover:text-gray-900 dark:hover:text-white transition">
-            Home
-          </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Dashboard</a>
           <span>›</span>
-          <span className="font-semibold text-gray-900 dark:text-white">Kelola Produk</span>
+          <span className="text-gray-900 dark:text-white font-medium">Produk</span>
         </nav>
+        
         {activeTab === 'products' && (
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleOpenStockInModal}
-              className="inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg hover:shadow-xl text-xs sm:text-sm font-medium whitespace-nowrap"
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-              </svg>
-              Stock In
-            </button>
             <button
               onClick={() => router.push('/dashboard/products/new')}
               className="inline-flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg hover:shadow-xl text-xs sm:text-sm font-medium whitespace-nowrap"
             >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+              <Plus className="w-4 h-4 mr-1.5" />
               Tambah Produk
             </button>
           </div>
@@ -1246,204 +1089,6 @@ export default function ProductsPage() {
         </>
       )}
       </>
-      )}
-
-      {/* Stock In Modal */}
-      {showStockInModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 md:p-6 z-10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Stock In - Barang Masuk</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Tambah stok produk ke gudang</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowStockInModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 md:p-6">
-              {/* Items List */}
-              <div className="space-y-4 mb-4">
-                {stockInItems.map((item, index) => (
-                  <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
-                    <div className="flex items-start justify-between mb-3">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-green-600 text-white text-xs font-bold rounded-full">
-                        {index + 1}
-                      </span>
-                      {stockInItems.length > 1 && (
-                        <button
-                          onClick={() => handleRemoveStockInItem(index)}
-                          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* SKU Input - Primary Field */}
-                    <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border-2 border-green-200 dark:border-green-800">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        <span className="inline-flex items-center gap-2">
-                          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.99c.88 0 1.75-.37 2.36-.98a3.5 3.5 0 004.82-5.04A3.5 3.5 0 0018.55 2H8.45C5.96 2 4 3.96 4 6.45s1.96 4.45 4.45 4.45H12z" />
-                          </svg>
-                          <span className="text-green-700 dark:text-green-300 font-semibold">Input SKU / Scan Barcode</span>
-                          <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <input
-                        type="text"
-                        value={item.sku}
-                        onChange={(e) => handleStockInItemChange(index, 'sku', e.target.value)}
-                        placeholder="Ketik atau scan SKU barcode disini..."
-                        className={`w-full px-4 py-3 border-2 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 text-sm font-mono tracking-wider placeholder:font-sans placeholder:tracking-normal ${
-                          item.skuError
-                            ? 'border-red-300 dark:border-red-700 focus:ring-red-500 focus:border-red-500'
-                            : 'border-green-300 dark:border-green-700 focus:ring-green-500 focus:border-green-500'
-                        }`}
-                        autoFocus={index === stockInItems.length - 1}
-                      />
-                      {item.skuError ? (
-                        <p className="mt-2 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {item.skuError}
-                        </p>
-                      ) : (
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Produk dan varian akan otomatis terdeteksi setelah input SKU
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Auto-filled Product Info Display */}
-                    {item.productName && (
-                      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-start gap-2">
-                          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <div className="flex-1">
-                            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">{item.productName}</p>
-                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">{item.variantName}</p>
-                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-mono">SKU: {item.sku}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                      {/* Quantity */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Jumlah <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={item.quantity ? item.quantity.toLocaleString('id-ID') : ''}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            handleStockInItemChange(index, 'quantity', parseInt(value) || 0);
-                          }}
-                          placeholder="0"
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                        />
-                      </div>
-
-                      {/* Cabang Selection */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Cabang Tujuan <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          value={item.cabangId}
-                          onChange={(e) => handleStockInItemChange(index, 'cabangId', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                        >
-                          <option value="">-- Pilih Cabang --</option>
-                          {cabangs.map(cabang => (
-                            <option key={cabang.id} value={cabang.id}>
-                              {cabang.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Add Item Button */}
-              <button
-                onClick={handleAddStockInItem}
-                className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10 transition-all font-medium text-sm"
-              >
-                <span className="inline-flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Tambah Item
-                </span>
-              </button>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => setShowStockInModal(false)}
-                  disabled={stockInLoading}
-                  className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleSubmitStockIn}
-                  disabled={stockInLoading || stockInItems.length === 0}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all disabled:opacity-50 disabled:transform-none"
-                >
-                  {stockInLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Menyimpan...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Simpan Stock In
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Variant Details Modal */}
