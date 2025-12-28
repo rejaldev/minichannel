@@ -167,10 +167,6 @@ function BranchesContent() {
           <p className="text-2xl font-bold text-red-600">{cabangs.filter(c => !c.isActive).length}</p>
           <p className="text-xs text-gray-500">Non-Aktif</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-2xl font-bold text-blue-600">{cabangs.filter(c => c.isWarehouse).length}</p>
-          <p className="text-xs text-gray-500">Gudang</p>
-        </div>
       </div>
 
       {/* Main Card */}
