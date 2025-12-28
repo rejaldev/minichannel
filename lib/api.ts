@@ -299,6 +299,57 @@ export const stockTransfersAPI = {
     api.get('/stock-transfers/stats/summary', { params }),
 };
 
+// Stock API (Adjustments)
+export const stockAPI = {
+  // Create stock adjustment
+  createAdjustment: (data: {
+    variantId: string;
+    cabangId: string;
+    type: 'add' | 'subtract';
+    quantity: number;
+    reason: string;
+    notes?: string;
+  }) => api.post('/stock/adjustment', data),
+  
+  // Get all adjustments with filters
+  getAdjustments: (params?: {
+    cabangId?: string;
+    variantId?: string;
+    startDate?: string;
+    endDate?: string;
+    reason?: string;
+    page?: number;
+    limit?: number;
+  }) => api.get('/stock/adjustments', { params }),
+  
+  // Get adjustment history for specific variant/cabang
+  getAdjustmentHistory: (variantId: string, cabangId: string, limit?: number) =>
+    api.get(`/stock/adjustment/${variantId}/${cabangId}/history`, { params: { limit } }),
+  
+  // Set stock alert
+  setAlert: (data: {
+    variantId: string;
+    cabangId: string;
+    minStock: number;
+  }) => api.post('/stock/alert', data),
+  
+  // Get stock alert
+  getAlert: (variantId: string, cabangId: string) =>
+    api.get(`/stock/alert/${variantId}/${cabangId}`),
+  
+  // Delete/deactivate stock alert
+  deleteAlert: (variantId: string, cabangId: string) =>
+    api.delete(`/stock/alert/${variantId}/${cabangId}`),
+  
+  // Get all low stock items
+  getLowStockItems: (cabangId?: string) =>
+    api.get('/stock/alerts/low', { params: { cabangId } }),
+  
+  // Get all active alerts
+  getAlerts: (cabangId?: string) =>
+    api.get('/stock/alerts', { params: { cabangId } }),
+};
+
 // Backup & Export API
 export const backupAPI = {
   // Manual backup

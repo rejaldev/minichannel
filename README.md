@@ -1,6 +1,11 @@
 # 🎨 MiniChannel - Frontend Dashboard
 
-Modern web dashboard untuk Point of Sale dan inventory management system. Built with Next.js 16 (App Router + Turbopack) untuk maximum performance.
+Modern web dashboard untuk Point of Sale dan inventory management system. Dibangun dengan Next.js 16 (App Router + Turbopack) untuk performa maksimal dan pengalaman pengguna yang smooth.
+
+[![Next.js](https://img.shields.io/badge/Next.js-16.0.7-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.2.1-61dafb?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
 
 ## 🚀 Quick Start
 
@@ -8,96 +13,525 @@ Modern web dashboard untuk Point of Sale dan inventory management system. Built 
 # Install dependencies
 npm install
 
+# Copy environment variables
+cp .env.local.example .env.local
+
+# Edit .env.local
+NEXT_PUBLIC_API_URL=http://localhost:5100
+NEXT_PUBLIC_SOCKET_URL=http://localhost:5100
+
 # Run development server
 npm run dev
 ```
 
-**Access:** http://localhost:3100
+**Access:** [http://localhost:3100](http://localhost:3100)
+
+**Default Login:**
+- Username: `owner` / Password: `password123`
+- Username: `kasir1` / Password: `password123`
 
 ## 🛠 Tech Stack
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | **Next.js** | 16.0.7 | React framework dengan App Router & Turbopack |
-| **React** | 19.2.1 | UI library |
-| **TypeScript** | 5.x | Type safety |
-| **Tailwind CSS** | 4.x | Utility-first CSS |
-| **Socket.io Client** | 4.7.2 | Real-time communication |
-| **Axios** | 1.13.2 | HTTP client |
-| **Recharts** | 3.5.0 | Data visualization |
-| **Lucide React** | 0.555.0 | Icon library |
-| **Radix UI** | Latest | Accessible UI components |
+| **React** | 19.2.1 | UI library dengan React 19 features |
+| **TypeScript** | 5.x | Type safety & developer experience |
+| **Tailwind CSS** | 4.x | Utility-first CSS framework |
+| **Socket.io Client** | 4.7.2 | Real-time communication dengan backend |
+| **Axios** | 1.7.9 | HTTP client untuk API calls |
+| **Recharts** | 3.5.0 | Data visualization & analytics charts |
+| **Lucide React** | 0.555.0 | Modern icon library |
+| **Radix UI** | Latest | Accessible UI primitives |
+| **React Hook Form** | 7.x | Form state management |
 
-## 📱 Pages & Routes
+## 📱 Application Structure
+
+```
+frontend/
+├── app/
+│   ├── login/                    # Authentication page
+│   ├── pos/                      # Point of Sale interface
+│   │   └── page.tsx             # POS main page with cart & search
+│   └── dashboard/               # Protected dashboard routes
+│       ├── page.tsx             # Dashboard overview & analytics
+│       ├── layout.tsx           # Dashboard layout with sidebar
+│       ├── products/            # Product management
+│       │   ├── page.tsx         # Product list (card view)
+│       │   ├── new/             # Create product form
+│       │   └── [id]/
+│       │       ├── page.tsx     # Product detail view
+│       │       └── edit/        # Edit product form
+│       ├── categories/          # Category management
+│       ├── stock/               # Stock management
+│       │   ├── page.tsx         # Stock overview with alerts
+│       │   └── transfers/       # Inter-branch transfers
+│       ├── transactions/        # Transaction history
+│       ├── returns/             # Return & refund management
+│       ├── reports/             # Sales analytics & reports
+│       ├── branches/            # Branch management (OWNER only)
+│       └── settings/            # System settings
+│           └── page.tsx         # 4 tabs: General, Users, Printer, Backup
+├── components/
+│   ├── ui/                      # Reusable UI components
+│   ├── ProtectedRoute.tsx       # Auth guard component
+│   ├── DynamicVariantBuilder.tsx # Product variant builder
+│   └── TransactionHistory.tsx   # Transaction list component
+├── lib/
+│   ├── api.ts                   # Axios API client with interceptors
+│   ├── auth.ts                  # Auth utilities & token management
+│   ├── socket.ts                # Socket.io client setup
+│   └── qz-print.ts             # QZ Tray printer integration
+├── hooks/
+│   ├── useSocket.ts             # Real-time data sync hook
+│   └── useProductSocket.ts      # Product-specific socket hook
+└── contexts/
+    └── ThemeContext.tsx         # Dark mode theme provider
+```
+
+## 🗺 Routes & Access Control
 
 ### Public Routes
-- `/login` - Authentication page
+| Route | Description |
+|-------|-------------|
+| `/login` | Authentication page dengan username/password |
 
-### Protected Routes (Dashboard)
+### Protected Routes
 
-| Route | Description | Access |
-|-------|-------------|--------|
-| `/dashboard` | Overview & statistics | All roles |
-| `/pos` | Point of Sale interface | KASIR, MANAGER, OWNER |
-| `/dashboard/products` | Product management (CRUD) | MANAGER, OWNER |
-| `/dashboard/products/new` | Create new product | MANAGER, OWNER |
-| `/dashboard/products/[id]/edit` | Edit product details | MANAGER, OWNER |
-| `/dashboard/categories` | Category management | MANAGER, OWNER |
-| `/dashboard/transactions` | Transaction history | All roles |
-| `/dashboard/reports` | Sales analytics | OWNER, MANAGER |
-| `/dashboard/stock` | Stock overview | All roles |
-| `/dashboard/stock-opname` | Stock audit (Coming Soon) | MANAGER, OWNER |
-| `/dashboard/stock-transfers` | Inter-branch transfers (Coming Soon) | MANAGER, OWNER |
-| `/dashboard/returns` | Return & refund management | MANAGER, OWNER |
-| `/dashboard/branches` | Branch management | OWNER |
-| `/dashboard/users` | User management | OWNER |
-| `/dashboard/settings` | System configuration | OWNER, MANAGER |
+#### 👁️ All Roles (OWNER, MANAGER, ADMIN, KASIR)
+| Route | Description | Features |
+|-------|-------------|----------|
+| `/dashboard` | Dashboard overview | Sales stats, charts, recent transactions |
+| `/dashboard/transactions` | Transaction history | Filter, search, detail view |
+| `/dashboard/stock` | Stock overview | Multi-cabang view, expandable variants |
 
-## ⚙️ Settings Module
+#### 💼 KASIR, MANAGER, OWNER
+| Route | Description | Features |
+|-------|-------------|----------|
+| `/pos` | Point of Sale | Product search, cart, payment, print receipt |
 
-Dashboard settings terbagi dalam 4 tabs:
+#### 🔧 MANAGER, OWNER
+| Route | Description | Features |
+|-------|-------------|----------|
+| `/dashboard/products` | Product management | Card view, bulk delete, import/export |
+| `/dashboard/products/new` | Create product | Single/Multi-variant support |
+| `/dashboard/products/[id]` | Product detail | View variants, stock per cabang |
+| `/dashboard/products/[id]/edit` | Edit product | Update details, variants, pricing |
+| `/dashboard/categories` | Category management | CRUD operations |
+| `/dashboard/returns` | Return & refund | Process returns, refund payments |
+| `/dashboard/reports` | Sales analytics | Charts, top products, trends |
+| `/dashboard/settings` | System settings | General, Users, Printer, Backup |
 
-### 1. General Settings
-- Store name & information
-- Business hours
-- Timezone configuration
-
-### 2. User Management
-- Create, edit, delete users
-- Role assignment (OWNER, MANAGER, ADMIN, KASIR)
-- User status (active/inactive)
-- Password management
-
-### 3. Printer Settings
-- Receipt customization
-- Header text & logo
-- Footer message
-- Paper size (58mm/80mm)
-- Test print functionality
-
-### 4. Backup & Data
-- **Manual Backup**: Backup database on-demand (JSON format)
-- **Auto Backup**: Schedule daily backup at 00:00
-- **Export Data**: 
-  - Transactions to CSV
-  - Products to CSV
-  - Reports to PDF
-- **Reset Settings**: Restore default configuration
-- **Retention**: 7-day auto-cleanup for old backups
+#### 👑 OWNER Only
+| Route | Description | Features |
+|-------|-------------|----------|
+| `/dashboard/branches` | Branch management | Create, edit, activate/deactivate |
+| `/dashboard/settings` (Users tab) | User management | Create, edit, delete users |
 
 ## 🎯 Key Features
 
-### POS Interface (`/pos`)
-- **Fast Product Search**: 
-  - Smart keyword matching dengan relevance scoring
-  - Multi-keyword parsing (text + numbers)
-  - Variant filtering (e.g., "Baju SD 7" shows only SD 7)
-  - Word boundary matching (\b7\b) untuk avoid false positives
-  - Dynamic threshold filtering
-- **Keyboard Shortcuts**: F1-F12 for quick actions
-- **Cart Management**: Add, remove, adjust quantities
-- **Payment Methods**: Cash, Transfer, QRIS, Debit
-- **Split Payment**: Support multiple payment methods
+### 🛒 Point of Sale (`/pos`)
+
+#### Smart Product Search
+Sistem pencarian produk yang cerdas dengan algoritma 7-phase filtering:
+
+```typescript
+// Example: Search "Baju SD 7"
+// Will find: "Baju Sekolah - SD 7"
+// Won't find: "Baju Pramuka - Panjang 7" (wrong context)
+```
+
+**Search Algorithm Features:**
+1. **Multi-keyword Parsing** - Split "Baju SD 7" → ["Baju", "SD", "7"]
+2. **Text + Number Recognition** - Detect text keywords vs numeric values
+3. **Word Boundary Matching** - `\b7\b` untuk exact match, avoid "17" or "27"
+4. **Variant-Level Filtering** - Filter variant yang match dengan number keyword
+5. **Pre-Product Keyword Validation** - Product harus punya semua text keywords
+6. **Relevance Scoring** - Exact match > Starts with > Contains
+7. **Dynamic Threshold** - Ambil produk dengan score 20-40% dari top score
+
+**Relevance Scoring:**
+- Exact match di nama produk: +100 points
+- Starts with di nama produk: +50 points
+- Contains di nama produk: +30 points
+- Exact match di variant: +80 points
+- Starts with di variant: +40 points
+- Contains di variant: +20 points
+
+#### Cart Management
+- Add products dengan keyboard shortcuts (F1-F12)
+- Adjust quantity langsung dari cart
+- Real-time stock validation
+- Visual feedback untuk low stock items
+- Auto-calculate subtotal & total
+
+#### Payment Methods
+- **Cash**: Auto-calculate kembalian
+- **Transfer**: Bank transfer / e-wallet
+- **QRIS**: QR code payment
+- **Debit**: Debit card
+- **Split Payment**: Kombinasi 2 metode (e.g., Cash Rp 50.000 + Transfer Rp 50.000)
+
+#### Receipt Printing
+- Thermal printer support via QZ Tray
+- Paper size: 58mm / 80mm
+- Customizable header & footer
+- Auto-print atau manual print
+- Test print dari settings
+
+### 📦 Product Management (`/dashboard/products`)
+
+#### Card-Based Layout
+- Modern card grid view (1-4 columns responsive)
+- Product image placeholder dengan initial letter
+- Expandable untuk lihat detail
+- Hover effects dengan smooth transitions
+
+#### Product Card Shows:
+- Checkbox untuk bulk selection
+- Active/Inactive status badge
+- Product name & category
+- Variant count dengan expand button
+- Price range (min-max)
+- Total stock dengan color coding:
+  - 🔴 Red: 0 unit (out of stock)
+  - 🟡 Yellow: 1-20 unit (low stock)
+  - 🟢 Green: >20 unit (available)
+- Action buttons (Detail, Edit)
+
+#### Variant Details Modal
+Untuk produk dengan variant, klik tombol varian akan membuka modal yang menampilkan:
+- Semua variant dengan nama & SKU
+- Stock per cabang untuk setiap variant
+- Price per variant
+- Color-coded stock badges
+- Scrollable content dengan fixed header/footer
+
+#### Bulk Operations
+- Select multiple products dengan checkbox
+- Bulk delete dengan konfirmasi
+- Select all / Deselect all
+
+#### Import/Export
+- Import products dari CSV
+- Export products ke CSV
+- Export transactions ke CSV
+- Template download untuk import
+
+### 📊 Stock Management (`/dashboard/stock`)
+
+#### Stock Overview
+**Layout:**
+- Tabel dengan expandable rows
+- Column: Produk, Total Stock, Stock per Cabang, Actions
+- Filter: Search, Low Stock Only, Cabang Selector
+- Tab navigation: Overview | History
+
+**Features:**
+- Multi-cabang stock visibility
+- Expand product untuk lihat variant details
+- Real-time updates via WebSocket
+- Stock alerts dengan visual indicator
+
+#### Stock Alert System
+**Set Alert:**
+- Klik "Set Alert" di action menu
+- Pilih cabang dari dropdown
+- Set minimum stock threshold
+- Visual badge indicator:
+  - 🔴 "LOW" - Stock dibawah threshold (orange)
+  - 🔵 "≥X" - Stock diatas threshold (blue)
+
+**Alert Badge Display:**
+- Muncul di cell stock (inline dengan quantity)
+- Bell icon + threshold value
+- Real-time update ketika stock berubah
+
+#### Stock Adjustment
+**Bulk Adjustment Modal:**
+- Add multiple items to adjustment list
+- Each item: Variant, Cabang, Current Stock, New Stock, Reason, Notes
+- "Add to List" button untuk menambah item baru
+- Submit semua adjustment sekaligus
+
+**Adjustment Reasons:**
+- Stok opname
+- Barang rusak
+- Barang hilang
+- Return supplier
+- Koreksi input
+- Penyesuaian sistem
+- Lainnya
+
+**Adjustment History:**
+1. **History Tab** - Dedicated tab untuk semua adjustment history
+   - Table view dengan kolom: Date, Product, Variant, Cabang, Previous → New, Difference, Reason, User
+   - Filter by cabang, variant, date range, reason
+   - Pagination dengan "Load More"
+
+2. **Quick History Modal** - Per-variant history
+   - Akses dari action menu ("Riwayat Stock")
+   - Shows: Adjustment entries dengan timeline
+   - Info: Previous qty → New qty, ±difference badge, reason, notes, user, timestamp
+   - Badge cabang (untuk single product dengan multiple cabangs)
+   - Scrollable modal dengan fixed header/footer
+
+### 💰 Transaction Management
+
+#### Transaction List
+- Filter by date range, payment method, kasir
+- Search by transaction ID / customer name
+- Status badges (COMPLETED, CANCELLED, REFUNDED)
+- Quick view transaction details
+
+#### Transaction Detail
+- Complete item list dengan quantities
+- Payment breakdown (split payment support)
+- Customer info (if available)
+- Kasir info
+- Timestamps (created, completed)
+- Print receipt button
+
+### 📈 Reports & Analytics
+
+#### Dashboard Overview
+- Today's sales summary
+- Sales trend chart (7 days)
+- Top products (by revenue)
+- Top categories
+- Payment method breakdown
+- Per-kasir performance
+
+#### Detailed Reports (`/dashboard/reports`)
+- Filter by date range
+- Export to CSV/PDF
+- Charts: Line, Bar, Pie
+- Metrics: Revenue, Transactions, Average Order Value
+
+### ⚙️ System Settings (`/dashboard/settings`)
+
+#### 1. General Settings
+- Store name & address
+- Store phone & email
+- Business hours configuration
+- Timezone setting
+
+#### 2. User Management (OWNER only)
+**User List:**
+- Table dengan kolom: Name, Username, Role, Cabang, Status, Actions
+- Status toggle: Active / Inactive
+- Edit user modal
+- Delete user dengan konfirmasi
+
+**Create/Edit User:**
+- Form fields: Name, Username, Password, Role, Cabang Assignment, Status
+- Role options: OWNER, MANAGER, ADMIN, KASIR
+- Cabang dropdown (required untuk non-OWNER)
+
+#### 3. Printer Settings
+**Receipt Configuration:**
+- Header text (multi-line)
+- Footer message
+- Paper size: 58mm / 80mm
+- Store logo (coming soon)
+
+**Test Print:**
+- Preview receipt format
+- Test print button
+- QZ Tray connection status
+
+#### 4. Backup & Data
+**Manual Backup:**
+- Backup database to JSON
+- Download backup file
+- Backup list dengan download links
+
+**Auto Backup:**
+- Schedule daily backup (00:00)
+- Enable/disable auto backup
+- 7-day retention policy (auto-delete old backups)
+
+**Export Data:**
+- Export transactions to CSV
+- Export products to CSV
+- Date range filter
+- Download generated file
+
+**Reset Settings:**
+- Reset to default configuration
+- Confirmation required
+- Excludes user data & transactions
+
+## 🔌 API Integration
+
+### API Client (`lib/api.ts`)
+
+```typescript
+// Example: Fetch products with search
+const products = await productsAPI.getProducts({
+  search: 'Baju SD 7',
+  categoryId: 'uuid',
+  cabangId: 'uuid'
+});
+
+// Create stock adjustment
+await stockAPI.createAdjustment({
+  variantId: 'uuid',
+  cabangId: 'uuid',
+  previousQty: 10,
+  newQty: 15,
+  difference: 5,
+  reason: 'Stok opname',
+  notes: 'Koreksi stok fisik'
+});
+
+// Set stock alert
+await stockAPI.setAlert({
+  variantId: 'uuid',
+  cabangId: 'uuid',
+  minStock: 5
+});
+```
+
+### WebSocket Events (`lib/socket.ts`)
+
+```typescript
+// Listen to stock updates
+socket.on('stock-updated', (data) => {
+  console.log('Stock updated:', data);
+  // { variantId, cabangId, newQuantity }
+  refreshStockData();
+});
+
+// Listen to product changes
+socket.on('product-updated', (data) => {
+  console.log('Product changed:', data);
+  // { productId, action: 'create' | 'update' | 'delete' }
+  refreshProductList();
+});
+
+// Emit real-time refresh
+socket.emit('refresh-data', { type: 'products' });
+```
+
+## 🎨 UI Components
+
+### Custom Hooks
+
+#### `useSocket()`
+```typescript
+const { connected, socket } = useSocket();
+// Returns socket connection status and instance
+```
+
+#### `useProductSocket()`
+```typescript
+const { products, loading } = useProductSocket();
+// Auto-refresh products on real-time updates
+```
+
+### Protected Route Component
+```typescript
+<ProtectedRoute allowedRoles={['OWNER', 'MANAGER']}>
+  <ProductManagementPage />
+</ProtectedRoute>
+```
+
+## 🚀 Build & Deploy
+
+### Development
+```bash
+npm run dev
+```
+
+### Production Build
+```bash
+npm run build
+npm start
+```
+
+### Docker
+```bash
+docker build -t minichannel-frontend .
+docker run -p 3100:3100 minichannel-frontend
+```
+
+### Environment Variables
+
+```env
+# Required
+NEXT_PUBLIC_API_URL=http://localhost:5100
+NEXT_PUBLIC_SOCKET_URL=http://localhost:5100
+
+# Optional
+NEXT_PUBLIC_APP_NAME=MiniChannel
+NEXT_PUBLIC_ENABLE_ANALYTICS=false
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Coverage report
+npm run test:coverage
+```
+
+## 📱 Responsive Design
+
+- Mobile-first approach
+- Breakpoints:
+  - `sm`: 640px
+  - `md`: 768px (tablet)
+  - `lg`: 1024px (desktop)
+  - `xl`: 1280px (large desktop)
+  - `2xl`: 1536px (extra large)
+
+## 🎨 Dark Mode
+
+- Auto-detect system preference
+- Manual toggle di header
+- Persistent state (localStorage)
+- Smooth transitions
+
+## ⌨️ Keyboard Shortcuts
+
+### POS
+- `F1-F12`: Quick add product to cart
+- `Ctrl+F`: Focus search
+- `Ctrl+Enter`: Complete transaction
+- `Esc`: Cancel current action
+
+### General
+- `Ctrl+K`: Open command palette (coming soon)
+- `Ctrl+/`: Toggle shortcuts help
+
+## 📚 Learn More
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Documentation](https://react.dev)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+- [Prisma](https://www.prisma.io/docs)
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+1. Fork the repo
+2. Create feature branch
+3. Make changes
+4. Submit pull request
+
+## 📄 License
+
+MIT License
+
+---
+
+**Built with ❤️ using Next.js 16 & React 19**
 - **Real-time Stock Check**: Live stock validation
 - **Thermal Printing**: Auto-print receipt via QZ Tray
 

@@ -5,6 +5,34 @@ import { useRouter, usePathname } from 'next/navigation';
 import { getAuth, clearAuth } from '@/lib/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useTheme } from '@/contexts/ThemeContext';
+import {
+  LayoutDashboard,
+  Clock,
+  RotateCcw,
+  ArrowLeftRight,
+  ShoppingCart,
+  Receipt,
+  History,
+  Package,
+  Tags,
+  BarChart3,
+  ClipboardList,
+  Repeat2,
+  Store,
+  Building2,
+  Users,
+  FileText,
+  TrendingUp,
+  Settings,
+  Printer,
+  Shield,
+  ChevronDown,
+  Menu,
+  X,
+  Sun,
+  Moon,
+  LogOut
+} from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,13 +47,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
-  const [marketplaceMenuOpen, setMarketplaceMenuOpen] = useState(false);
-  const [inventoryMenuOpen, setInventoryMenuOpen] = useState(false);
-  const [salesMenuOpen, setSalesMenuOpen] = useState(false);
-  const [reportsMenuOpen, setReportsMenuOpen] = useState(false);
-  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Submenu open states
+  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     // Set sidebar open by default on desktop only
@@ -49,190 +76,128 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     const { user: authUser } = getAuth();
     setUser(authUser);
     
-    // Auto open menus based on current page
-    if (pathname.startsWith('/dashboard/marketplace')) {
-      setMarketplaceMenuOpen(true);
-    }
-    if (pathname.startsWith('/dashboard/products') || pathname.startsWith('/dashboard/categories')) {
-      setInventoryMenuOpen(true);
-    }
-    if (pathname.startsWith('/dashboard/transactions') || pathname.startsWith('/dashboard/returns')) {
-      setSalesMenuOpen(true);
-    }
-    if (pathname.startsWith('/dashboard/reports')) {
-      setReportsMenuOpen(true);
-    }
-    if (pathname.startsWith('/dashboard/settings')) {
-      setSettingsMenuOpen(true);
-    }
-  }, [pathname, router]);
+    // Auto-expand menu based on current path
+    menuItems.forEach(item => {
+      if (item.subMenu) {
+        const isActive = item.subMenu.some(sub => 
+          pathname === sub.path || pathname.startsWith(sub.path + '/')
+        );
+        if (isActive) {
+          setOpenMenus(prev => ({ ...prev, [item.name]: true }));
+        }
+      }
+    });
+  }, [pathname]);
+
+  useEffect(() => {
+    // Update clock every second
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleLogout = () => {
     clearAuth();
     router.push('/login');
   };
 
+  const toggleMenu = (menuName: string) => {
+    setOpenMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
+  };
+
+  // Menu structure with parent-submenu
   const menuItems = [
     {
       name: 'Dashboard',
       path: '/dashboard',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      ),
-      roles: ['OWNER', 'MANAGER', 'ADMIN', 'KASIR'],
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      roles: ['OWNER', 'MANAGER', 'ADMIN'],
+    },
+    {
+      name: 'Approval',
+      icon: <Clock className="w-5 h-5" />,
+      roles: ['OWNER', 'MANAGER'],
+      subMenu: [
+        { name: 'Pending Returns', path: '/dashboard/approvals/returns', roles: ['OWNER', 'MANAGER'] },
+        { name: 'Pending Transfers', path: '/dashboard/approvals/transfers', roles: ['OWNER', 'MANAGER'] },
+      ],
+    },
+    {
+      name: 'Penjualan',
+      icon: <ShoppingCart className="w-5 h-5" />,
+      roles: ['OWNER', 'MANAGER', 'ADMIN'],
+      subMenu: [
+        { name: 'Orders', path: '/dashboard/orders', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+        { name: 'Returns & Refunds', path: '/dashboard/returns', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+        { name: 'Transactions', path: '/dashboard/transactions', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+      ],
+    },
+    {
+      name: 'Listing',
+      icon: <Package className="w-5 h-5" />,
+      roles: ['OWNER', 'MANAGER', 'ADMIN'],
+      subMenu: [
+        { name: 'Products', path: '/dashboard/products', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+        { name: 'Categories', path: '/dashboard/categories', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+      ],
+    },
+    {
+      name: 'Stock',
+      icon: <BarChart3 className="w-5 h-5" />,
+      roles: ['OWNER', 'MANAGER', 'ADMIN'],
+      subMenu: [
+        { name: 'Overview', path: '/dashboard/stock', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+        { name: 'Stock Opname', path: '/dashboard/stock/opname', roles: ['OWNER', 'MANAGER', 'ADMIN'] },
+        { name: 'Transfer Stock', path: '/dashboard/stock/transfers', roles: ['OWNER', 'MANAGER'] },
+      ],
     },
     {
       name: 'Marketplace',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-        </svg>
-      ),
+      path: '/dashboard/marketplace',
+      icon: <Store className="w-5 h-5" />,
       roles: ['OWNER', 'MANAGER'],
-      subMenu: [
-        {
-          name: 'Orders',
-          path: '/dashboard/marketplace/orders',
-          roles: ['OWNER', 'MANAGER'],
-        },
-        {
-          name: 'Listing',
-          path: '/dashboard/marketplace/listing',
-          roles: ['OWNER', 'MANAGER'],
-        },
-        {
-          name: 'Promo',
-          path: '/dashboard/marketplace/promo',
-          roles: ['OWNER', 'MANAGER'],
-        },
-      ],
-    },
-    {
-      name: 'Inventory Management',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-      ),
-      roles: ['OWNER', 'MANAGER', 'ADMIN'],
-      subMenu: [
-        {
-          name: 'Products',
-          path: '/dashboard/products',
-          roles: ['OWNER', 'MANAGER', 'ADMIN'],
-        },
-        {
-          name: 'Categories',
-          path: '/dashboard/categories',
-          roles: ['OWNER', 'MANAGER', 'ADMIN'],
-        },
-        {
-          name: 'Stock Opname',
-          path: '/dashboard/stock-opname',
-          roles: ['OWNER', 'MANAGER', 'ADMIN'],
-        },
-        {
-          name: 'Stock Transfers',
-          path: '/dashboard/stock-transfers',
-          roles: ['OWNER', 'MANAGER'],
-        },
-      ],
-    },
-    {
-      name: 'Sales',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      roles: ['OWNER', 'MANAGER'],
-      subMenu: [
-        {
-          name: 'Transactions',
-          path: '/dashboard/transactions',
-        },
-        {
-          name: 'Returns',
-          path: '/dashboard/returns',
-        },
-      ],
-    },
-    {
-      name: 'Reports & Analytics',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-      roles: ['OWNER', 'MANAGER'],
-      subMenu: [
-        {
-          name: 'Sales Reports',
-          path: '/dashboard/reports/sales',
-        },
-        {
-          name: 'Inventory Reports',
-          path: '/dashboard/reports/inventory',
-        },
-        {
-          name: 'Marketing Performance',
-          path: '/dashboard/reports/marketing',
-        },
-      ],
     },
     {
       name: 'Branches',
       path: '/dashboard/branches',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      ),
+      icon: <Building2 className="w-5 h-5" />,
       roles: ['OWNER'],
     },
     {
-      name: 'Settings',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
+      name: 'Laporan',
+      icon: <FileText className="w-5 h-5" />,
       roles: ['OWNER', 'MANAGER'],
       subMenu: [
-        {
-          name: 'General',
-          path: '/dashboard/settings/general',
-          roles: ['OWNER', 'MANAGER'],
-        },
-        {
-          name: 'User Management',
-          path: '/dashboard/settings/users',
-          roles: ['OWNER'],
-        },
-        {
-          name: 'Printer',
-          path: '/dashboard/settings/printer',
-          roles: ['OWNER', 'MANAGER'],
-        },
-        {
-          name: 'Backup Data',
-          path: '/dashboard/settings/backup',
-          roles: ['OWNER'],
-        },
+        { name: 'Sales Report', path: '/dashboard/reports/sales', roles: ['OWNER', 'MANAGER'] },
+        { name: 'Stock Report', path: '/dashboard/reports/stock', roles: ['OWNER', 'MANAGER'] },
+      ],
+    },
+    {
+      name: 'Settings',
+      icon: <Settings className="w-5 h-5" />,
+      roles: ['OWNER', 'MANAGER'],
+      subMenu: [
+        { name: 'General', path: '/dashboard/settings/general', roles: ['OWNER', 'MANAGER'] },
+        { name: 'User Management', path: '/dashboard/settings/users', roles: ['OWNER'] },
+        { name: 'Printer', path: '/dashboard/settings/printer', roles: ['OWNER', 'MANAGER'] },
+        { name: 'Backup Data', path: '/dashboard/settings/backup', roles: ['OWNER'] },
       ],
     },
   ];
-  
-  const filteredMenuItems = menuItems.filter((item) => {
-    // Filter by role
-    if (!user?.role || !item.roles.includes(user.role)) {
-      return false;
-    }
-    
+
+  // Filter menu items by role
+  const filteredMenuItems = menuItems.filter(item => {
+    if (!user?.role || !item.roles.includes(user.role)) return false;
     return true;
+  }).map(item => {
+    if (item.subMenu) {
+      return {
+        ...item,
+        subMenu: item.subMenu.filter(sub => !sub.roles || sub.roles.includes(user?.role))
+      };
+    }
+    return item;
   });
 
   return (
@@ -299,112 +264,66 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Navigation Menu */}
-            <nav className="flex-1 px-3 pb-4 space-y-0.5 overflow-y-auto">
+            {/* Navigation Menu - Parent/Submenu Structure */}
+            <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
               {filteredMenuItems.map((item) => {
-                // Check if item has submenu
-                if (item.subMenu) {
-                  // Helper to check if any submenu is active (including nested)
-                  const checkSubMenuActive = (subMenus: any[]): boolean => {
-                    return subMenus.some((sub: any) => {
-                      if (sub.path) {
-                        return pathname === sub.path || pathname.startsWith(sub.path + '/');
-                      }
-                      if (sub.subMenu) {
-                        return checkSubMenuActive(sub.subMenu);
-                      }
-                      return false;
-                    });
-                  };
-                  
-                  const isAnySubActive = checkSubMenuActive(item.subMenu);
-                  
-                  // Determine which menu state to use
-                  const getMenuState = (name: string) => {
-                    if (name === 'Marketplace') return marketplaceMenuOpen;
-                    if (name === 'Inventory Management') return inventoryMenuOpen;
-                    if (name === 'Sales') return salesMenuOpen;
-                    if (name === 'Reports & Analytics') return reportsMenuOpen;
-                    if (name === 'Settings') return settingsMenuOpen;
-                    return false;
-                  };
-                  
-                  const getToggleFunction = (name: string) => {
-                    if (name === 'Marketplace') return () => setMarketplaceMenuOpen(!marketplaceMenuOpen);
-                    if (name === 'Inventory Management') return () => setInventoryMenuOpen(!inventoryMenuOpen);
-                    if (name === 'Sales') return () => setSalesMenuOpen(!salesMenuOpen);
-                    if (name === 'Reports & Analytics') return () => setReportsMenuOpen(!reportsMenuOpen);
-                    if (name === 'Settings') return () => setSettingsMenuOpen(!settingsMenuOpen);
-                    return () => {};
-                  };
-                  
-                  const menuOpen = getMenuState(item.name);
+                // Check if this is a parent with submenu
+                if (item.subMenu && item.subMenu.length > 0) {
+                  const isAnySubActive = item.subMenu.some(sub => 
+                    pathname === sub.path || pathname.startsWith(sub.path + '/')
+                  );
+                  const isOpen = openMenus[item.name] || false;
                   
                   return (
                     <div key={item.name}>
+                      {/* Parent Menu Button */}
                       <button
                         onClick={() => {
                           if (sidebarOpen) {
-                            getToggleFunction(item.name)();
+                            toggleMenu(item.name);
                           } else {
                             setSidebarOpen(true);
-                            if (item.name === 'Inventory Management') setInventoryMenuOpen(true);
-                            if (item.name === 'Sales') setSalesMenuOpen(true);
-                            if (item.name === 'Reports & Analytics') setReportsMenuOpen(true);
-                            if (item.name === 'Settings') setSettingsMenuOpen(true);
+                            setOpenMenus(prev => ({ ...prev, [item.name]: true }));
                           }
                         }}
-                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-lg font-medium transition-all duration-150 ${
+                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-3' : 'justify-center px-2'} py-2.5 rounded-lg font-medium text-sm transition-all duration-150 ${
                           isAnySubActive
-                            ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white'
+                            ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-md'
                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                         }`}
                         title={!sidebarOpen ? item.name : ''}
                       >
                         <div className={`flex items-center ${sidebarOpen ? 'gap-3' : ''}`}>
                           {item.icon}
-                          {sidebarOpen && <span className="text-sm">{item.name}</span>}
+                          {sidebarOpen && <span>{item.name}</span>}
                         </div>
                         {sidebarOpen && (
-                          <svg 
-                            className={`w-4 h-4 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`}
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                         )}
                       </button>
                       
-                      {/* Submenu - only show when sidebar is open */}
+                      {/* Submenu Items */}
                       {sidebarOpen && (
-                        <div className={`overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96 mt-1' : 'max-h-0'}`}>
+                        <div className={`overflow-hidden transition-all duration-200 ${isOpen ? 'max-h-96 mt-1' : 'max-h-0'}`}>
                           <div className="space-y-0.5 ml-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
-                            {item.subMenu
-                              .filter((subItem: any) => {
-                                // Filter submenu by role if roles defined
-                                if (subItem.roles && user?.role) {
-                                  return subItem.roles.includes(user.role);
-                                }
-                                return true;
-                              })
-                              .map((subItem: any) => {
-                                const isSubActive = pathname === subItem.path || (pathname.startsWith(subItem.path + '/') && subItem.path !== '/dashboard/products');
-                                return (
-                                  <a
-                                    key={subItem.path}
-                                    href={subItem.path}
-                                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                      isSubActive
-                                        ? 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
-                                    }`}
-                                  >
-                                    {subItem.name}
-                                  </a>
-                                );
-                              })}
+                            {item.subMenu.map((subItem) => {
+                              const isSubActive = pathname === subItem.path || 
+                                (subItem.path !== '/dashboard/stock' && pathname.startsWith(subItem.path + '/'));
+                              
+                              return (
+                                <a
+                                  key={subItem.path}
+                                  href={subItem.path}
+                                  className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                    isSubActive
+                                      ? 'bg-slate-100 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300'
+                                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
+                                  }`}
+                                >
+                                  {subItem.name}
+                                </a>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -418,9 +337,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   <a
                     key={item.path}
                     href={item.path}
-                    className={`flex items-center ${sidebarOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg font-medium text-sm transition-all duration-150 ${
+                    className={`flex items-center ${sidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} py-2.5 rounded-lg font-medium text-sm transition-all duration-150 ${
                       isActive
-                        ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white'
+                        ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-md'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                     title={!sidebarOpen ? item.name : ''}
@@ -485,6 +404,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                         <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                          {/* Current Time */}
+                          <div className="px-4 py-2 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-slate-800/50 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                              </svg>
+                              <div className="flex-1">
+                                <p className="text-lg font-bold">{currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                                <p className="text-xs">{currentTime.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
                           {/* User Info */}
                           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>
@@ -549,6 +481,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {pathname === '/dashboard' ? 'Dashboard' :
+                     pathname === '/dashboard/stock' ? 'Stock Overview' :
+                     pathname === '/dashboard/stock/opname' ? 'Stock Opname' :
+                     pathname === '/dashboard/stock/transfers' ? 'Transfer Stock' :
                      pathname.includes('/products') ? 'Products Management' :
                      pathname.includes('/stock-movement') ? 'Stock Movement' :
                      pathname.includes('/transactions') ? 'Transactions' :
@@ -556,7 +491,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                      pathname.includes('/reports') ? 'Reports & Analytics' :
                      pathname.includes('/branches') ? 'Branches Management' :
                      pathname.includes('/settings') ? 'Settings' :
-                     pathname.includes('/categories') ? 'Categories' : 'Dashboard'}
+                     pathname.includes('/categories') ? 'Categories' :
+                     pathname.includes('/marketplace') ? 'Marketplace Integration' :
+                     pathname.includes('/orders') ? 'Orders Management' :
+                     pathname.includes('/approvals') ? 'Approval Management' : 'Dashboard'}
                   </h1>
                   {user && pathname === '/dashboard' && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -565,33 +503,18 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   )}
                 </div>
                 
-                {/* Right: POS Button + Date + User Dropdown */}
-                <div className="flex items-center gap-4">
+                {/* Right: POS Button + User Dropdown */}
+                <div className="flex items-center gap-3">
                   {/* POS Button */}
                   <a
                     href="/pos"
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     Buka POS
                   </a>
-                  
-                  {/* Date */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/30 dark:to-slate-800/30 rounded-lg">
-                    <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {new Date().toLocaleDateString('id-ID', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
                   
                   {/* User Dropdown - Desktop */}
                   {user && (
@@ -617,6 +540,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                         <>
                           <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                           <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                            {/* Current Time */}
+                            <div className="px-4 py-2 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-slate-800/50 border-b border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                </svg>
+                                <div className="flex-1">
+                                  <p className="text-lg font-bold">{currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                                  <p className="text-xs">{currentTime.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
                             {/* User Info */}
                             <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>

@@ -1,27 +1,29 @@
 'use client'
 
-import { Store, CheckCircle2 } from 'lucide-react'
+import { ShoppingCart, CheckCircle2 } from 'lucide-react'
 
-export default function MarketplacePage() {
+export default function OrdersPage() {
   return (
     <div className="px-4 md:px-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
         <a href="/dashboard" className="hover:text-gray-900 dark:hover:text-white transition">Home</a>
         <span>›</span>
-        <span className="font-semibold text-gray-900 dark:text-white">Marketplace</span>
+        <span className="text-gray-400">Penjualan</span>
+        <span>›</span>
+        <span className="font-semibold text-gray-900 dark:text-white">Orders</span>
       </nav>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         {/* Header */}
         <div className="p-4 md:p-6 lg:p-8 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-              <Store className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
+            <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-green-100 dark:bg-green-900/30 rounded-xl">
+              <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Marketplace Integration</h2>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">Integrasi dengan Tokopedia, Shopee, Lazada, dan lainnya</p>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Orders</h2>
+              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-0.5">Kelola pesanan dari berbagai channel</p>
             </div>
           </div>
         </div>
@@ -29,25 +31,24 @@ export default function MarketplacePage() {
         {/* Content */}
         <div className="p-4 md:p-6 lg:p-8">
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-4">
-              <Store className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
+              <ShoppingCart className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Coming Soon</h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">Fitur integrasi marketplace sedang dalam pengembangan.</p>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">Fitur manajemen order sedang dalam pengembangan.</p>
             
             <div className="mt-8 max-w-2xl mx-auto">
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 p-6">
                 <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 text-left">Fitur yang akan datang:</h4>
                 <div className="space-y-3 text-left">
                   {[
-                    { title: 'Multi-Platform Sync', desc: 'Sinkronisasi produk ke berbagai marketplace' },
-                    { title: 'Order Management', desc: 'Kelola pesanan dari semua marketplace dalam satu dashboard' },
-                    { title: 'Auto Stock Sync', desc: 'Sinkronisasi stok otomatis setelah penjualan' },
-                    { title: 'Price Management', desc: 'Atur harga berbeda per marketplace' },
-                    { title: 'Shipping Integration', desc: 'Integrasi dengan kurir JNE, J&T, SiCepat, dll' },
+                    { title: 'Order Management', desc: 'Kelola pesanan dari POS dan Marketplace' },
+                    { title: 'Order Status', desc: 'Tracking status pesanan realtime' },
+                    { title: 'Print Invoice', desc: 'Cetak invoice dan label pengiriman' },
+                    { title: 'Bulk Processing', desc: 'Proses banyak order sekaligus' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-start space-x-3">
-                      <CheckCircle2 className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{item.title}</p>
                         <p className="text-xs text-gray-600 dark:text-gray-400">{item.desc}</p>

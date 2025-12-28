@@ -19,8 +19,14 @@ export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'import-export'>('products');
   const { user } = getAuth();
   
-  // Expandable rows for variant products
-  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  // Variant modal
+  const [variantModal, setVariantModal] = useState<{
+    isOpen: boolean;
+    product: any;
+  }>({
+    isOpen: false,
+    product: null,
+  });
   
   // Inline stock adjustment
   const [editingStock, setEditingStock] = useState<{
@@ -60,6 +66,18 @@ export default function ProductsPage() {
 
   // WebSocket for realtime updates
   const { connected: socketConnected } = useRealtimeRefresh(handleRealtimeRefresh);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (variantModal.isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [variantModal.isOpen]);
 
   useEffect(() => {
     fetchData();
@@ -475,15 +493,17 @@ export default function ProductsPage() {
     }
   };
 
-  const toggleExpandProduct = (productId: string) => {
-    setExpandedProducts(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(productId)) {
-        newSet.delete(productId);
-      } else {
-        newSet.add(productId);
-      }
-      return newSet;
+  const openVariantModal = (product: any) => {
+    setVariantModal({
+      isOpen: true,
+      product: product,
+    });
+  };
+
+  const closeVariantModal = () => {
+    setVariantModal({
+      isOpen: false,
+      product: null,
     });
   };
 
@@ -840,329 +860,154 @@ export default function ProductsPage() {
         </div>
       ) : (
         <>
-          {/* Desktop: Table View */}
-          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
-                  <tr>
-                    <th scope="col" className="w-8 px-2 py-3" rowSpan={2}>
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.length === products.length}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
-                      />
-                    </th>
-                    <th scope="col" className="px-3 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide" rowSpan={2}>
-                      Produk
-                    </th>
-                    <th scope="col" className="px-2 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide" rowSpan={2}>
-                      Kategori
-                    </th>
-                    <th scope="col" className="px-2 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide" rowSpan={2}>
-                      Tipe
-                    </th>
-                    {cabangs.map((cabang) => (
-                      <th key={cabang.id} scope="col" colSpan={2} className="px-2 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide border-l border-gray-300 dark:border-gray-600">
-                        {cabang.name}
-                      </th>
-                    ))}
-                    <th scope="col" className="px-2 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide border-l border-gray-300 dark:border-gray-600" rowSpan={2}>
-                      Status
-                    </th>
-                  </tr>
-                  <tr>
-                    {cabangs.map((cabang) => (
-                      <React.Fragment key={cabang.id}>
-                        <th key={`${cabang.id}-stock`} className="px-1 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600">
-                          Stok
-                        </th>
-                        <th key={`${cabang.id}-price`} className="px-1 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                          Harga
-                        </th>
-                      </React.Fragment>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {products.map((product, index) => {
-                    const totalStock = product.productType === 'SINGLE'
-                      ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
-                      : product.variants?.reduce((sum: number, v: any) => 
-                          sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
-                        ) || 0;
-                    const variantCount = product.variants?.length || 0;
-                    
-                    return (
-                      <React.Fragment key={product.id}>
-                        <tr 
-                          className={`hover:bg-slate-50 dark:hover:bg-gray-700/50 transition-colors ${
-                            index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-800/50'
-                          }`}
+          {/* Card Grid View */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {products.map((product) => {
+              const totalStock = product.productType === 'SINGLE'
+                ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
+                : product.variants?.reduce((sum: number, v: any) => 
+                    sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
+                  ) || 0;
+              const variantCount = product.variants?.length || 0;
+              
+              // Calculate price range
+              let minPrice = 0;
+              let maxPrice = 0;
+              if (product.productType === 'SINGLE') {
+                const variant = product.variants?.[0];
+                const prices = variant?.stocks?.map((s: any) => s.price).filter((p: number) => p > 0) || [];
+                if (prices.length > 0) {
+                  minPrice = Math.min(...prices);
+                  maxPrice = Math.max(...prices);
+                }
+              } else {
+                product.variants?.forEach((variant: any) => {
+                  variant.stocks?.forEach((stock: any) => {
+                    if (stock.price > 0) {
+                      if (minPrice === 0 || stock.price < minPrice) minPrice = stock.price;
+                      if (stock.price > maxPrice) maxPrice = stock.price;
+                    }
+                  });
+                });
+              }
+              
+              return (
+                <div key={product.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow overflow-hidden">
+                  {/* Card Header with Checkbox */}
+                  <div className="p-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                      className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
+                    />
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      product.isActive
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}>
+                      {product.isActive ? 'Aktif' : 'Nonaktif'}
+                    </span>
+                  </div>
+
+                  {/* Product Image */}
+                  <div className="aspect-square bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
+                    <span className="text-6xl font-bold text-slate-400 dark:text-slate-600">
+                      {product.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-4 space-y-3">
+                    {/* Product Name */}
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-1">
+                        {product.name}
+                      </h3>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {product.category?.name || '-'}
+                      </span>
+                    </div>
+
+                    {/* Variant Info */}
+                    <div>
+                      {product.productType === 'VARIANT' ? (
+                        <button
+                          onClick={() => openVariantModal(product)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors hover:ring-2 hover:ring-purple-300 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 w-full justify-center"
                         >
-                        <td className="px-2 py-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.includes(product.id)}
-                            onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                            className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
-                          />
-                        </td>
-                        <td className="px-2 py-2">
-                          <div className="flex items-center gap-1.5 max-w-md">
-                            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded flex items-center justify-center">
-                              <span className="text-slate-600 dark:text-slate-300 font-bold text-sm">
-                                {product.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={() => router.push(`/dashboard/products/${product.id}`)}
-                                  className="text-sm font-medium text-gray-900 dark:text-white hover:text-slate-600 dark:hover:text-slate-400 line-clamp-1 text-left transition-colors"
-                                >
-                                  {product.name}
-                                </button>
-                                <button
-                                  onClick={() => router.push(`/dashboard/products/${product.id}`)}
-                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors flex-shrink-0"
-                                  title="View"
-                                >
-                                  <svg className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
-                                  className="p-1 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors flex-shrink-0"
-                                  title="Edit"
-                                >
-                                  <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                </button>
-                              </div>
-                              {/* Display SKU */}
-                              {product.productType === 'SINGLE' ? (
-                                // Single product - show single SKU
-                                product.variants?.[0]?.sku && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5 font-mono">
-                                    {product.variants[0].sku}
-                                  </p>
-                                )
-                              ) : (
-                                // Variant product - show SKU range
-                                (() => {
-                                  const skus = product.variants
-                                    ?.map((v: any) => v.sku)
-                                    .filter((sku: string) => sku);
-                                  if (skus && skus.length > 0) {
-                                    const firstSku = skus[0];
-                                    const lastSku = skus[skus.length - 1];
-                                    return (
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5 font-mono">
-                                        {firstSku}{skus.length > 1 ? ` - ${lastSku}` : ''}
-                                      </p>
-                                    );
-                                  }
-                                  return null;
-                                })()
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-2 py-2">
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                            {product.category?.name || '-'}
-                          </span>
-                        </td>
-                        <td className="px-2 py-2">
-                          {product.productType === 'VARIANT' ? (
-                            <button
-                              onClick={() => toggleExpandProduct(product.id)}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors hover:ring-2 hover:ring-purple-300 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300`}
-                            >
-                              <svg 
-                                className={`w-3 h-3 transition-transform ${expandedProducts.has(product.id) ? 'rotate-90' : ''}`} 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                              Varian ({variantCount})
-                            </button>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                              Tunggal
-                            </span>
-                          )}
-                        </td>
-                        {/* Per-Cabang Stock & Price */}
-                        {product.productType === 'SINGLE' ? (
-                          // SINGLE Product - Show stock directly with edit capability
-                          cabangs.map((cabang) => {
-                            const variant = product.variants?.[0];
-                            const stock = variant?.stocks?.find((s: any) => s.cabangId === cabang.id);
-                            const stockQty = stock?.quantity || 0;
-                            const stockPrice = stock?.price || 0;
-                            const variantId = variant?.id;
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          {variantCount} Varian
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 w-full justify-center">
+                          Produk Tunggal
+                        </span>
+                      )}
+                    </div>
 
-                            return (
-                              <React.Fragment key={cabang.id}>
-                                <td className="px-1 py-2 text-center border-l border-gray-200 dark:border-gray-700">
-                                  {variantId ? (
-                                    <button
-                                      onClick={(e) => handleStockClick(e, variantId, cabang.id, stockQty)}
-                                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold hover:ring-1 transition-all cursor-pointer ${
-                                        stockQty <= 5
-                                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:ring-red-400'
-                                          : stockQty <= 20
-                                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:ring-yellow-400'
-                                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:ring-green-400'
-                                      }`}
-                                      title="Klik untuk edit stok"
-                                    >
-                                      {stockQty}
-                                    </button>
-                                  ) : (
-                                    <span className="text-xs text-gray-400">-</span>
-                                  )}
-                                </td>
-                                <td className="px-1 py-2 text-right">
-                                  <span className="text-xs text-gray-700 dark:text-gray-300">
-                                    {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
-                                  </span>
-                                </td>
-                              </React.Fragment>
-                            );
-                          })
-                        ) : (
-                          // VARIANT Product - Show total stock with price range
-                          cabangs.map((cabang) => {
-                            let stockQty = 0;
-                            let minPrice = 0;
-                            let maxPrice = 0;
-                            
-                            product.variants?.forEach((variant: any) => {
-                              const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
-                              stockQty += stock?.quantity || 0;
-                              
-                              if (stock?.price) {
-                                if (minPrice === 0 || stock.price < minPrice) {
-                                  minPrice = stock.price;
-                                }
-                                if (stock.price > maxPrice) {
-                                  maxPrice = stock.price;
-                                }
-                              }
-                            });
+                    {/* Price */}
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Harga</p>
+                      {minPrice > 0 && maxPrice > 0 ? (
+                        <p className="text-base font-bold text-gray-900 dark:text-white">
+                          {minPrice === maxPrice 
+                            ? `Rp ${minPrice.toLocaleString('id-ID')}`
+                            : `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
+                          }
+                        </p>
+                      ) : (
+                        <p className="text-base font-bold text-gray-400">-</p>
+                      )}
+                    </div>
 
-                            return (
-                              <React.Fragment key={cabang.id}>
-                                <td className="px-1 py-2 text-center border-l border-gray-200 dark:border-gray-700">
-                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ${
-                                    stockQty <= 5
-                                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                      : stockQty <= 20
-                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                                      : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                  }`}>
-                                    {stockQty}
-                                  </span>
-                                </td>
-                                <td className="px-1 py-2 text-right">
-                                  <span className="text-xs text-gray-700 dark:text-gray-300">
-                                    {minPrice > 0 && maxPrice > 0 ? (
-                                      minPrice === maxPrice ? (
-                                        `Rp ${minPrice.toLocaleString('id-ID')}`
-                                      ) : (
-                                        `Rp ${minPrice.toLocaleString('id-ID')} - ${maxPrice.toLocaleString('id-ID')}`
-                                      )
-                                    ) : '-'}
-                                  </span>
-                                </td>
-                              </React.Fragment>
-                            );
-                          })
-                        )}
-                        <td className="px-3 py-2.5 text-center border-l border-gray-200 dark:border-gray-700">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            product.isActive
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                          }`}>
-                            {product.isActive ? 'Aktif' : 'Nonaktif'}
-                          </span>
-                        </td>
-                        </tr>
+                    {/* Stock */}
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Stock</p>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${
+                        totalStock === 0
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                          : totalStock <= 20
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      }`}>
+                        {totalStock} unit
+                      </span>
+                    </div>
 
-                        {/* Variant Sub-rows */}
-                        {product.productType === 'VARIANT' && expandedProducts.has(product.id) && product.variants?.map((variant: any, vIndex: number) => (
-                        <tr 
-                          key={`${product.id}-${variant.id}`}
-                          className="bg-purple-50/30 dark:bg-purple-900/10 border-l-4 border-purple-300 dark:border-purple-700"
-                        >
-                          <td className="px-3 py-2"></td>
-                          <td className="px-3 py-2 pl-12" colSpan={3}>
-                            <div className="flex items-center gap-2">
-                              <svg className="w-3 h-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                <span className="font-bold text-purple-700 dark:text-purple-400">{variant.variantValue}</span>
-                              </span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                (SKU: {variant.sku})
-                              </span>
-                            </div>
-                          </td>
-                          {/* Per-Cabang Stock for this variant */}
-                          {cabangs.map((cabang) => {
-                            const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
-                            const stockQty = stock?.quantity || 0;
-                            const stockPrice = stock?.price || 0;
-
-                            return (
-                              <React.Fragment key={cabang.id}>
-                                <td className="px-2 py-2 text-center border-l border-gray-200 dark:border-gray-700">
-                                  <button
-                                    onClick={(e) => handleStockClick(e, variant.id, cabang.id, stockQty)}
-                                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold hover:ring-2 hover:ring-offset-1 transition-all cursor-pointer ${
-                                      stockQty <= 5
-                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:ring-red-400'
-                                        : stockQty <= 20
-                                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 hover:ring-yellow-400'
-                                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:ring-green-400'
-                                    }`}
-                                    title="Klik untuk edit stok"
-                                  >
-                                    {stockQty}
-                                  </button>
-                                </td>
-                                <td className="px-2 py-2 text-right">
-                                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                    {stockPrice > 0 ? `Rp ${stockPrice.toLocaleString('id-ID')}` : '-'}
-                                  </span>
-                                </td>
-                              </React.Fragment>
-                            );
-                          })}
-                          <td className="px-3 py-2 border-l border-gray-200 dark:border-gray-700"></td>
-                          </tr>
-                        ))}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={() => router.push(`/dashboard/products/${product.id}`)}
+                        className="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Detail
+                      </button>
+                      <button
+                        onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
+                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Mobile: Card View */}
-          <div className="md:hidden space-y-3">
+          {/* Mobile: Simplified Card View */}
+          <div className="md:hidden space-y-4">
             {products.map((product) => {
               const totalStock = product.productType === 'SINGLE'
                 ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
@@ -1596,6 +1441,116 @@ export default function ProductsPage() {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Variant Details Modal */}
+      {variantModal.isOpen && variantModal.product && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeVariantModal();
+          }}
+        >
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full my-auto flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Detail Varian Produk
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {variantModal.product.name}
+                </p>
+              </div>
+              <button
+                onClick={closeVariantModal}
+                className="p-2 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body - Scrollable */}
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="space-y-4">
+                {variantModal.product.variants?.map((variant: any) => {
+                  const variantStockTotal = variant.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0;
+                  
+                  return (
+                    <div key={variant.id} className="bg-purple-50 dark:bg-purple-900/10 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+                      {/* Variant Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-purple-700 dark:text-purple-400">
+                            {variant.variantValue}
+                          </h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
+                            SKU: {variant.sku}
+                          </p>
+                        </div>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold ${
+                          variantStockTotal === 0
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                            : variantStockTotal <= 10
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                            : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        }`}>
+                          Total: {variantStockTotal}
+                        </span>
+                      </div>
+
+                      {/* Stock per Cabang */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Stock per Cabang:</p>
+                        {cabangs.map((cabang) => {
+                          const stock = variant.stocks?.find((s: any) => s.cabangId === cabang.id);
+                          const stockQty = stock?.quantity || 0;
+                          const stockPrice = stock?.price || 0;
+
+                          return (
+                            <div key={cabang.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {cabang.name}
+                              </span>
+                              <div className="flex items-center gap-4">
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded text-sm font-bold ${
+                                  stockQty === 0
+                                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                    : stockQty <= 5
+                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                    : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                }`}>
+                                  {stockQty} unit
+                                </span>
+                                {stockPrice > 0 && (
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    Rp {stockPrice.toLocaleString('id-ID')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+              <button
+                onClick={closeVariantModal}
+                className="px-6 py-2.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>
