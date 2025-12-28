@@ -11,25 +11,8 @@ Modern web dashboard for Point of Sale and inventory management system built wit
 
 ```bash
 npm install
-cp .env.local.example .env.local
 npm run dev
 ```
-
-Access: http://localhost:3100
-
-### Environment Variables
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5100/api
-NEXT_PUBLIC_SOCKET_URL=http://localhost:5100
-```
-
-### Default Credentials
-
-| Role | Username | Password |
-|------|----------|----------|
-| Owner | owner | password123 |
-| Kasir | kasir1 | password123 |
 
 ## Tech Stack
 
@@ -133,10 +116,6 @@ npm start
 # Lint
 npm run lint
 ```
-
-## Related
-
-- [MiniChannel API](https://github.com/rejaldev/minichannel-api) - Backend repository
 
 ## License
 
