@@ -737,6 +737,7 @@ export default function POSPage() {
         paymentMethod,
         bankName: bankName || undefined,
         referenceNo: referenceNo || undefined,
+        deviceSource: 'WEB',
       });
 
       setLastTransaction(res.data.transaction);

@@ -131,6 +131,7 @@ export const transactionsAPI = {
     referenceNo?: string;
     cardLastDigits?: string;
     notes?: string;
+    deviceSource?: string; // WEB, ANDROID, IOS, WINDOWS, etc
   }) => api.post('/transactions', data),
   
   getTransactions: (params?: {
