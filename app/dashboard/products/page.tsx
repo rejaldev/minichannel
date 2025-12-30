@@ -706,11 +706,10 @@ export default function ProductsPage() {
           {/* Card Grid View */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {products.map((product) => {
-              const totalStock = product.productType === 'SINGLE'
-                ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
-                : product.variants?.reduce((sum: number, v: any) => 
-                    sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
-                  ) || 0;
+              // Stock is always in product.variants[].stocks[] for both SINGLE and VARIANT types
+              const totalStock = product.variants?.reduce((sum: number, v: any) => 
+                sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
+              ) || 0;
               const variantCount = product.variants?.length || 0;
               
               // Calculate price range
@@ -852,11 +851,10 @@ export default function ProductsPage() {
           {/* Mobile: Simplified Card View */}
           <div className="md:hidden space-y-4">
             {products.map((product) => {
-              const totalStock = product.productType === 'SINGLE'
-                ? product.stocks?.reduce((sum: number, s: any) => sum + s.quantity, 0) || 0
-                : product.variants?.reduce((sum: number, v: any) => 
-                    sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
-                  ) || 0;
+              // Stock is always in product.variants[].stocks[] for both SINGLE and VARIANT types
+              const totalStock = product.variants?.reduce((sum: number, v: any) => 
+                sum + (v.stocks?.reduce((vSum: number, s: any) => vSum + s.quantity, 0) || 0), 0
+              ) || 0;
               const variantCount = product.variants?.length || 0;
               
               return (
