@@ -1,11 +1,11 @@
 {
-    "name": "anekabuana-store-frontend",
+    "name": "minichannel-frontend",
     "version": "0.1.0",
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack -H 0.0.0.0 -p 3100",
         "build": "next build",
-        "start": "next start",
+        "start": "next start -H 0.0.0.0 -p 3100",
         "lint": "eslint",
         "test": "vitest",
         "test:ui": "vitest --ui",
