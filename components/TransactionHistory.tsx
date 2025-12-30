@@ -315,7 +315,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
                           const productName = getProductName(item);
                           const variantInfo = getVariantInfo(item);
                           const subtotal = getSubtotal(item);
-                          const showVariant = variantInfo && !['Default', 'Standar', 'default', 'standar', 'Default: Default'].includes(variantInfo);
+                          const showVariant = variantInfo && !['Default', 'Standar', 'Standard', 'default', 'standar', 'standard', 'Default: Default', 'Default: Standard', 'Default: Standar'].includes(variantInfo);
                           return (
                             <div key={item.id} className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                               <span>
@@ -390,7 +390,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
                   {selectedTransaction.items.map((item) => {
                     const productName = getProductName(item);
                     const variantInfo = getVariantInfo(item);
-                    const showVariant = variantInfo && !['Default', 'Standar', 'default', 'standar', 'Default: Default'].includes(variantInfo);
+                    const showVariant = variantInfo && !['Default', 'Standar', 'Standard', 'default', 'standar', 'standard', 'Default: Default', 'Default: Standard', 'Default: Standar'].includes(variantInfo);
                     return (
                       <div key={item.productVariantId} className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
                         <div className="flex-1">
