@@ -55,12 +55,17 @@ export default function PrinterSettingsPage() {
 
         if (response.ok) {
           const data = await response.json();
+          
+          // Auto-fill branchName from selected cabang if empty
+          const selectedCabang = cabangs.find(c => c.id === selectedCabangId);
+          const defaultBranchName = data.branchName || (selectedCabang ? `Cabang ${selectedCabang.name}` : '');
+          
           setSettings({
             autoPrintEnabled: data.autoPrintEnabled ?? true,
             printerName: data.printerName || '',
             paperWidth: 58, // Fixed 58mm
             storeName: data.storeName || 'MINICHANNEL',
-            branchName: data.branchName || '',
+            branchName: defaultBranchName,
             address: data.address || '',
             phone: data.phone || '',
             footerText1: data.footerText1 || 'Terima kasih atas kunjungan Anda',
@@ -75,7 +80,7 @@ export default function PrinterSettingsPage() {
     };
 
     loadSettings();
-  }, [selectedCabangId]);
+  }, [selectedCabangId, cabangs]);
 
   const handleSave = async () => {
     if (!selectedCabangId) {

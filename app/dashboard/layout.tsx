@@ -240,8 +240,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                       <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                         {user?.storeName || 'MiniChannel'}
                       </h2>
-                      <p className="text-xs text-gray-500 dark:text-gray-400"></p>
-
+                      <p className="text-xs text-gray-500 dark:text-gray-400">By Minichannel System</p>
                     </div>
                   </div>
                   <button
