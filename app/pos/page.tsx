@@ -1505,7 +1505,7 @@ export default function POSPage() {
             </div>
             {!qzConnected && (
               <p className="text-xs text-amber-600 dark:text-amber-400 text-center mt-2">
-                ⚠️ QZ Tray tidak terhubung. Install QZ Tray untuk mencetak struk.
+                QZ Tray tidak terhubung. Install QZ Tray untuk mencetak struk.
               </p>
             )}
           </div>
@@ -1533,7 +1533,7 @@ export default function POSPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <span className="px-2 py-1 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-semibold">{new Date(held.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
-                          {held.customerName && <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">👤 {held.customerName}</p>}
+                          {held.customerName && <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">{held.customerName}</p>}
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">Rp {heldTotal.toLocaleString('id-ID')}</p>
@@ -1542,7 +1542,7 @@ export default function POSPage() {
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => handleRetrieveHeld(held)} className="flex-1 py-2.5 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition">Lanjutkan</button>
-                        <button onClick={() => handleDeleteHeld(held.id)} className="px-4 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-900/50">🗑️</button>
+                        <button onClick={() => handleDeleteHeld(held.id)} className="px-4 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg font-semibold hover:bg-red-200 dark:hover:bg-red-900/50" title="Hapus">×</button>
                       </div>
                     </div>
                   );

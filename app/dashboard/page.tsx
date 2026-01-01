@@ -70,7 +70,8 @@ export default function DashboardPage() {
           ]);
 
           setSummary(summaryRes.data);
-          setLowStockAlerts(alertsRes.data);
+          // New endpoint returns { data: [...] } structure
+          setLowStockAlerts(alertsRes.data?.data || alertsRes.data || []);
           setSalesTrend(trendRes.data.trend);
           setTopProducts(topProductsRes.data.topProducts);
           setBranchPerformance(branchRes.data.branchPerformance);

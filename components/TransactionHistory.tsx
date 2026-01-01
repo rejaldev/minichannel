@@ -180,7 +180,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
 
       console.log('[History] Return request created:', response.data);
       
-      alert('✅ Return request berhasil dikirim!\n\nRequest Anda akan diproses oleh Manager/Owner.');
+      alert('Return request berhasil dikirim!\n\nRequest Anda akan diproses oleh Manager/Owner.');
       
       setShowRequestModal(false);
       setSelectedTransaction(null);
@@ -192,7 +192,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
     } catch (error: any) {
       console.error('[History] Error creating return request:', error);
       const errorMessage = error.response?.data?.error || error.message || 'Gagal mengirim request';
-      alert('❌ Gagal mengirim request return:\n\n' + errorMessage);
+      alert('Gagal mengirim request return:\n\n' + errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -264,12 +264,12 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
                           <p className="font-semibold text-gray-900 dark:text-white">{transaction.transactionNo}</p>
                           {transaction.returnStatus === 'APPROVED' && (
                             <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-xs font-semibold rounded-full">
-                              ✓ Approved
+                              Approved
                             </span>
                           )}
                           {transaction.returnStatus === 'REJECTED' && (
                             <span className="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-xs font-semibold rounded-full">
-                              ✗ Rejected
+                              Rejected
                             </span>
                           )}
                           {transaction.returnStatus === 'PENDING' && (
@@ -279,7 +279,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
                           )}
                           {transaction.returnStatus === 'COMPLETED' && (
                             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-semibold rounded-full">
-                              ✓ Completed
+                              Completed
                             </span>
                           )}
                         </div>

@@ -227,7 +227,7 @@ export default function ProductsPage() {
       setAdjustmentReason('');
       
       // Show success message
-      alert(`✓ Stok berhasil diupdate menjadi ${qty}${adjustmentReason ? ` (${adjustmentReason})` : ''}`);
+      alert(`Stok berhasil diupdate menjadi ${qty}${adjustmentReason ? ` (${adjustmentReason})` : ''}`);
     } catch (error: any) {
       console.error('Error updating stock:', error);
       alert(error.response?.data?.error || 'Gagal update stok');
@@ -307,13 +307,35 @@ export default function ProductsPage() {
 
   const handleDownloadTemplate = async () => {
     try {
-      const response = await productsAPI.downloadTemplate();
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5100/api';
       
-      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const response = await fetch(`${apiUrl}/products/template`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+      
+      // Response is JSON with base64 data
+      const result = await response.json();
+      
+      // Decode base64 to binary
+      const binaryString = atob(result.data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const blob = new Blob([bytes], { type: result.mimeType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'template-import-produk.xlsx';
+      link.download = result.filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -327,22 +349,46 @@ export default function ProductsPage() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const response = await productsAPI.exportProducts();
+      // Use native fetch for binary download to avoid axios issues
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5100/api';
       
-      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const response = await fetch(`${apiUrl}/products/export`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Export failed');
+      }
+      
+      // Response is JSON with base64 data
+      const result = await response.json();
+      
+      // Decode base64 to binary
+      const binaryString = atob(result.data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const blob = new Blob([bytes], { type: result.mimeType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `export-produk-${Date.now()}.xlsx`;
+      link.download = result.filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      alert('✓ Berhasil export produk');
+      alert('Berhasil export produk');
     } catch (error: any) {
       console.error('Export error:', error);
-      alert(error.response?.data?.error || 'Gagal export produk');
+      alert(error.message || 'Gagal export produk');
     } finally {
       setExporting(false);
     }
@@ -1072,14 +1118,14 @@ export default function ProductsPage() {
                   disabled={savingStock}
                   className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  ✗ Batal
+                  Batal
                 </button>
                 <button
                   onClick={handleSaveStock}
                   disabled={savingStock}
                   className="flex-1 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 rounded-lg transition-all disabled:opacity-50"
                 >
-                  {savingStock ? 'Menyimpan...' : '✓ Simpan'}
+                  {savingStock ? 'Menyimpan...' : 'Simpan'}
                 </button>
               </div>
             </div>

@@ -171,9 +171,9 @@ export default function StockTransfersPage() {
       
       // Show appropriate message based on role
       if (canApprove) {
-        alert('✅ Transfer berhasil dibuat dan langsung diproses!');
+        alert('Transfer berhasil dibuat dan langsung diproses!');
       } else {
-        alert('✅ Request transfer berhasil dikirim!\nMenunggu approval dari Manager/Owner.');
+        alert('Request transfer berhasil dikirim!\nMenunggu approval dari Manager/Owner.');
       }
     } catch (error: any) {
       alert(error.response?.data?.error || 'Gagal membuat transfer');
@@ -189,7 +189,7 @@ export default function StockTransfersPage() {
       setActionLoading(id);
       await stockTransfersAPI.approveTransfer(id);
       fetchData();
-      alert('✅ Transfer approved!');
+      alert('Transfer approved!');
     } catch (error: any) {
       alert(error.response?.data?.error || 'Gagal approve transfer');
     } finally {

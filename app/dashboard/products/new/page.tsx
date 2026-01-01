@@ -166,12 +166,12 @@ export default function NewProductPage() {
       quantity: stock >= 0 ? stock : s.quantity
     })));
     
-    alert('✓ Harga & stok berhasil diterapkan ke semua cabang!');
+    alert('Harga & stok berhasil diterapkan ke semua cabang!');
   };
 
   const handleGeneratedVariants = (generated: Array<{ variantName: string; variantValue: string; sku: string; price: string; stock: string }>) => {
     if (cabangs.length === 0) {
-      alert('⚠️ Belum ada cabang! Tunggu sebentar atau refresh halaman.');
+      alert('Belum ada cabang! Tunggu sebentar atau refresh halaman.');
       return;
     }
     
@@ -187,7 +187,7 @@ export default function NewProductPage() {
       }))
     }));
     setVariants(converted);
-    alert(`✓ ${generated.length} varian berhasil di-generate!`);
+    alert(`${generated.length} varian berhasil di-generate!`);
   };
 
   const applyBulkValues = () => {
@@ -204,7 +204,7 @@ export default function NewProductPage() {
     }));
     setVariants(updated);
     setBulkApply({ sku: '', price: '', stock: '' });
-    alert(`✓ Nilai berhasil diterapkan ke semua varian!`);
+    alert(`Nilai berhasil diterapkan ke semua varian!`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -439,7 +439,7 @@ export default function NewProductPage() {
                   {/* Per-Cabang Grid */}
                   <div className="space-y-2">
                     {singleProductStocks.length === 0 && (
-                      <div className="text-sm text-red-500">⚠️ Tidak ada cabang aktif! Tambahkan cabang di Settings → Cabang</div>
+                      <div className="text-sm text-red-500">Tidak ada cabang aktif! Tambahkan cabang di Settings → Cabang</div>
                     )}
                     {singleProductStocks.map((stock, idx) => (
                       <div key={stock.cabangId} className="grid grid-cols-3 gap-2 items-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">

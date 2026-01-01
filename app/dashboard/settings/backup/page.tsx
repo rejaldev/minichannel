@@ -37,10 +37,10 @@ export default function BackupDataPage() {
     setMessage('');
     try {
       const response = await backupAPI.createBackup();
-      setMessage(`✅ Backup berhasil: ${response.data.filename}`);
+      setMessage(`[OK] Backup berhasil: ${response.data.filename}`);
       await loadLastBackup();
     } catch (error: any) {
-      setMessage(`❌ Error: ${error.response?.data?.error || error.message}`);
+      setMessage(`[ERROR] ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -51,23 +51,23 @@ export default function BackupDataPage() {
       const newValue = !autoBackupEnabled;
       await backupAPI.toggleAutoBackup(newValue);
       setAutoBackupEnabled(newValue);
-      setMessage(`✅ Auto backup ${newValue ? 'diaktifkan' : 'dinonaktifkan'}`);
+      setMessage(`[OK] Auto backup ${newValue ? 'diaktifkan' : 'dinonaktifkan'}`);
     } catch (error: any) {
-      setMessage(`❌ Error: ${error.response?.data?.error || error.message}`);
+      setMessage(`[ERROR] ${error.response?.data?.error || error.message}`);
     }
   };
 
   const handleResetSettings = async () => {
-    if (!confirm('⚠️ Yakin ingin reset semua settings ke default? Aksi ini tidak bisa dibatalkan!')) {
+    if (!confirm('Yakin ingin reset semua settings ke default? Aksi ini tidak bisa dibatalkan!')) {
       return;
     }
     
     setLoading(true);
     try {
       await backupAPI.resetSettings();
-      setMessage('✅ Settings berhasil direset ke default');
+      setMessage('[OK] Settings berhasil direset ke default');
     } catch (error: any) {
-      setMessage(`❌ Error: ${error.response?.data?.error || error.message}`);
+      setMessage(`[ERROR] ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export default function BackupDataPage() {
 
       {/* Message Alert */}
       {message && (
-        <div className={`p-4 rounded-lg ${message.startsWith('✅') ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'}`}>
+        <div className={`p-4 rounded-lg ${message.startsWith('[OK]') ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'}`}>
           {message}
         </div>
       )}
@@ -241,7 +241,7 @@ export default function BackupDataPage() {
                 </span>
               </button>
               <p className="text-xs text-red-700 dark:text-red-400 mt-3 text-center">
-                ⚠️ Akan menghapus semua pengaturan custom dan kembali ke default
+                Akan menghapus semua pengaturan custom dan kembali ke default
               </p>
             </div>
           </div>

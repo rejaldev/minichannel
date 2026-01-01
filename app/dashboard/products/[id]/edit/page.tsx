@@ -204,7 +204,7 @@ export default function EditProductPage() {
     }));
     setVariants(updated);
     setBulkApply({ sku: '', price: '', stock: '' });
-    alert(`✓ Nilai berhasil diterapkan ke ${variants.length} varian!`);
+    alert(`Nilai berhasil diterapkan ke ${variants.length} varian!`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -85,7 +85,8 @@ export const productsAPI = {
   updateStock: (variantId: string, cabangId: string, data: { quantity: number; price?: number; reason?: string; notes?: string }) =>
     api.put(`/products/stock/${variantId}/${cabangId}`, data),
   
-  getLowStockAlerts: () => api.get('/products/alerts/low-stock'),
+  // Deprecated: Use stockAPI.getLowStockItems instead
+  getLowStockAlerts: () => api.get('/stock/alerts/low'),
   
   searchBySKU: (sku: string) => api.get(`/products/search/sku/${sku}`),
   

@@ -511,7 +511,7 @@ export default function StockOverviewPage() {
       if (failed.length > 0) {
         alert(`Berhasil: ${success.length} item, Gagal: ${failed.length} item`);
       } else {
-        alert(`✓ Berhasil menambahkan stok untuk ${success.length} item`);
+        alert(`Berhasil menambahkan stok untuk ${success.length} item`);
       }
 
       await fetchData();
