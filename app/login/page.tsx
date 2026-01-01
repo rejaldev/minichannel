@@ -156,7 +156,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-4 md:mt-6">
-          © 2025 Toko Inventory System
+          © 2026 MiniChannel | Omnichannel System
         </p>
       </div>
     </div>

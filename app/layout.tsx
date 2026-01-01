@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MiniChannel - Inventory System",
+  title: "MiniChannel - Omnichannel System",
   description: "Point of Sale and Inventory Management System",
 };
 

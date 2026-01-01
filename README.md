@@ -1,11 +1,24 @@
-# MiniChannel
+# MiniChannel Frontend
 
-Modern web dashboard for Point of Sale and inventory management system built with Next.js 16.
+Modern web dashboard for MiniChannel - Multi-tenant Point of Sale and inventory management system with real-time updates.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.0.7-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.1-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.1-61dafb?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
+
+## Features
+
+- 💼 **Multi-tenant Dashboard** - Each store with independent branding
+- 🎨 **Dark/Light Theme** - System-wide theme toggle
+- ⚡ **Real-time Updates** - Socket.io integration for live data
+- 📱 **Responsive Design** - Mobile-first approach
+- 🖨️ **Thermal Printer Support** - Customizable receipt templates
+- 📊 **Analytics Dashboard** - Sales, inventory, and performance metrics
+- 🔍 **Advanced Search** - Product, transaction, and customer search
+- 🌐 **Marketplace Integration** - Tokopedia, Shopee management
+- 🧾 **POS Interface** - Fast checkout with split payment support
+- 🔐 **Role-based Access** - Owner, Manager, Kasir permissions
 
 ## Quick Start
 
