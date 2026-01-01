@@ -529,7 +529,8 @@ export default function POSPage() {
     } else {
       // Hide default variant info for SINGLE products
       let variantInfo = variant.variantValue;
-      if (product.productType === 'SINGLE' || variantInfo.toLowerCase().includes('default') || variantInfo.toLowerCase().includes('standar')) {
+      const defaultVariants = ['default', 'standar', 'standard', 'default:', '-'];
+      if (product.productType === 'SINGLE' || defaultVariants.some(v => variantInfo.toLowerCase().includes(v))) {
         variantInfo = '';
       }
       
