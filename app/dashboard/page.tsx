@@ -202,7 +202,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Sales Trend Chart */}
-      {widgetVisibility.salesTrend && salesTrend.length > 0 && (
+      {widgetVisibility.salesTrend && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center mb-4">
             <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
@@ -210,6 +210,7 @@ export default function DashboardPage() {
               Tren Penjualan (7 Hari Terakhir)
             </h2>
           </div>
+          {salesTrend.length > 0 ? (
           <div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={salesTrend}>
@@ -238,13 +239,19 @@ export default function DashboardPage() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+              <TrendingUp className="w-12 h-12 mb-2 opacity-30" />
+              <p className="text-sm">Belum ada data penjualan</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Top Products & Branch Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Products */}
-        {widgetVisibility.topProducts && topProducts.length > 0 && (
+        {widgetVisibility.topProducts && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center mb-4">
               <Package className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
@@ -252,6 +259,7 @@ export default function DashboardPage() {
                 Produk Terlaris
               </h2>
             </div>
+            {topProducts.length > 0 ? (
             <div className="space-y-3">
               {topProducts.map((product, index) => (
                 <div key={product.productVariantId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -273,11 +281,17 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+                <Package className="w-12 h-12 mb-2 opacity-30" />
+                <p className="text-sm">Belum ada data produk terlaris</p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Branch Performance */}
-        {widgetVisibility.branchPerformance && branchPerformance.length > 0 && (
+        {widgetVisibility.branchPerformance && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center mb-4">
               <ShoppingBag className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
@@ -285,6 +299,7 @@ export default function DashboardPage() {
                 Performa Cabang
               </h2>
             </div>
+            {branchPerformance.length > 0 ? (
             <div>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={branchPerformance}>
@@ -305,12 +320,18 @@ export default function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
             </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+                <ShoppingBag className="w-12 h-12 mb-2 opacity-30" />
+                <p className="text-sm">Belum ada data performa cabang</p>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Time Statistics */}
-      {widgetVisibility.timeStats && timeStats && (
+      {widgetVisibility.timeStats && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center mb-4">
             <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
@@ -318,6 +339,7 @@ export default function DashboardPage() {
               Waktu Tersibuk
             </h2>
           </div>
+          {timeStats ? (
           <div>
             <div className="space-y-4">
               <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/10 rounded-lg border border-orange-200 dark:border-orange-800">
@@ -346,11 +368,17 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+              <Clock className="w-12 h-12 mb-2 opacity-30" />
+              <p className="text-sm">Belum ada data waktu tersibuk</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Daily Distribution */}
-      {widgetVisibility.dailyDistribution && timeStats && (
+      {widgetVisibility.dailyDistribution && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center mb-4">
             <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
@@ -358,6 +386,7 @@ export default function DashboardPage() {
               Distribusi Transaksi per Hari
             </h2>
           </div>
+          {timeStats?.dailyStats?.length > 0 ? (
           <div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={timeStats.dailyStats}>
@@ -375,11 +404,17 @@ export default function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+              <Calendar className="w-12 h-12 mb-2 opacity-30" />
+              <p className="text-sm">Belum ada data distribusi harian</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Payment Method Breakdown */}
-      {widgetVisibility.paymentMethods && summary?.paymentMethodBreakdown && summary.paymentMethodBreakdown.length > 0 && (
+      {widgetVisibility.paymentMethods && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center mb-4">
             <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
@@ -387,6 +422,7 @@ export default function DashboardPage() {
               Metode Pembayaran
             </h2>
           </div>
+          {summary?.paymentMethodBreakdown?.length > 0 ? (
           <div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {summary.paymentMethodBreakdown.map((method: any) => (
@@ -410,6 +446,12 @@ export default function DashboardPage() {
                 ))}
               </div>
           </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+              <DollarSign className="w-12 h-12 mb-2 opacity-30" />
+              <p className="text-sm">Belum ada data metode pembayaran</p>
+            </div>
+          )}
         </div>
       )}
 
