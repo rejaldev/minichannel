@@ -59,28 +59,18 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
   const effectiveCabangId = cabangId || user?.cabangId;
 
   useEffect(() => {
-    console.log('[History] Mount - cabangId prop:', cabangId, 'user.cabangId:', user?.cabangId, 'effective:', effectiveCabangId);
-    if (effectiveCabangId) {
-      fetchTransactions();
-    } else {
-      console.warn('[History] No cabangId available, fetching all transactions');
-      fetchTransactions();
-    }
+    fetchTransactions();
   }, [effectiveCabangId]);
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      console.log('[History] Fetching transactions for cabangId:', effectiveCabangId);
       const res = await transactionsAPI.getTransactions({
         cabangId: effectiveCabangId || undefined,
       });
-      console.log('[History] API Response:', res);
       
       // Backend returns array directly, not { transactions: [...] }
       const txList = Array.isArray(res.data) ? res.data : (res.data?.transactions || []);
-      
-      console.log('[History] Fetched transactions:', txList.length, 'for cabangId:', effectiveCabangId);
       
       // Check return status for each transaction
       try {
@@ -99,8 +89,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
         });
         
         setTransactions(txWithReturnStatus);
-      } catch (returnError) {
-        console.warn('[History] Could not fetch return status:', returnError);
+      } catch {
         setTransactions(txList);
       }
     } catch (error) {
@@ -169,7 +158,7 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
     try {
       setSubmitting(true);
       
-      const response = await returnsAPI.createReturn({
+      await returnsAPI.createReturn({
         transactionId: selectedTransaction.id,
         cabangId: effectiveCabangId,
         reason: requestReason,
@@ -177,8 +166,6 @@ export default function TransactionHistory({ user, onClose, cabangId }: Props) {
         items: itemsToReturn,
         refundMethod: selectedTransaction.paymentMethod,
       });
-
-      console.log('[History] Return request created:', response.data);
       
       alert('Return request berhasil dikirim!\n\nRequest Anda akan diproses oleh Manager/Owner.');
       

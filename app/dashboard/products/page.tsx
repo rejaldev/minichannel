@@ -749,6 +749,34 @@ export default function ProductsPage() {
         </div>
       ) : (
         <>
+          {/* Select All Header */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 flex items-center justify-between">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedProducts.length === products.length && products.length > 0}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                className="h-5 w-5 text-slate-600 focus:ring-slate-500 border-gray-300 rounded cursor-pointer"
+              />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {selectedProducts.length === products.length && products.length > 0
+                  ? `Semua dipilih (${products.length})`
+                  : selectedProducts.length > 0
+                    ? `${selectedProducts.length} dari ${products.length} dipilih`
+                    : `Pilih Semua (${products.length} produk)`
+                }
+              </span>
+            </label>
+            {selectedProducts.length > 0 && (
+              <button
+                onClick={() => setSelectedProducts([])}
+                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                Batal Pilih
+              </button>
+            )}
+          </div>
+
           {/* Card Grid View */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {products.map((product) => {

@@ -177,8 +177,7 @@ export default function StockOverviewPage() {
     initSocket();
     
     // Subscribe to stock updates
-    const unsubscribe = subscribe('stock:updated', (data: any) => {
-      console.log('Stock updated:', data);
+    const unsubscribe = subscribe('stock:updated', () => {
       fetchData(); // Refresh data when stock changes
     });
     
